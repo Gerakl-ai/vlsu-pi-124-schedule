@@ -1,0 +1,19 @@
+{
+  "name": "ПИ-124 Расписание",
+  "short_name": "ПИ-124",
+  "description": "Личное расписание ПИ-124, ИИТЭ, ВлГУ",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#061622",
+  "theme_color": "#061622",
+  "orientation": "portrait-primary",
+  "lang": "ru",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
