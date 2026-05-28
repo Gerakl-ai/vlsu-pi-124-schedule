@@ -1,6 +1,0 @@
-{
-  "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "vlsu-pi-124-schedule",
-  "compatibility_date": "2026-05-28",
-  "pages_build_output_dir": "./dist"
-}

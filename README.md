@@ -24,3 +24,5 @@ dist
 ```
 
 Проект использует Pages Function `functions/vlsu-api/[[path]].ts` как прокси к API ВлГУ.
+
+Для Cloudflare Pages через GitHub не нужен `wrangler.jsonc`.
