@@ -3,7 +3,6 @@ import {
   Bell,
   BellRing,
   CalendarDays,
-  Check,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -434,16 +433,12 @@ function LessonRow({
           <strong>{lesson.start}</strong>
           <span>{lesson.end}</span>
         </span>
-        <span className="route-dot" aria-hidden="true">
-          {isPast ? <Check size={12} strokeWidth={4} /> : null}
-        </span>
-        <span className="lesson-main">
-          <span className="lesson-title">{lesson.subject}</span>
-          <span className="lesson-place">
-            <MapPin size={16} />
-            {lesson.room || "Аудитория уточняется"}
-            {lesson.kind ? <span>{lesson.kind}</span> : null}
-          </span>
+        <span className="route-dot" aria-hidden="true" />
+        <span className="lesson-title">{lesson.subject}</span>
+        <span className="lesson-place">
+          <MapPin size={16} />
+          {lesson.room || "Аудитория уточняется"}
+          {lesson.kind ? <span>{lesson.kind}</span> : null}
         </span>
         {isCurrent ? <span className="row-chip">Сейчас</span> : <ChevronRight className="row-chevron" size={20} />}
       </button>
