@@ -40,3 +40,23 @@ export interface ReminderSettings {
   minutesBefore: number;
   permission: NotificationPermission | "unsupported";
 }
+
+export type NotificationSupportStatus =
+  | "available"
+  | "permission-needed"
+  | "install-required"
+  | "denied"
+  | "unsupported";
+
+export interface NotificationCapability {
+  status: NotificationSupportStatus;
+  title: string;
+  detail: string;
+  canRequestPermission: boolean;
+  canSendNow: boolean;
+  isStandalone: boolean;
+  isIOS: boolean;
+  hasServiceWorker: boolean;
+  hasPushManager: boolean;
+  hasNotificationApi: boolean;
+}

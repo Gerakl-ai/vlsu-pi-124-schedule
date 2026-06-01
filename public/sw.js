@@ -1,8 +1,27 @@
-const CACHE_NAME = "pi-124-schedule-v1";
+const CACHE_NAME = "pi-124-schedule-v3";
 const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon.svg"];
 
+async function discoverBuildAssets() {
+  try {
+    const response = await fetch("/index.html", { cache: "no-store" });
+    const html = await response.text();
+    const matches = [...html.matchAll(/(?:src|href)="([^"]+)"/g)];
+    return matches
+      .map((match) => match[1])
+      .filter((url) => url.startsWith("/assets/") || url.startsWith("assets/"))
+      .map((url) => (url.startsWith("/") ? url : `/${url}`));
+  } catch {
+    return [];
+  }
+}
+
 self.addEventListener("install", (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const buildAssets = await discoverBuildAssets();
+      await cache.addAll([...APP_SHELL, ...buildAssets]);
+    })
+  );
   self.skipWaiting();
 });
 
@@ -18,17 +37,23 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
+  if (new URL(request.url).pathname.startsWith("/vlsu-api/")) return;
 
   event.respondWith(
     fetch(request)
       .then((response) => {
-        if (new URL(request.url).origin === self.location.origin) {
+        if (response.ok && new URL(request.url).origin === self.location.origin) {
           const clone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)));
         }
         return response;
       })
-      .catch(() => caches.match(request).then((cached) => cached || caches.match("/index.html")))
+      .catch(async () => {
+        const cached = await caches.match(request);
+        if (cached) return cached;
+        if (request.mode === "navigate") return caches.match("/index.html");
+        return new Response("", { status: 504, statusText: "Offline" });
+      })
   );
 });
 

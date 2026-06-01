@@ -8,18 +8,21 @@ import {
   Clock3,
   CloudOff,
   Grid2X2,
+  Info,
   LocateFixed,
   MapPin,
   RefreshCw,
+  Send,
   Settings,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
   Waves
 } from "lucide-react";
-import type { AppTab, ApiStatus, LessonSlot, ReminderSettings, ScheduleState, WeekMode } from "./types";
+import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, lessonAppliesToWeek, loadSchedule } from "./lib/scheduleApi";
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
-import { canUseNotifications, requestNotificationPermission, scheduleNextReminder } from "./lib/reminders";
+import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
   findCurrentAndNext,
   formatUpdatedAt,
@@ -42,16 +45,32 @@ function lessonKeySubject(lesson?: LessonSlot) {
   return lesson?.subject || "";
 }
 
+function formatLessonCount(count: number) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${count} пара`;
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} пары`;
+  return `${count} пар`;
+}
+
+function formatWeekChip(mode: WeekMode) {
+  if (mode === "denominator") return "Знамен.";
+  if (mode === "numerator") return "Числитель";
+  return "Все";
+}
+
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(() => readScheduleCache());
-  const [status, setStatus] = useState<ApiStatus>(() => (readScheduleCache() ? "stale" : "idle"));
+  const [status, setStatus] = useState<ApiStatus>(() => (readScheduleCache() ? "stale" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>("today");
   const [weekOverride, setWeekOverride] = useState<WeekMode | "current">("current");
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
   const [notice, setNotice] = useState("");
+  const [notificationBusy, setNotificationBusy] = useState(false);
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
+  const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
 
   const { todayLessons, current, next } = useMemo(
     () => findCurrentAndNext(schedule?.allLessons ?? [], weekMode),
@@ -64,11 +83,11 @@ export function App() {
   const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : heroFallback?.room ?? "ИИТЭ";
   const heroStart = heroLesson?.start ?? "08:30";
   const heroEnd = heroLesson?.end ?? "10:00";
-  const progress = heroLesson && current ? lessonProgress(heroLesson) : current ? 50 : 0;
+  const progress = heroLesson && current ? lessonProgress(heroLesson) : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson) : 0;
 
   async function refreshSchedule(silent = false) {
-    if (!silent) setStatus("loading");
+    if (!silent || !schedule) setStatus("loading");
     try {
       const loaded = await loadSchedule();
       setSchedule(loaded);
@@ -79,7 +98,8 @@ export function App() {
   }
 
   useEffect(() => {
-    refreshSchedule(true);
+    refreshSchedule(Boolean(schedule));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -88,6 +108,12 @@ export function App() {
   }, [schedule, settings, weekMode]);
 
   async function enableReminders() {
+    const capability = getNotificationCapability(settings);
+    if (capability.status === "install-required" || capability.status === "unsupported" || capability.status === "denied") {
+      setNotice(capability.detail);
+      return;
+    }
+
     const permission = await requestNotificationPermission();
     const nextSettings = {
       ...settings,
@@ -96,7 +122,31 @@ export function App() {
     };
     setSettings(nextSettings);
     writeReminderSettings(nextSettings);
-    setNotice(permission === "granted" ? "Напоминания включены" : "Браузер не дал доступ к уведомлениям");
+    setNotice(permission === "granted" ? "Напоминания включены. Проверь тестовой кнопкой." : "Браузер не дал доступ к уведомлениям.");
+  }
+
+  async function testNotification() {
+    setNotificationBusy(true);
+    try {
+      let permission: ReminderSettings["permission"] = typeof Notification === "undefined" ? "unsupported" : Notification.permission;
+      if (permission === "default") permission = await requestNotificationPermission();
+      const nextSettings = { ...settings, enabled: permission === "granted", permission };
+      setSettings(nextSettings);
+      writeReminderSettings(nextSettings);
+
+      const capability = getNotificationCapability(nextSettings);
+      if (!capability.canSendNow) {
+        setNotice(capability.detail);
+        return;
+      }
+
+      await sendTestNotification();
+      setNotice("Тестовое уведомление отправлено.");
+    } catch {
+      setNotice("Не удалось отправить тест. Проверь разрешения и режим PWA.");
+    } finally {
+      setNotificationBusy(false);
+    }
   }
 
   function updateReminderMinutes(minutesBefore: number) {
@@ -107,11 +157,13 @@ export function App() {
 
   const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
   const displayLessons = todayLessons.length ? todayLessons : (schedule?.allLessons ?? []).filter((lesson) => lessonAppliesToWeek(lesson, weekMode)).slice(0, 5);
+  const isLoading = status === "loading" && !schedule;
 
   return (
     <main className="app-shell">
       <section className="phone-frame" aria-label="ПИ-124 расписание">
         <div className="ambient-grid" />
+        <div className="light-sweep" />
         <Header
           currentWeek={currentWeek}
           status={status}
@@ -123,7 +175,9 @@ export function App() {
           {status === "error" && <ErrorBanner />}
           {status === "stale" && <StaleBanner />}
 
-          {activeTab === "today" && (
+          {isLoading && <SkeletonView />}
+
+          {!isLoading && activeTab === "today" && (
             <TodayView
               heroSubject={heroSubject}
               heroRoom={heroRoom}
@@ -136,10 +190,12 @@ export function App() {
               nextLabel={nextLabel}
               lessons={displayLessons}
               weekMode={weekMode}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
             />
           )}
 
-          {activeTab === "week" && (
+          {!isLoading && activeTab === "week" && (
             <WeekView
               lessons={schedule?.allLessons ?? []}
               weekMode={weekMode}
@@ -148,11 +204,14 @@ export function App() {
             />
           )}
 
-          {activeTab === "settings" && (
+          {!isLoading && activeTab === "settings" && (
             <SettingsView
               settings={settings}
               notice={notice}
+              capability={notificationCapability}
+              busy={notificationBusy}
               onEnable={enableReminders}
+              onTest={testNotification}
               onMinutes={updateReminderMinutes}
               schedule={schedule}
             />
@@ -187,7 +246,7 @@ function Header({ currentWeek, status, refreshedAt, onRefresh }: HeaderProps) {
 
       <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
         <CalendarDays size={18} />
-        <span>{formatWeekMode(currentWeek)}</span>
+        <span>{formatWeekChip(currentWeek)}</span>
         <RefreshCw className={status === "loading" ? "spin" : ""} size={16} />
       </button>
 
@@ -210,7 +269,9 @@ function TodayView({
   next,
   nextLabel,
   lessons,
-  weekMode
+  weekMode,
+  activeTab,
+  setActiveTab
 }: {
   heroSubject: string;
   heroRoom: string;
@@ -223,19 +284,24 @@ function TodayView({
   nextLabel: string;
   lessons: LessonSlot[];
   weekMode: WeekMode;
+  activeTab: AppTab;
+  setActiveTab: (tab: AppTab) => void;
 }) {
+  const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
+
   return (
-    <div className="view-stack">
-      <section className={`hero-card ${heroSubject.length > 32 ? "compact-title" : ""}`}>
+    <div className="view-stack today-view">
+      <section className={`hero-card ${titleClass}`}>
         <div className="hero-geometry" aria-hidden="true" />
+        <div className="hero-route" aria-hidden="true" />
         <div className="status-pill">
           <span className={current ? "live-dot" : "idle-dot"} />
           {current ? "Сейчас" : next ? "Следующая пара" : "День завершён"}
         </div>
         <h2>{heroSubject}</h2>
         <div className="hero-meta">
-          <span><MapPin size={22} /> {heroRoom}</span>
-          <span><Clock3 size={22} /> {heroStart}-{heroEnd}</span>
+          <span><MapPin size={21} /> {heroRoom}</span>
+          <span><Clock3 size={21} /> {heroStart}-{heroEnd}</span>
         </div>
 
         <div className="progress-row" aria-label="Прогресс пары">
@@ -244,37 +310,37 @@ function TodayView({
           </div>
           <div className="progress-copy">
             <strong>{current ? `${remaining} мин осталось` : formatWeekMode(weekMode)}</strong>
-            <span>{lessons.length} пар сегодня</span>
+            <span>{formatLessonCount(lessons.length)} сегодня</span>
           </div>
         </div>
       </section>
 
       {current && (
         <section className="next-card">
-          <div className="next-icon"><Waves size={30} /></div>
+          <div className="next-icon"><Waves size={28} /></div>
           <div>
             <span>Следующая пара</span>
             <strong>{lessonKeySubject(next) || nextLabel}</strong>
             {next?.room && <small><MapPin size={14} /> {next.room}</small>}
           </div>
-          <ChevronRight size={24} />
+          <ChevronRight size={23} />
         </section>
       )}
 
-      <SegmentLabel />
+      <SegmentControl activeTab={activeTab} setActiveTab={setActiveTab} />
       <Timeline lessons={lessons} current={current} next={next} />
     </div>
   );
 }
 
-function SegmentLabel() {
+function SegmentControl({ activeTab, setActiveTab }: { activeTab: AppTab; setActiveTab: (tab: AppTab) => void }) {
   return (
     <div className="segment-card" role="tablist" aria-label="Раздел">
-      <button className="active" type="button">
+      <button className={activeTab === "today" ? "active" : ""} type="button" onClick={() => setActiveTab("today")}>
         <CalendarDays size={18} />
         Сегодня
       </button>
-      <button type="button">
+      <button className={activeTab === "week" ? "active" : ""} type="button" onClick={() => setActiveTab("week")}>
         <Grid2X2 size={18} />
         Неделя
       </button>
@@ -295,16 +361,22 @@ function Timeline({ lessons, current, next }: { lessons: LessonSlot[]; current?:
 
   return (
     <section className="timeline-card">
-      {lessons.map((lesson) => (
-        <LessonRow key={lesson.id} lesson={lesson} isCurrent={lesson.id === current?.id} isNext={lesson.id === next?.id} />
+      {lessons.map((lesson, index) => (
+        <LessonRow
+          key={lesson.id}
+          lesson={lesson}
+          isCurrent={lesson.id === current?.id}
+          isNext={lesson.id === next?.id}
+          index={index}
+        />
       ))}
     </section>
   );
 }
 
-function LessonRow({ lesson, isCurrent, isNext }: { lesson: LessonSlot; isCurrent?: boolean; isNext?: boolean }) {
+function LessonRow({ lesson, isCurrent, isNext, index }: { lesson: LessonSlot; isCurrent?: boolean; isNext?: boolean; index: number }) {
   return (
-    <article className={`lesson-row ${isCurrent ? "current" : ""} ${isNext ? "next" : ""}`}>
+    <article className={`lesson-row ${isCurrent ? "current" : ""} ${isNext ? "next" : ""}`} style={{ animationDelay: `${index * 55}ms` }}>
       <div className="lesson-time">
         <strong>{lesson.start}</strong>
         <span>{lesson.end}</span>
@@ -368,7 +440,7 @@ function WeekView({
             <article className="day-block" key={dayName}>
               <div className="day-title">
                 <h3>{dayName}</h3>
-                <span>{dayLessons.length ? `${dayLessons.length} пар` : "без пар"}</span>
+                <span>{dayLessons.length ? formatLessonCount(dayLessons.length) : "без пар"}</span>
               </div>
               {dayLessons.length ? (
                 dayLessons.map((lesson) => (
@@ -392,35 +464,50 @@ function WeekView({
 function SettingsView({
   settings,
   notice,
+  capability,
+  busy,
   onEnable,
+  onTest,
   onMinutes,
   schedule
 }: {
   settings: ReminderSettings;
   notice: string;
+  capability: NotificationCapability;
+  busy: boolean;
   onEnable: () => void;
+  onTest: () => void;
   onMinutes: (minutes: number) => void;
   schedule: ScheduleState | null;
 }) {
-  const available = settings.permission !== "unsupported";
-
   return (
-    <div className="view-stack">
+    <div className="view-stack settings-view">
       <section className="settings-hero">
         <BellRing size={34} />
         <h2>Напоминания перед парами</h2>
         <p>
-          Локальные уведомления работают, когда браузер разрешает Notifications API и service worker активен.
+          Локальные напоминания планируются в приложении. Для гарантированной фоновой доставки на iOS нужен установленный PWA и серверная Web Push-подписка.
         </p>
       </section>
 
       <section className="settings-panel">
+        <div className={`capability-card ${capability.status}`}>
+          <div>
+            {capability.status === "available" ? <CheckCircle2 size={24} /> : capability.status === "denied" ? <ShieldAlert size={24} /> : <Info size={24} />}
+          </div>
+          <div>
+            <span>Статус уведомлений</span>
+            <strong>{capability.title}</strong>
+            <p>{capability.detail}</p>
+          </div>
+        </div>
+
         <div className="setting-row">
           <div>
-            <span>Статус</span>
-            <strong>{settings.permission === "granted" ? "Включены" : available ? "Нужно разрешение" : "Не поддерживаются"}</strong>
+            <span>Напоминать за</span>
+            <strong>{settings.minutesBefore} минут</strong>
           </div>
-          <button type="button" onClick={onEnable} disabled={!available} className="primary-action">
+          <button type="button" onClick={onEnable} disabled={!capability.canRequestPermission && capability.status !== "available"} className="primary-action">
             <Bell size={18} />
             Включить
           </button>
@@ -439,6 +526,11 @@ function SettingsView({
           ))}
         </div>
 
+        <button type="button" className="test-action" onClick={onTest} disabled={busy || capability.status === "install-required" || capability.status === "unsupported" || capability.status === "denied"}>
+          <Send size={18} />
+          {busy ? "Отправляем..." : "Проверить уведомление"}
+        </button>
+
         <div className="setting-row subtle">
           <div>
             <span>Offline-кэш</span>
@@ -447,7 +539,32 @@ function SettingsView({
           {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
         </div>
 
+        <div className="tech-list" aria-label="Техническая готовность уведомлений">
+          <span>{capability.isStandalone ? "PWA-режим" : "Обычный браузер"}</span>
+          <span>{capability.hasServiceWorker ? "Service Worker" : "Без Service Worker"}</span>
+          <span>{capability.hasPushManager ? "Push API есть" : "Push API нет"}</span>
+        </div>
+
         {notice && <p className="notice">{notice}</p>}
+      </section>
+    </div>
+  );
+}
+
+function SkeletonView() {
+  return (
+    <div className="view-stack" aria-label="Загрузка расписания">
+      <section className="hero-card skeleton-hero">
+        <div className="skeleton-line short" />
+        <div className="skeleton-line title" />
+        <div className="skeleton-line title second" />
+        <div className="skeleton-line meta" />
+        <div className="skeleton-line progress" />
+      </section>
+      <section className="timeline-card skeleton-list">
+        <div className="skeleton-row" />
+        <div className="skeleton-row" />
+        <div className="skeleton-row" />
       </section>
     </div>
   );

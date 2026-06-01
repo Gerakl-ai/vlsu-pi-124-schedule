@@ -1,7 +1,117 @@
-import type { LessonSlot, ReminderSettings, WeekMode } from "../types";
+import type { LessonSlot, NotificationCapability, ReminderSettings, WeekMode } from "../types";
 import { currentDayIndex, minutesFromTime, nowMinutes, selectDayLessons } from "./time";
 
 const REMINDER_TIMER_KEY = "pi124.reminder.timer";
+const NOTIFICATION_TIMEOUT_MS = 1800;
+
+function isIOSDevice() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1) || nav.standalone === true;
+}
+
+export function isStandaloneDisplay() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia?.("(display-mode: standalone)").matches || nav.standalone === true;
+}
+
+export function getNotificationCapability(settings: ReminderSettings): NotificationCapability {
+  const hasNotificationApi = typeof Notification !== "undefined";
+  const hasServiceWorker = "serviceWorker" in navigator;
+  const hasPushManager = "PushManager" in window;
+  const isStandalone = isStandaloneDisplay();
+  const isIOS = isIOSDevice();
+  const permission = hasNotificationApi ? Notification.permission : settings.permission;
+
+  if (!window.isSecureContext) {
+    return {
+      status: "unsupported",
+      title: "Не поддерживается",
+      detail: "Уведомления работают только на HTTPS или localhost.",
+      canRequestPermission: false,
+      canSendNow: false,
+      isStandalone,
+      isIOS,
+      hasServiceWorker,
+      hasPushManager,
+      hasNotificationApi
+    };
+  }
+
+  if (!hasNotificationApi) {
+    return {
+      status: "unsupported",
+      title: "Не поддерживается",
+      detail: "В этом браузере нет Notification API.",
+      canRequestPermission: false,
+      canSendNow: false,
+      isStandalone,
+      isIOS,
+      hasServiceWorker,
+      hasPushManager,
+      hasNotificationApi
+    };
+  }
+
+  if (permission === "denied") {
+    return {
+      status: "denied",
+      title: "Разрешение отклонено",
+      detail: "Разреши уведомления в настройках браузера или iOS, затем вернись в приложение.",
+      canRequestPermission: false,
+      canSendNow: false,
+      isStandalone,
+      isIOS,
+      hasServiceWorker,
+      hasPushManager,
+      hasNotificationApi
+    };
+  }
+
+  if (isIOS && !isStandalone) {
+    return {
+      status: "install-required",
+      title: "Нужно установить на экран Домой",
+      detail: "На iPhone уведомления для веб-приложений доступны только у установленной PWA.",
+      canRequestPermission: false,
+      canSendNow: false,
+      isStandalone,
+      isIOS,
+      hasServiceWorker,
+      hasPushManager,
+      hasNotificationApi
+    };
+  }
+
+  if (permission !== "granted") {
+    return {
+      status: "permission-needed",
+      title: "Нужно разрешение",
+      detail: "Нажми “Включить”, чтобы браузер показал системный запрос.",
+      canRequestPermission: true,
+      canSendNow: false,
+      isStandalone,
+      isIOS,
+      hasServiceWorker,
+      hasPushManager,
+      hasNotificationApi
+    };
+  }
+
+  return {
+    status: "available",
+    title: "Доступно",
+    detail: hasServiceWorker
+      ? "Тестовые уведомления и напоминания работают, пока приложение запущено. Для гарантированной доставки в фоне нужен Web Push с сервером."
+      : "Можно отправлять только уведомления активной вкладки; service worker недоступен.",
+    canRequestPermission: false,
+    canSendNow: true,
+    isStandalone,
+    isIOS,
+    hasServiceWorker,
+    hasPushManager,
+    hasNotificationApi
+  };
+}
 
 export async function requestNotificationPermission() {
   if (typeof Notification === "undefined") return "unsupported" as const;
@@ -9,8 +119,56 @@ export async function requestNotificationPermission() {
   return Notification.requestPermission();
 }
 
+function timeout<T>(promise: Promise<T>, fallback: T) {
+  return Promise.race([
+    promise,
+    new Promise<T>((resolve) => window.setTimeout(() => resolve(fallback), NOTIFICATION_TIMEOUT_MS))
+  ]);
+}
+
+async function activeServiceWorkerRegistration() {
+  if (!("serviceWorker" in navigator)) return null;
+  const ready = await timeout(navigator.serviceWorker.ready, null);
+  return ready;
+}
+
+export async function sendLocalNotification(title: string, body: string, tag = "pi124-test") {
+  if (typeof Notification === "undefined") {
+    throw new Error("Notification API is not available");
+  }
+  if (Notification.permission !== "granted") {
+    throw new Error("Notification permission is not granted");
+  }
+
+  const registration = await activeServiceWorkerRegistration();
+  if (registration) {
+    await registration.showNotification(title, {
+      body,
+      tag,
+      icon: "/icons/icon.svg",
+      badge: "/icons/icon.svg",
+      data: { url: "/" }
+    });
+    return;
+  }
+
+  new Notification(title, {
+    body,
+    tag,
+    icon: "/icons/icon.svg"
+  });
+}
+
+export async function sendTestNotification() {
+  await sendLocalNotification(
+    "ПИ-124: тест уведомлений",
+    "Если ты видишь это сообщение, локальные уведомления работают.",
+    "pi124-test-now"
+  );
+}
+
 export function canUseNotifications(settings: ReminderSettings) {
-  return settings.enabled && settings.permission === "granted" && "serviceWorker" in navigator;
+  return settings.enabled && getNotificationCapability(settings).canSendNow;
 }
 
 export function scheduleNextReminder(
@@ -33,24 +191,11 @@ export function scheduleNextReminder(
 
   const delayMs = (minutesFromTime(target.start) - settings.minutesBefore - nowMinutes()) * 60 * 1000;
   const timer = window.setTimeout(() => {
-    navigator.serviceWorker.ready.then((registration) => {
-      if (registration.active) {
-        registration.active.postMessage({
-          type: "schedule-notification",
-          payload: {
-            title: `Через ${settings.minutesBefore} мин: ${target.subject}`,
-            body: `${target.start}-${target.end}${target.room ? `, ${target.room}` : ""}`,
-            tag: `pi124-${target.id}`
-          }
-        });
-      } else {
-        registration.showNotification(`Через ${settings.minutesBefore} мин: ${target.subject}`, {
-          body: `${target.start}-${target.end}${target.room ? `, ${target.room}` : ""}`,
-          tag: `pi124-${target.id}`,
-          icon: "/icons/icon.svg"
-        });
-      }
-    });
+    sendLocalNotification(
+      `Через ${settings.minutesBefore} мин: ${target.subject}`,
+      `${target.start}-${target.end}${target.room ? `, ${target.room}` : ""}`,
+      `pi124-${target.id}`
+    ).catch(() => onScheduled?.("Не удалось отправить напоминание. Проверь разрешения браузера."));
   }, Math.max(0, delayMs));
 
   window.sessionStorage.setItem(REMINDER_TIMER_KEY, String(timer));
