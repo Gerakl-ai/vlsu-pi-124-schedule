@@ -38,6 +38,21 @@ export function minutesUntilEnd(lesson: LessonSlot, date = new Date()) {
   return Math.max(0, minutesFromTime(lesson.end) - nowMinutes(date));
 }
 
+export function minutesUntilStart(lesson: LessonSlot, date = new Date()) {
+  return Math.max(0, minutesFromTime(lesson.start) - nowMinutes(date));
+}
+
+export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
+  const today = currentDayIndex(date);
+  if (lesson.dayIndex < today) return "past";
+  if (lesson.dayIndex > today) return "future";
+
+  const now = nowMinutes(date);
+  if (now >= minutesFromTime(lesson.end)) return "past";
+  if (now >= minutesFromTime(lesson.start)) return "current";
+  return "future";
+}
+
 export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMode: WeekMode) {
   return lessons
     .filter((lesson) => lesson.dayIndex === dayIndex && lessonAppliesToWeek(lesson, weekMode))

@@ -148,7 +148,7 @@ button {
 .week-toolbar h2,
 .settings-hero h2,
 .hero-card h2,
-.lesson-main h3,
+.lesson-title,
 .day-title h3 {
   margin: 0;
 }
@@ -295,12 +295,13 @@ button {
 
 .hero-geometry {
   position: absolute;
-  right: -28px;
-  top: 38px;
-  width: 172px;
-  height: 172px;
+  right: 24px;
+  top: 48px;
+  width: 152px;
+  height: 152px;
   border: 2px solid rgba(37, 228, 232, 0.6);
   border-radius: 50%;
+  opacity: 0.72;
   box-shadow:
     inset 0 0 0 24px rgba(37, 228, 232, 0.04),
     0 0 60px rgba(37, 228, 232, 0.27);
@@ -413,7 +414,7 @@ button {
 
 .hero-meta span,
 .next-card small,
-.lesson-main p {
+.lesson-place {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -564,32 +565,92 @@ button {
 .timeline-card {
   position: relative;
   padding: 0 15px;
+  --timeline-left: 99px;
+  --timeline-top: 78px;
 }
 
 .timeline-card::before {
   content: "";
   position: absolute;
-  left: 90px;
-  top: 24px;
+  left: var(--timeline-left);
+  top: var(--timeline-top);
   bottom: 24px;
   width: 2px;
   background: linear-gradient(var(--coral), var(--cyan), rgba(159, 179, 196, 0.38));
   box-shadow: 0 0 18px rgba(37, 228, 232, 0.38);
 }
 
+.timeline-summary {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0 10px;
+  border-bottom: 1px solid rgba(159, 179, 196, 0.15);
+}
+
+.timeline-summary div {
+  min-width: 86px;
+}
+
+.timeline-summary span {
+  display: block;
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.timeline-summary strong {
+  display: block;
+  margin-top: 3px;
+  font-size: 14px;
+  line-height: 1.15;
+}
+
+.timeline-summary p {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
 .lesson-row {
   position: relative;
-  display: grid;
-  grid-template-columns: 64px 18px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 11px;
-  min-height: 94px;
   border-bottom: 1px solid rgba(159, 179, 196, 0.15);
   animation: row-in 0.5s cubic-bezier(.2,.8,.2,1) both;
 }
 
 .lesson-row:last-child {
   border-bottom: 0;
+}
+
+.lesson-row-button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 64px 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 94px;
+  padding: 0;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.lesson-row-button:hover,
+.lesson-row.expanded .lesson-row-button {
+  background: linear-gradient(90deg, rgba(37, 228, 232, 0.08), transparent 82%);
+}
+
+.lesson-row-button:active {
+  transform: scale(0.992);
 }
 
 .lesson-time strong,
@@ -611,40 +672,62 @@ button {
   color: var(--cyan);
 }
 
+.past .lesson-time strong,
+.past .lesson-title {
+  color: #c7d7e1;
+}
+
+.past .lesson-time span,
+.past .lesson-place {
+  color: rgba(159, 179, 196, 0.76);
+}
+
 .route-dot {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   width: 18px;
   height: 18px;
+  display: grid;
+  place-items: center;
   border: 3px solid rgba(159, 179, 196, 0.8);
   border-radius: 50%;
-  background: var(--bg);
+  color: var(--bg-deep);
+  background: linear-gradient(180deg, rgba(8, 28, 43, 1), rgba(4, 15, 25, 1));
+  box-shadow: 0 0 0 8px rgba(7, 24, 38, 0.98);
 }
 
 .current .route-dot {
   border-color: white;
   background: var(--coral);
-  box-shadow: 0 0 24px rgba(255, 109, 96, 0.78);
+  box-shadow: 0 0 0 8px rgba(7, 24, 38, 0.98), 0 0 24px rgba(255, 109, 96, 0.78);
 }
 
 .next .route-dot {
   border-color: var(--cyan);
   background: rgba(37, 228, 232, 0.65);
-  box-shadow: 0 0 20px rgba(37, 228, 232, 0.58);
+  box-shadow: 0 0 0 8px rgba(7, 24, 38, 0.98), 0 0 20px rgba(37, 228, 232, 0.58);
+}
+
+.past .route-dot {
+  border-color: rgba(112, 240, 182, 0.82);
+  color: #04111b;
+  background: linear-gradient(135deg, rgba(112, 240, 182, 0.95), rgba(37, 228, 232, 0.72));
+  box-shadow: 0 0 0 8px rgba(7, 24, 38, 0.98), 0 0 18px rgba(112, 240, 182, 0.25);
 }
 
 .lesson-main {
   min-width: 0;
 }
 
-.lesson-main h3 {
+.lesson-title {
+  display: block;
   overflow-wrap: break-word;
   font-size: 17px;
   line-height: 1.2;
   font-weight: 900;
 }
 
-.lesson-main p {
+.lesson-place {
   flex-wrap: wrap;
   margin: 8px 0 0;
   color: var(--muted);
@@ -653,7 +736,7 @@ button {
   font-weight: 800;
 }
 
-.lesson-main p span {
+.lesson-place span {
   color: var(--cyan);
 }
 
@@ -664,6 +747,34 @@ button {
 
 .row-chevron {
   color: var(--cyan);
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.lesson-row.expanded .row-chevron {
+  transform: rotate(90deg);
+}
+
+.lesson-detail {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: -8px 0 16px 93px;
+  padding-right: 12px;
+}
+
+.lesson-detail span {
+  max-width: 100%;
+  padding: 6px 8px;
+  color: #d8eef7;
+  border: 1px solid rgba(159, 179, 196, 0.16);
+  border-radius: 7px;
+  background: rgba(255,255,255,0.035);
+  overflow-wrap: break-word;
+  font-size: 11px;
+  line-height: 1.25;
+  font-weight: 800;
 }
 
 .week-toolbar,
@@ -1025,6 +1136,7 @@ button {
 
 .bottom-nav button:focus-visible,
 .week-chip:focus-visible,
+.lesson-row-button:focus-visible,
 .segment-card button:focus-visible,
 .mode-switch button:focus-visible,
 .primary-action:focus-visible,
@@ -1146,17 +1258,24 @@ button {
   }
 
   .hero-geometry {
-    opacity: 0.52;
-    right: -52px;
+    width: 138px;
+    height: 138px;
+    opacity: 0.5;
+    right: 22px;
+    top: 54px;
   }
 
-  .timeline-card::before {
-    left: 82px;
+  .timeline-card {
+    --timeline-left: 91px;
   }
 
-  .lesson-row {
+  .lesson-row-button {
     grid-template-columns: 56px 18px minmax(0, 1fr) auto;
     min-height: 88px;
+  }
+
+  .lesson-detail {
+    margin-left: 85px;
   }
 
   .lesson-time strong,
@@ -1165,7 +1284,7 @@ button {
   }
 }
 
-@media (max-height: 860px) and (max-width: 560px) {
+@media (max-height: 900px) and (max-width: 560px) {
   .topbar {
     padding-top: calc(14px + var(--safe-top));
     padding-bottom: 8px;
@@ -1209,6 +1328,22 @@ button {
 
   .progress-row {
     margin-top: 14px;
+  }
+
+  .timeline-summary {
+    padding: 10px 0 8px;
+  }
+
+  .timeline-card {
+    --timeline-top: 68px;
+  }
+
+  .lesson-row-button {
+    min-height: 84px;
+  }
+
+  .lesson-title {
+    font-size: 16px;
   }
 
   .segment-card button,

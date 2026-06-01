@@ -3,6 +3,7 @@ import {
   Bell,
   BellRing,
   CalendarDays,
+  Check,
   CheckCircle2,
   ChevronRight,
   Clock3,
@@ -20,7 +21,7 @@ import {
   Waves
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
-import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, lessonAppliesToWeek, loadSchedule } from "./lib/scheduleApi";
+import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule } from "./lib/scheduleApi";
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -28,7 +29,9 @@ import {
   formatUpdatedAt,
   formatWeekMode,
   lessonProgress,
+  lessonTimingState,
   minutesUntilEnd,
+  minutesUntilStart,
   selectDayLessons
 } from "./lib/time";
 
@@ -67,14 +70,16 @@ export function App() {
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
   const [notice, setNotice] = useState("");
   const [notificationBusy, setNotificationBusy] = useState(false);
+  const [nowTick, setNowTick] = useState(() => Date.now());
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
+  const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
 
   const { todayLessons, current, next } = useMemo(
-    () => findCurrentAndNext(schedule?.allLessons ?? [], weekMode),
-    [schedule?.allLessons, weekMode]
+    () => findCurrentAndNext(schedule?.allLessons ?? [], weekMode, nowDate),
+    [schedule?.allLessons, weekMode, nowDate]
   );
 
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
@@ -83,8 +88,8 @@ export function App() {
   const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : heroFallback?.room ?? "ИИТЭ";
   const heroStart = heroLesson?.start ?? "08:30";
   const heroEnd = heroLesson?.end ?? "10:00";
-  const progress = heroLesson && current ? lessonProgress(heroLesson) : 0;
-  const remaining = heroLesson && current ? minutesUntilEnd(heroLesson) : 0;
+  const progress = heroLesson && current ? lessonProgress(heroLesson, nowDate) : 0;
+  const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
 
   async function refreshSchedule(silent = false) {
     if (!silent || !schedule) setStatus("loading");
@@ -100,6 +105,11 @@ export function App() {
   useEffect(() => {
     refreshSchedule(Boolean(schedule));
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNowTick(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
   }, []);
 
   useEffect(() => {
@@ -156,7 +166,7 @@ export function App() {
   }
 
   const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
-  const displayLessons = todayLessons.length ? todayLessons : (schedule?.allLessons ?? []).filter((lesson) => lessonAppliesToWeek(lesson, weekMode)).slice(0, 5);
+  const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
 
   return (
@@ -190,6 +200,7 @@ export function App() {
               nextLabel={nextLabel}
               lessons={displayLessons}
               weekMode={weekMode}
+              now={nowDate}
               activeTab={activeTab}
               setActiveTab={setActiveTab}
             />
@@ -270,6 +281,7 @@ function TodayView({
   nextLabel,
   lessons,
   weekMode,
+  now,
   activeTab,
   setActiveTab
 }: {
@@ -284,6 +296,7 @@ function TodayView({
   nextLabel: string;
   lessons: LessonSlot[];
   weekMode: WeekMode;
+  now: Date;
   activeTab: AppTab;
   setActiveTab: (tab: AppTab) => void;
 }) {
@@ -328,7 +341,7 @@ function TodayView({
       )}
 
       <SegmentControl activeTab={activeTab} setActiveTab={setActiveTab} />
-      <Timeline lessons={lessons} current={current} next={next} />
+      <Timeline lessons={lessons} current={current} next={next} now={now} />
     </div>
   );
 }
@@ -348,7 +361,9 @@ function SegmentControl({ activeTab, setActiveTab }: { activeTab: AppTab; setAct
   );
 }
 
-function Timeline({ lessons, current, next }: { lessons: LessonSlot[]; current?: LessonSlot; next?: LessonSlot }) {
+function Timeline({ lessons, current, next, now }: { lessons: LessonSlot[]; current?: LessonSlot; next?: LessonSlot; now: Date }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
   if (!lessons.length) {
     return (
       <section className="empty-state">
@@ -359,14 +374,32 @@ function Timeline({ lessons, current, next }: { lessons: LessonSlot[]; current?:
     );
   }
 
+  const completedCount = lessons.filter((lesson) => lessonTimingState(lesson, now) === "past").length;
+  const focusLesson = current ?? next;
+  const focusCopy = current
+    ? `${minutesUntilEnd(current, now)} мин до конца`
+    : next
+      ? `${minutesUntilStart(next, now)} мин до начала`
+      : "Все пары на сегодня пройдены";
+
   return (
     <section className="timeline-card">
+      <div className="timeline-summary">
+        <div>
+          <span>Пульс дня</span>
+          <strong>{completedCount}/{lessons.length} пройдено</strong>
+        </div>
+        <p>{focusLesson ? `${focusCopy}: ${lessonKeySubject(focusLesson)}` : focusCopy}</p>
+      </div>
       {lessons.map((lesson, index) => (
         <LessonRow
           key={lesson.id}
           lesson={lesson}
           isCurrent={lesson.id === current?.id}
           isNext={lesson.id === next?.id}
+          isPast={lessonTimingState(lesson, now) === "past"}
+          isExpanded={expandedId === lesson.id}
+          onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
           index={index}
         />
       ))}
@@ -374,23 +407,53 @@ function Timeline({ lessons, current, next }: { lessons: LessonSlot[]; current?:
   );
 }
 
-function LessonRow({ lesson, isCurrent, isNext, index }: { lesson: LessonSlot; isCurrent?: boolean; isNext?: boolean; index: number }) {
+function LessonRow({
+  lesson,
+  isCurrent,
+  isNext,
+  isPast,
+  isExpanded,
+  onToggle,
+  index
+}: {
+  lesson: LessonSlot;
+  isCurrent?: boolean;
+  isNext?: boolean;
+  isPast?: boolean;
+  isExpanded: boolean;
+  onToggle: () => void;
+  index: number;
+}) {
   return (
-    <article className={`lesson-row ${isCurrent ? "current" : ""} ${isNext ? "next" : ""}`} style={{ animationDelay: `${index * 55}ms` }}>
-      <div className="lesson-time">
-        <strong>{lesson.start}</strong>
-        <span>{lesson.end}</span>
-      </div>
-      <div className="route-dot" />
-      <div className="lesson-main">
-        <h3>{lesson.subject}</h3>
-        <p>
-          <MapPin size={16} />
-          {lesson.room || "Аудитория уточняется"}
-          {lesson.kind ? <span>{lesson.kind}</span> : null}
-        </p>
-      </div>
-      {isCurrent ? <span className="row-chip">Сейчас</span> : <ChevronRight className="row-chevron" size={20} />}
+    <article
+      className={`lesson-row ${isCurrent ? "current" : ""} ${isNext ? "next" : ""} ${isPast ? "past" : ""} ${isExpanded ? "expanded" : ""}`}
+      style={{ animationDelay: `${index * 55}ms` }}
+    >
+      <button type="button" className="lesson-row-button" onClick={onToggle} aria-expanded={isExpanded}>
+        <span className="lesson-time">
+          <strong>{lesson.start}</strong>
+          <span>{lesson.end}</span>
+        </span>
+        <span className="route-dot" aria-hidden="true">
+          {isPast ? <Check size={12} strokeWidth={4} /> : null}
+        </span>
+        <span className="lesson-main">
+          <span className="lesson-title">{lesson.subject}</span>
+          <span className="lesson-place">
+            <MapPin size={16} />
+            {lesson.room || "Аудитория уточняется"}
+            {lesson.kind ? <span>{lesson.kind}</span> : null}
+          </span>
+        </span>
+        {isCurrent ? <span className="row-chip">Сейчас</span> : <ChevronRight className="row-chevron" size={20} />}
+      </button>
+      {isExpanded && (
+        <div className="lesson-detail">
+          <span>{formatWeekMode(lesson.weekMode)}</span>
+          {lesson.teacher && <span>{lesson.teacher}</span>}
+          <span>{lesson.rawText}</span>
+        </div>
+      )}
     </article>
   );
 }
