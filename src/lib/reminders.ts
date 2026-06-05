@@ -145,8 +145,8 @@ export async function sendLocalNotification(title: string, body: string, tag = "
     await registration.showNotification(title, {
       body,
       tag,
-      icon: "/icons/icon.svg",
-      badge: "/icons/icon.svg",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
       data: { url: "/" }
     });
     return;
@@ -155,7 +155,7 @@ export async function sendLocalNotification(title: string, body: string, tag = "
   new Notification(title, {
     body,
     tag,
-    icon: "/icons/icon.svg"
+    icon: "/icons/icon-192.png"
   });
 }
 

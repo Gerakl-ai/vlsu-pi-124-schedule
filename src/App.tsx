@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BellRing,
@@ -24,18 +24,43 @@ import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule } from "./lib/
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
+  currentDayIndex,
   findCurrentAndNext,
   formatUpdatedAt,
   formatWeekMode,
   lessonProgress,
   lessonTimingState,
+  minutesFromTime,
   minutesUntilEnd,
   minutesUntilStart,
+  nowMinutes,
   selectDayLessons
 } from "./lib/time";
 
 const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
+const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
+const BRAND_MARK = "/images/brand-mark.png";
+const HERO_VISUAL = "/images/hero-schedule.png";
+const NOTIFICATION_VISUAL = "/images/notifications-visual.png";
+const FRESH_CACHE_MS = 6 * 60 * 60 * 1000;
+const MIN_STUDY_WINDOW = 20;
+
+type HeroMode = "current" | "next" | "done" | "free" | "loading";
+
+interface StudyWindow {
+  after: string;
+  before: string;
+  minutes: number;
+}
+
+interface NextStudyDay {
+  dayIndex: number;
+  dayName: string;
+  isToday: boolean;
+  firstLesson: LessonSlot;
+  lessons: LessonSlot[];
+}
 
 function parseCurrentInfoLesson(text: string) {
   const match = text.match(/"(.+?)"\s*\((.+?)\)/);
@@ -61,13 +86,72 @@ function formatWeekChip(mode: WeekMode) {
   return "Все";
 }
 
+function formatDuration(minutes: number) {
+  if (minutes <= 0) return "сейчас";
+  if (minutes < 60) return `${minutes} мин`;
+  const hours = Math.floor(minutes / 60);
+  const leftMinutes = minutes % 60;
+  return leftMinutes ? `${hours} ч ${leftMinutes} мин` : `${hours} ч`;
+}
+
+function buildStudyWindows(lessons: LessonSlot[]): StudyWindow[] {
+  return lessons
+    .slice(0, -1)
+    .map((lesson, index) => {
+      const nextLesson = lessons[index + 1];
+      const minutes = minutesFromTime(nextLesson.start) - minutesFromTime(lesson.end);
+      return minutes >= MIN_STUDY_WINDOW ? { after: lesson.end, before: nextLesson.start, minutes } : null;
+    })
+    .filter(Boolean) as StudyWindow[];
+}
+
+function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date): NextStudyDay | null {
+  const today = currentDayIndex(date);
+  const currentMinutes = nowMinutes(date);
+
+  for (let offset = 0; offset < 6; offset += 1) {
+    const dayIndex = ((today - 1 + offset) % 6) + 1;
+    const dayLessons = selectDayLessons(lessons, dayIndex, weekMode);
+    if (!dayLessons.length) continue;
+
+    if (dayIndex === today) {
+      const upcoming = dayLessons.find((lesson) => minutesFromTime(lesson.start) > currentMinutes);
+      if (!upcoming) continue;
+      return {
+        dayIndex,
+        dayName: WEEK_DAYS[dayIndex - 1],
+        firstLesson: upcoming,
+        isToday: true,
+        lessons: dayLessons
+      };
+    }
+
+    return {
+      dayIndex,
+      dayName: WEEK_DAYS[dayIndex - 1],
+      firstLesson: dayLessons[0],
+      isToday: false,
+      lessons: dayLessons
+    };
+  }
+
+  return null;
+}
+
+function isFreshScheduleCache(state: ScheduleState | null) {
+  if (!state?.fetchedAt) return false;
+  const fetchedAt = new Date(state.fetchedAt).getTime();
+  return Number.isFinite(fetchedAt) && Date.now() - fetchedAt < FRESH_CACHE_MS;
+}
+
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(() => readScheduleCache());
-  const [status, setStatus] = useState<ApiStatus>(() => (readScheduleCache() ? "stale" : "loading"));
+  const [status, setStatus] = useState<ApiStatus>(() => (readScheduleCache() ? "ready" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>("today");
   const [weekOverride, setWeekOverride] = useState<WeekMode | "current">("current");
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
   const [notice, setNotice] = useState("");
+  const noticeLockUntilRef = useRef(0);
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
 
@@ -83,12 +167,20 @@ export function App() {
 
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
-  const heroSubject = heroLesson?.subject ?? heroFallback?.subject ?? "Загрузка расписания";
-  const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : heroFallback?.room ?? "ИИТЭ";
-  const heroStart = heroLesson?.start ?? "08:30";
-  const heroEnd = heroLesson?.end ?? "10:00";
-  const progress = heroLesson && current ? lessonProgress(heroLesson, nowDate) : 0;
+  const dayCompleted = !heroLesson && todayLessons.length > 0;
+  const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
+  const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
+  const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? "Сегодня без пар" : heroFallback?.subject ?? "Загрузка расписания");
+  const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : dayCompleted || freeStudyDay ? "ПИ-124" : heroFallback?.room ?? "ИИТЭ";
+  const heroStart = heroLesson?.start ?? todayLessons[0]?.start ?? "08:30";
+  const heroEnd = heroLesson?.end ?? todayLessons[todayLessons.length - 1]?.end ?? "10:00";
+  const heroTime = freeStudyDay ? "без пар" : `${heroStart}-${heroEnd}`;
+  const completedCount = todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length;
+  const dayProgress = todayLessons.length ? Math.round((completedCount / todayLessons.length) * 100) : 100;
+  const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
+  const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, weekMode, nowDate) : null;
+  const studyWindows = buildStudyWindows(todayLessons);
 
   async function refreshSchedule(silent = false) {
     if (!silent || !schedule) setStatus("loading");
@@ -97,8 +189,13 @@ export function App() {
       setSchedule(loaded);
       setStatus("ready");
     } catch {
-      setStatus(schedule ? "stale" : "error");
+      setStatus(isFreshScheduleCache(schedule) ? "ready" : schedule ? "stale" : "error");
     }
+  }
+
+  function showNotice(message: string, lockMs = 0) {
+    if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
+    setNotice(message);
   }
 
   useEffect(() => {
@@ -113,13 +210,16 @@ export function App() {
 
   useEffect(() => {
     if (!schedule) return;
-    scheduleNextReminder(schedule.allLessons, weekMode, settings, setNotice);
+    scheduleNextReminder(schedule.allLessons, weekMode, settings, (message) => {
+      if (Date.now() < noticeLockUntilRef.current) return;
+      setNotice(message);
+    });
   }, [schedule, settings, weekMode]);
 
   async function enableReminders() {
     const capability = getNotificationCapability(settings);
     if (capability.status === "install-required" || capability.status === "unsupported" || capability.status === "denied") {
-      setNotice(capability.detail);
+      showNotice(capability.detail, 3500);
       return;
     }
 
@@ -131,7 +231,7 @@ export function App() {
     };
     setSettings(nextSettings);
     writeReminderSettings(nextSettings);
-    setNotice(permission === "granted" ? "Напоминания включены. Проверь тестовой кнопкой." : "Браузер не дал доступ к уведомлениям.");
+    showNotice(permission === "granted" ? "Напоминания включены. Проверь тестовой кнопкой." : "Браузер не дал доступ к уведомлениям.", 3500);
   }
 
   async function testNotification() {
@@ -145,14 +245,14 @@ export function App() {
 
       const capability = getNotificationCapability(nextSettings);
       if (!capability.canSendNow) {
-        setNotice(capability.detail);
+        showNotice(capability.detail, 3500);
         return;
       }
 
       await sendTestNotification();
-      setNotice("Тестовое уведомление отправлено.");
+      showNotice("Тестовое уведомление отправлено.", 3500);
     } catch {
-      setNotice("Не удалось отправить тест. Проверь разрешения и режим PWA.");
+      showNotice("Не удалось отправить тест. Проверь разрешения и режим PWA.", 3500);
     } finally {
       setNotificationBusy(false);
     }
@@ -167,6 +267,7 @@ export function App() {
   const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
+  const hasLoadedLessons = Boolean(schedule?.allLessons.length);
 
   return (
     <main className="app-shell">
@@ -190,12 +291,18 @@ export function App() {
             <TodayView
               heroSubject={heroSubject}
               heroRoom={heroRoom}
-              heroStart={heroStart}
-              heroEnd={heroEnd}
+              heroTime={heroTime}
+              heroMode={heroMode}
               progress={progress}
               remaining={remaining}
+              completedCount={completedCount}
+              dayProgress={dayProgress}
+              dayCompleted={dayCompleted}
+              hasLoadedLessons={hasLoadedLessons}
               current={current}
               next={next}
+              nextStudyDay={nextStudyDay}
+              studyWindows={studyWindows}
               nextLabel={nextLabel}
               lessons={displayLessons}
               weekMode={weekMode}
@@ -245,9 +352,7 @@ function Header({ currentWeek, status, refreshedAt, onRefresh }: HeaderProps) {
   return (
     <header className="topbar">
       <div className="brand">
-        <div className="brand-mark" aria-hidden="true">
-          <span />
-        </div>
+        <img className="brand-mark" src={BRAND_MARK} alt="" aria-hidden="true" />
         <div>
           <h1>{GROUP_NAME}</h1>
           <p>ИИТЭ</p>
@@ -271,12 +376,18 @@ function Header({ currentWeek, status, refreshedAt, onRefresh }: HeaderProps) {
 function TodayView({
   heroSubject,
   heroRoom,
-  heroStart,
-  heroEnd,
+  heroTime,
+  heroMode,
   progress,
   remaining,
+  completedCount,
+  dayProgress,
+  dayCompleted,
+  hasLoadedLessons,
   current,
   next,
+  nextStudyDay,
+  studyWindows,
   nextLabel,
   lessons,
   weekMode,
@@ -286,12 +397,18 @@ function TodayView({
 }: {
   heroSubject: string;
   heroRoom: string;
-  heroStart: string;
-  heroEnd: string;
+  heroTime: string;
+  heroMode: HeroMode;
   progress: number;
   remaining: number;
+  completedCount: number;
+  dayProgress: number;
+  dayCompleted: boolean;
+  hasLoadedLessons: boolean;
   current?: LessonSlot;
   next?: LessonSlot;
+  nextStudyDay: NextStudyDay | null;
+  studyWindows: StudyWindow[];
   nextLabel: string;
   lessons: LessonSlot[];
   weekMode: WeekMode;
@@ -300,20 +417,57 @@ function TodayView({
   setActiveTab: (tab: AppTab) => void;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
+  const minutesToNext = next ? minutesUntilStart(next, now) : 0;
+  const sigilLabel = heroMode === "current" ? "Пара" : heroMode === "next" ? "Старт" : heroMode === "done" ? "Готово" : heroMode === "free" ? "Свободно" : "ВлГУ";
+  const sigilValue = heroMode === "current"
+    ? `${progress}%`
+    : heroMode === "next"
+      ? formatDuration(minutesToNext)
+      : heroMode === "done"
+        ? `${completedCount}/${lessons.length}`
+        : heroMode === "free"
+          ? "0 пар"
+          : "...";
+  const statusCopy = heroMode === "current"
+    ? "Пара идёт"
+    : heroMode === "next"
+      ? `До пары ${formatDuration(minutesToNext)}`
+      : heroMode === "done"
+        ? "День закрыт"
+        : heroMode === "free"
+          ? "Свободный день"
+          : hasLoadedLessons ? "Данные готовы" : "Ждём ВлГУ";
+  const progressTitle = heroMode === "current"
+    ? `${remaining} мин осталось`
+    : heroMode === "next"
+      ? `Старт в ${next?.start}`
+      : heroMode === "done"
+        ? "День закрыт"
+        : heroMode === "free"
+          ? "День свободен"
+          : formatWeekMode(weekMode);
+  const progressCaption = heroMode === "free" && nextStudyDay
+    ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
+    : heroMode === "done"
+      ? `${completedCount} из ${lessons.length} пройдено`
+      : `${formatLessonCount(lessons.length)} сегодня`;
 
   return (
     <div className="view-stack today-view">
-      <section className={`hero-card ${titleClass}`}>
-        <div className="hero-geometry" aria-hidden="true" />
-        <div className="hero-route" aria-hidden="true" />
+      <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""}`}>
+        <img className="hero-visual" src={HERO_VISUAL} alt="" aria-hidden="true" />
+        <div className="hero-sigil" aria-hidden="true">
+          <span>{sigilLabel}</span>
+          <strong>{sigilValue}</strong>
+        </div>
         <div className="status-pill">
           <span className={current ? "live-dot" : "idle-dot"} />
-          {current ? "Сейчас" : next ? "Следующая пара" : "День завершён"}
+          {statusCopy}
         </div>
         <h2>{heroSubject}</h2>
         <div className="hero-meta">
           <span><MapPin size={21} /> {heroRoom}</span>
-          <span><Clock3 size={21} /> {heroStart}-{heroEnd}</span>
+          <span><Clock3 size={21} /> {heroTime}</span>
         </div>
 
         <div className="progress-row" aria-label="Прогресс пары">
@@ -321,11 +475,19 @@ function TodayView({
             <span style={{ width: `${progress}%` }} />
           </div>
           <div className="progress-copy">
-            <strong>{current ? `${remaining} мин осталось` : formatWeekMode(weekMode)}</strong>
-            <span>{formatLessonCount(lessons.length)} сегодня</span>
+            <strong>{progressTitle}</strong>
+            <span>{progressCaption}</span>
           </div>
         </div>
       </section>
+
+      <DayCommandStrip
+        completedCount={completedCount}
+        dayProgress={dayProgress}
+        lessons={lessons}
+        nextStudyDay={nextStudyDay}
+        studyWindows={studyWindows}
+      />
 
       {current && (
         <section className="next-card">
@@ -342,6 +504,47 @@ function TodayView({
       <SegmentControl activeTab={activeTab} setActiveTab={setActiveTab} />
       <Timeline lessons={lessons} current={current} next={next} now={now} />
     </div>
+  );
+}
+
+function DayCommandStrip({
+  completedCount,
+  dayProgress,
+  lessons,
+  nextStudyDay,
+  studyWindows
+}: {
+  completedCount: number;
+  dayProgress: number;
+  lessons: LessonSlot[];
+  nextStudyDay: NextStudyDay | null;
+  studyWindows: StudyWindow[];
+}) {
+  const nearestWindow = studyWindows[0];
+  const nextShortDay = nextStudyDay ? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
+  const nextStudyLabel = nextStudyDay
+    ? `${nextStudyDay.isToday ? "Сегодня" : nextShortDay}, ${nextStudyDay.firstLesson.start}`
+    : "Нет данных";
+  const windowCopy = lessons.length ? "пары идут подряд" : "можно отдыхать";
+
+  return (
+    <section className="command-strip" aria-label="Быстрая сводка дня">
+      <div className="command-item">
+        <span><Waves size={16} /> Пульс</span>
+        <strong>{lessons.length ? `${completedCount}/${lessons.length}` : "0 пар"}</strong>
+        <small>{lessons.length ? `${dayProgress}% дня закрыто` : "учебный день свободен"}</small>
+      </div>
+      <div className="command-item accent">
+        <span><Clock3 size={16} /> Окна</span>
+        <strong>{nearestWindow ? formatDuration(nearestWindow.minutes) : "Без окон"}</strong>
+        <small>{nearestWindow ? `${nearestWindow.after}-${nearestWindow.before}` : windowCopy}</small>
+      </div>
+      <div className="command-item">
+        <span><CalendarDays size={16} /> Дальше</span>
+        <strong>{nextStudyLabel}</strong>
+        <small>{nextStudyDay ? lessonKeySubject(nextStudyDay.firstLesson) : "после обновления"}</small>
+      </div>
+    </section>
   );
 }
 
@@ -423,12 +626,26 @@ function LessonRow({
   onToggle: () => void;
   index: number;
 }) {
+  const rowRef = useRef<HTMLElement>(null);
+
+  function handleToggle() {
+    const willExpand = !isExpanded;
+    onToggle();
+    if (!willExpand) return;
+
+    window.setTimeout(() => {
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      rowRef.current?.scrollIntoView({ block: "center", behavior });
+    }, 70);
+  }
+
   return (
     <article
+      ref={rowRef}
       className={`lesson-row ${isCurrent ? "current" : ""} ${isNext ? "next" : ""} ${isPast ? "past" : ""} ${isExpanded ? "expanded" : ""}`}
       style={{ animationDelay: `${index * 55}ms` }}
     >
-      <button type="button" className="lesson-row-button" onClick={onToggle} aria-expanded={isExpanded}>
+      <button type="button" className="lesson-row-button" onClick={handleToggle} aria-expanded={isExpanded}>
         <span className="lesson-time">
           <strong>{lesson.start}</strong>
           <span>{lesson.end}</span>
@@ -473,6 +690,8 @@ function WeekView({
         </div>
         <ShieldCheck size={34} />
       </section>
+
+      <WeekMap lessons={lessons} weekMode={weekMode} />
 
       <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
         {[
@@ -519,6 +738,45 @@ function WeekView({
   );
 }
 
+function WeekMap({ lessons, weekMode }: { lessons: LessonSlot[]; weekMode: WeekMode }) {
+  const today = currentDayIndex();
+  const dayLoads = WEEK_DAYS.map((dayName, index) => {
+    const dayLessons = selectDayLessons(lessons, index + 1, weekMode);
+    return {
+      count: dayLessons.length,
+      dayIndex: index + 1,
+      dayName,
+      firstLesson: dayLessons[0],
+      short: WEEK_DAYS_SHORT[index]
+    };
+  });
+  const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
+
+  return (
+    <section className="week-map" aria-label="Карта нагрузки недели">
+      <div className="week-map-head">
+        <span>Карта нагрузки</span>
+        <strong>{formatLessonCount(dayLoads.reduce((sum, day) => sum + day.count, 0))}</strong>
+      </div>
+      <div className="week-map-grid">
+        {dayLoads.map((day) => (
+          <div
+            className={`week-map-day ${day.dayIndex === today ? "active" : ""} ${day.count ? "" : "empty"}`}
+            key={day.dayName}
+            title={`${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
+          >
+            <div className="week-map-bar" aria-hidden="true">
+              <span style={{ height: day.count ? `${Math.max(18, Math.round((day.count / maxCount) * 100))}%` : "8%" }} />
+            </div>
+            <strong>{day.short}</strong>
+            <small>{day.count ? `${day.count} · ${day.firstLesson?.start}` : "0"}</small>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function SettingsView({
   settings,
   notice,
@@ -541,11 +799,14 @@ function SettingsView({
   return (
     <div className="view-stack settings-view">
       <section className="settings-hero">
-        <BellRing size={34} />
-        <h2>Напоминания перед парами</h2>
-        <p>
-          Локальные напоминания планируются в приложении. Для гарантированной фоновой доставки на iOS нужен установленный PWA и серверная Web Push-подписка.
-        </p>
+        <div>
+          <BellRing size={34} />
+          <h2>Напоминания перед парами</h2>
+          <p>
+            Локальные напоминания планируются в приложении. Для гарантированной фоновой доставки на iOS нужен установленный PWA и серверная Web Push-подписка.
+          </p>
+        </div>
+        <img src={NOTIFICATION_VISUAL} alt="" aria-hidden="true" />
       </section>
 
       <section className="settings-panel">
@@ -651,7 +912,7 @@ function ErrorBanner() {
   return (
     <div className="banner error">
       <CloudOff size={18} />
-      Не получилось загрузить расписание ВлГУ. Проверь сеть и попробуй обновить.
+      ВлГУ временно не ответил. Можно обновить ещё раз или открыть сохранённые данные.
     </div>
   );
 }
@@ -660,7 +921,7 @@ function StaleBanner() {
   return (
     <div className="banner">
       <LocateFixed size={18} />
-      Показан сохранённый кэш, свежие данные подтянутся автоматически.
+      Нет связи с ВлГУ. Показываю сохранённое расписание.
     </div>
   );
 }

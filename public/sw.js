@@ -1,5 +1,16 @@
-const CACHE_NAME = "pi-124-schedule-v3";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/icons/icon.svg"];
+const CACHE_NAME = "pi-124-schedule-v12";
+const APP_SHELL = [
+  "/",
+  "/index.html",
+  "/manifest.webmanifest",
+  "/icons/icon.svg",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/images/brand-mark.png",
+  "/images/pi-124-avatar-source.png",
+  "/images/hero-schedule.png",
+  "/images/notifications-visual.png"
+];
 
 async function discoverBuildAssets() {
   try {
@@ -37,22 +48,47 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
-  if (new URL(request.url).pathname.startsWith("/vlsu-api/")) return;
+  const url = new URL(request.url);
+  if (url.pathname.startsWith("/vlsu-api/")) return;
+  if (url.origin !== self.location.origin) return;
+
+  if (request.mode === "navigate") {
+    event.respondWith(
+      caches.match("/index.html").then((cached) => {
+        const fresh = fetch(request).then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", clone)));
+          }
+          return response;
+        });
+
+        event.waitUntil(fresh.catch(() => undefined));
+        return cached || fresh.catch(() => caches.match("/index.html"));
+      })
+    );
+    return;
+  }
 
   event.respondWith(
-    fetch(request)
-      .then((response) => {
-        if (response.ok && new URL(request.url).origin === self.location.origin) {
-          const clone = response.clone();
-          event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(request, clone)));
-        }
-        return response;
-      })
-      .catch(async () => {
-        const cached = await caches.match(request);
-        if (cached) return cached;
-        if (request.mode === "navigate") return caches.match("/index.html");
-        return new Response("", { status: 504, statusText: "Offline" });
+    caches.match(request).then(async (requestMatch) => {
+      const cached = requestMatch || await caches.match(url.pathname);
+      const fresh = fetch(request)
+        .then((response) => {
+          if (response.ok) {
+            const clone = response.clone();
+            event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(url.pathname, clone)));
+          }
+          return response;
+        })
+        .catch(() => cached || new Response("", { status: 504, statusText: "Offline" }));
+
+      if (cached) {
+        event.waitUntil(fresh.catch(() => undefined));
+        return cached;
+      }
+
+      return fresh;
       })
   );
 });
@@ -64,8 +100,8 @@ self.addEventListener("message", (event) => {
     self.registration.showNotification(title, {
       body,
       tag,
-      icon: "/icons/icon.svg",
-      badge: "/icons/icon.svg",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
       data: { url: "/" }
     })
   );

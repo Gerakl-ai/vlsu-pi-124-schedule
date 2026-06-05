@@ -1,0 +1,264 @@
+{
+  "errors": [],
+  "results": [
+    {
+      "label": "393x852 today",
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 290,
+      "heroVisualRightOverflow": 61,
+      "titleOverlapsVisualStart": 245,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "393x852 expanded",
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 290,
+      "heroVisualRightOverflow": 61,
+      "titleOverlapsVisualStart": 245,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "393x852 week",
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "activeNav": "Неделя",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 7,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "393x852 settings",
+      "viewport": {
+        "width": 393,
+        "height": 852
+      },
+      "activeNav": "Настройки",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 10,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "393x852 notification-test-button",
+      "disabled": false
+    },
+    {
+      "label": "402x874 today",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 289,
+      "heroVisualRightOverflow": 65,
+      "titleOverlapsVisualStart": 243,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "402x874 expanded",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 288,
+      "heroVisualRightOverflow": 65,
+      "titleOverlapsVisualStart": 243,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "402x874 week",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "activeNav": "Неделя",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 7,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "402x874 settings",
+      "viewport": {
+        "width": 402,
+        "height": 874
+      },
+      "activeNav": "Настройки",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 10,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "402x874 notification-test-button",
+      "disabled": false
+    },
+    {
+      "label": "430x932 today",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 338,
+      "heroVisualRightOverflow": 55,
+      "titleOverlapsVisualStart": 241,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "430x932 expanded",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 338,
+      "heroVisualRightOverflow": 55,
+      "titleOverlapsVisualStart": 240,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "430x932 week",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "activeNav": "Неделя",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 7,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "430x932 settings",
+      "viewport": {
+        "width": 430,
+        "height": 932
+      },
+      "activeNav": "Настройки",
+      "navFullyVisible": true,
+      "navBottomGap": 0,
+      "contentAboveNav": true,
+      "heroInViewport": false,
+      "heroVisualVisibleWidth": null,
+      "heroVisualRightOverflow": null,
+      "titleOverlapsVisualStart": null,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 10,
+      "horizontalOverflow": false
+    },
+    {
+      "label": "430x932 notification-test-button",
+      "disabled": false
+    },
+    {
+      "label": "1280x900 desktop",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "activeNav": "Сегодня",
+      "navFullyVisible": true,
+      "navBottomGap": 25,
+      "contentAboveNav": true,
+      "heroInViewport": true,
+      "heroVisualVisibleWidth": 339,
+      "heroVisualRightOverflow": 51,
+      "titleOverlapsVisualStart": 242,
+      "imagesLoaded": true,
+      "expandedClear": true,
+      "buttonCount": 8,
+      "horizontalOverflow": false
+    }
+  ]
+}
