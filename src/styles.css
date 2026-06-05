@@ -393,8 +393,12 @@ button {
 }
 
 .hero-card.mode-free .hero-sigil {
-  border-color: rgba(112, 240, 182, 0.42);
-  box-shadow: 0 16px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.14), 0 0 30px rgba(112, 240, 182, 0.14);
+  border-color: rgba(112, 240, 182, 0.34);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.075), transparent 36%),
+    linear-gradient(145deg, rgba(10, 44, 61, 0.54), rgba(2, 13, 23, 0.6));
+  box-shadow: 0 14px 30px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 24px rgba(112, 240, 182, 0.1);
+  backdrop-filter: blur(10px);
 }
 
 .hero-card.mode-free .hero-sigil span,
@@ -1148,9 +1152,7 @@ button {
 }
 
 .settings-hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 104px;
-  align-items: center;
+  display: block;
   overflow: hidden;
 }
 
@@ -1160,14 +1162,6 @@ button {
   font-size: 14px;
   line-height: 1.45;
   font-weight: 750;
-}
-
-.settings-hero img {
-  width: 122px;
-  height: 100px;
-  object-fit: contain;
-  transform: translateX(8px);
-  filter: drop-shadow(0 20px 34px rgba(0,0,0,0.24));
 }
 
 .settings-panel {
@@ -1418,8 +1412,8 @@ button {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  min-height: calc(78px + var(--safe-bottom));
-  padding: 9px 16px max(6px, calc(var(--safe-bottom) - 18px));
+  min-height: calc(76px + min(var(--safe-bottom), 12px));
+  padding: 8px 16px max(5px, calc(var(--safe-bottom) - 24px));
   border-top: 1px solid rgba(92, 217, 235, 0.24);
   background:
     linear-gradient(180deg, rgba(37, 228, 232, 0.13), transparent 42%),
@@ -1433,7 +1427,7 @@ button {
   place-items: center;
   align-content: center;
   gap: 5px;
-  transform: translateY(2px);
+  transform: translateY(4px);
   min-width: 0;
   color: var(--muted);
   font-size: 12px;
@@ -1441,7 +1435,7 @@ button {
 }
 
 .bottom-nav button:active {
-  transform: translateY(2px) scale(0.97);
+  transform: translateY(4px) scale(0.97);
 }
 
 .bottom-nav button.active {
@@ -1728,9 +1722,9 @@ button {
   }
 
   .bottom-nav {
-    min-height: calc(72px + var(--safe-bottom));
-    padding-top: 7px;
-    padding-bottom: max(4px, calc(var(--safe-bottom) - 18px));
+    min-height: calc(68px + min(var(--safe-bottom), 10px));
+    padding-top: 6px;
+    padding-bottom: max(4px, calc(var(--safe-bottom) - 25px));
   }
 }
 

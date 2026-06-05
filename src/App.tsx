@@ -42,7 +42,6 @@ const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
 const BRAND_MARK = "/images/brand-mark.png";
 const HERO_VISUAL = "/images/hero-schedule.png";
-const NOTIFICATION_VISUAL = "/images/notifications-visual.png";
 const FRESH_CACHE_MS = 6 * 60 * 60 * 1000;
 const MIN_STUDY_WINDOW = 20;
 
@@ -806,7 +805,6 @@ function SettingsView({
             Локальные напоминания планируются в приложении. Для гарантированной фоновой доставки на iOS нужен установленный PWA и серверная Web Push-подписка.
           </p>
         </div>
-        <img src={NOTIFICATION_VISUAL} alt="" aria-hidden="true" />
       </section>
 
       <section className="settings-panel">
