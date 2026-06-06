@@ -1,4 +1,4 @@
-const CACHE_NAME = "pi-124-schedule-v13";
+const CACHE_NAME = "pi-124-schedule-v14";
 const APP_SHELL = [
   "/",
   "/index.html",

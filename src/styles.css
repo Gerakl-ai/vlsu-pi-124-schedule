@@ -1412,8 +1412,9 @@ button {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  min-height: calc(76px + min(var(--safe-bottom), 12px));
-  padding: 8px 16px max(5px, calc(var(--safe-bottom) - 24px));
+  height: 74px;
+  min-height: 74px;
+  padding: 6px 16px 4px;
   border-top: 1px solid rgba(92, 217, 235, 0.24);
   background:
     linear-gradient(180deg, rgba(37, 228, 232, 0.13), transparent 42%),
@@ -1427,7 +1428,7 @@ button {
   place-items: center;
   align-content: center;
   gap: 5px;
-  transform: translateY(4px);
+  transform: translateY(1px);
   min-width: 0;
   color: var(--muted);
   font-size: 12px;
@@ -1435,7 +1436,7 @@ button {
 }
 
 .bottom-nav button:active {
-  transform: translateY(4px) scale(0.97);
+  transform: translateY(1px) scale(0.97);
 }
 
 .bottom-nav button.active {
@@ -1722,9 +1723,10 @@ button {
   }
 
   .bottom-nav {
-    min-height: calc(68px + min(var(--safe-bottom), 10px));
+    height: 70px;
+    min-height: 70px;
     padding-top: 6px;
-    padding-bottom: max(4px, calc(var(--safe-bottom) - 25px));
+    padding-bottom: 4px;
   }
 }
 
