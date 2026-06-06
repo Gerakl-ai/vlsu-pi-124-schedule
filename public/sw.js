@@ -1,4 +1,4 @@
-const CACHE_NAME = "pi-124-schedule-v14";
+const CACHE_NAME = "pi-124-schedule-v15";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -62,8 +62,7 @@ self.addEventListener("fetch", (event) => {
           return response;
         });
 
-        event.waitUntil(fresh.catch(() => undefined));
-        return cached || fresh.catch(() => caches.match("/index.html"));
+        return fresh.catch(() => cached || caches.match("/index.html"));
       })
     );
     return;
