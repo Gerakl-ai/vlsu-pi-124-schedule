@@ -1,0 +1,510 @@
+[
+  {
+    "label": "402x874",
+    "metrics": {
+      "windowInnerHeight": 874,
+      "visualViewportHeight": 874,
+      "documentClientHeight": 874,
+      "bodyClientHeight": 874,
+      "cssSafeBottom": "0px",
+      "cssNavBarHeight": "70px",
+      "cssNavTotalHeight": "calc(70px + 0px)",
+      "appShell": {
+        "top": 0,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 874,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "fixed",
+        "display": "grid",
+        "flexBasis": "auto",
+        "gridRows": "874px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 874,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "flex",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 804,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 696,
+        "paddingTop": "6px",
+        "paddingBottom": "18px",
+        "position": "relative",
+        "display": "block",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "bottomNav": {
+        "top": 804,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 70,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "grid",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px"
+      },
+      "buttons": [
+        {
+          "index": 0,
+          "text": "Сегодня",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "width": 123.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 1,
+          "text": "Неделя",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "width": 123.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 2,
+          "text": "Настройки",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "width": 123.34,
+          "disabled": false,
+          "pointerEvents": "auto"
+        }
+      ],
+      "navBottomToViewportBottom": 0,
+      "lowestButtonBottomToNavBottom": 0,
+      "contentScrollOverflows": true,
+      "contentScrollHeight": 802,
+      "contentClientHeight": 696,
+      "pageScrollHeight": 874,
+      "pageClientHeight": 874,
+      "elementAtViewportBottom": {
+        "tag": "BUTTON",
+        "className": "",
+        "text": "Неделя"
+      }
+    },
+    "clickable": [
+      {
+        "text": "Сегодня",
+        "active": true
+      },
+      {
+        "text": "Неделя",
+        "active": true
+      },
+      {
+        "text": "Настройки",
+        "active": true
+      }
+    ],
+    "consoleMessages": []
+  },
+  {
+    "label": "430x932",
+    "metrics": {
+      "windowInnerHeight": 932,
+      "visualViewportHeight": 932,
+      "documentClientHeight": 932,
+      "bodyClientHeight": 932,
+      "cssSafeBottom": "0px",
+      "cssNavBarHeight": "70px",
+      "cssNavTotalHeight": "calc(70px + 0px)",
+      "appShell": {
+        "top": 0,
+        "bottom": 932,
+        "left": 0,
+        "right": 430,
+        "width": 430,
+        "height": 932,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "fixed",
+        "display": "grid",
+        "flexBasis": "auto",
+        "gridRows": "932px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 932,
+        "left": 0,
+        "right": 430,
+        "width": 430,
+        "height": 932,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "flex",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "contentScroll": {
+        "top": 117.28,
+        "bottom": 862,
+        "left": 0,
+        "right": 430,
+        "width": 430,
+        "height": 744.72,
+        "paddingTop": "8px",
+        "paddingBottom": "18px",
+        "position": "relative",
+        "display": "block",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "bottomNav": {
+        "top": 862,
+        "bottom": 932,
+        "left": 0,
+        "right": 430,
+        "width": 430,
+        "height": 70,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "grid",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px"
+      },
+      "buttons": [
+        {
+          "index": 0,
+          "text": "Сегодня",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "width": 132.66,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 1,
+          "text": "Неделя",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "width": 132.67,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 2,
+          "text": "Настройки",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "width": 132.67,
+          "disabled": false,
+          "pointerEvents": "auto"
+        }
+      ],
+      "navBottomToViewportBottom": 0,
+      "lowestButtonBottomToNavBottom": 0,
+      "contentScrollOverflows": true,
+      "contentScrollHeight": 923,
+      "contentClientHeight": 745,
+      "pageScrollHeight": 932,
+      "pageClientHeight": 932,
+      "elementAtViewportBottom": {
+        "tag": "BUTTON",
+        "className": "",
+        "text": "Неделя"
+      }
+    },
+    "clickable": [
+      {
+        "text": "Сегодня",
+        "active": true
+      },
+      {
+        "text": "Неделя",
+        "active": true
+      },
+      {
+        "text": "Настройки",
+        "active": true
+      }
+    ],
+    "consoleMessages": []
+  },
+  {
+    "label": "393x852",
+    "metrics": {
+      "windowInnerHeight": 852,
+      "visualViewportHeight": 852,
+      "documentClientHeight": 852,
+      "bodyClientHeight": 852,
+      "cssSafeBottom": "0px",
+      "cssNavBarHeight": "70px",
+      "cssNavTotalHeight": "calc(70px + 0px)",
+      "appShell": {
+        "top": 0,
+        "bottom": 852,
+        "left": 0,
+        "right": 393,
+        "width": 393,
+        "height": 852,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "fixed",
+        "display": "grid",
+        "flexBasis": "auto",
+        "gridRows": "852px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 852,
+        "left": 0,
+        "right": 393,
+        "width": 393,
+        "height": 852,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "flex",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 782,
+        "left": 0,
+        "right": 393,
+        "width": 393,
+        "height": 674,
+        "paddingTop": "6px",
+        "paddingBottom": "18px",
+        "position": "relative",
+        "display": "block",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "bottomNav": {
+        "top": 782,
+        "bottom": 852,
+        "left": 0,
+        "right": 393,
+        "width": 393,
+        "height": 70,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "grid",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px"
+      },
+      "buttons": [
+        {
+          "index": 0,
+          "text": "Сегодня",
+          "top": 782,
+          "bottom": 852,
+          "height": 70,
+          "width": 120.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 1,
+          "text": "Неделя",
+          "top": 782,
+          "bottom": 852,
+          "height": 70,
+          "width": 120.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 2,
+          "text": "Настройки",
+          "top": 782,
+          "bottom": 852,
+          "height": 70,
+          "width": 120.34,
+          "disabled": false,
+          "pointerEvents": "auto"
+        }
+      ],
+      "navBottomToViewportBottom": 0,
+      "lowestButtonBottomToNavBottom": 0,
+      "contentScrollOverflows": true,
+      "contentScrollHeight": 821,
+      "contentClientHeight": 674,
+      "pageScrollHeight": 852,
+      "pageClientHeight": 852,
+      "elementAtViewportBottom": {
+        "tag": "BUTTON",
+        "className": "",
+        "text": "Неделя"
+      }
+    },
+    "clickable": [
+      {
+        "text": "Сегодня",
+        "active": true
+      },
+      {
+        "text": "Неделя",
+        "active": true
+      },
+      {
+        "text": "Настройки",
+        "active": true
+      }
+    ],
+    "consoleMessages": []
+  },
+  {
+    "label": "402x874-safe34",
+    "metrics": {
+      "windowInnerHeight": 874,
+      "visualViewportHeight": 874,
+      "documentClientHeight": 874,
+      "bodyClientHeight": 874,
+      "cssSafeBottom": "34px",
+      "cssNavBarHeight": "70px",
+      "cssNavTotalHeight": "calc(70px + 34px)",
+      "appShell": {
+        "top": 0,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 874,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "fixed",
+        "display": "grid",
+        "flexBasis": "auto",
+        "gridRows": "874px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 874,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "flex",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 770,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 662,
+        "paddingTop": "6px",
+        "paddingBottom": "18px",
+        "position": "relative",
+        "display": "block",
+        "flexBasis": "auto",
+        "gridRows": "none"
+      },
+      "bottomNav": {
+        "top": 770,
+        "bottom": 874,
+        "left": 0,
+        "right": 402,
+        "width": 402,
+        "height": 104,
+        "paddingTop": "0px",
+        "paddingBottom": "0px",
+        "position": "relative",
+        "display": "grid",
+        "flexBasis": "104px",
+        "gridRows": "70px 34px"
+      },
+      "buttons": [
+        {
+          "index": 0,
+          "text": "Сегодня",
+          "top": 770,
+          "bottom": 840,
+          "height": 70,
+          "width": 123.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 1,
+          "text": "Неделя",
+          "top": 770,
+          "bottom": 840,
+          "height": 70,
+          "width": 123.33,
+          "disabled": false,
+          "pointerEvents": "auto"
+        },
+        {
+          "index": 2,
+          "text": "Настройки",
+          "top": 770,
+          "bottom": 840,
+          "height": 70,
+          "width": 123.34,
+          "disabled": false,
+          "pointerEvents": "auto"
+        }
+      ],
+      "navBottomToViewportBottom": 0,
+      "lowestButtonBottomToNavBottom": 34,
+      "contentScrollOverflows": true,
+      "contentScrollHeight": 802,
+      "contentClientHeight": 662,
+      "pageScrollHeight": 874,
+      "pageClientHeight": 874,
+      "elementAtViewportBottom": {
+        "tag": "NAV",
+        "className": "bottom-nav",
+        "text": "СегодняНеделяНастройки"
+      }
+    },
+    "clickable": [
+      {
+        "text": "Сегодня",
+        "active": true
+      },
+      {
+        "text": "Неделя",
+        "active": true
+      },
+      {
+        "text": "Настройки",
+        "active": true
+      }
+    ],
+    "consoleMessages": []
+  }
+]
