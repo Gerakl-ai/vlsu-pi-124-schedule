@@ -17,6 +17,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --nav-bar-height: 70px;
   --nav-total-height: calc(var(--nav-bar-height) + var(--safe-bottom));
+  --app-viewport-height: 100dvh;
   --shadow: 0 26px 80px rgba(0, 8, 18, 0.58);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -33,14 +34,15 @@ body,
 #root {
   width: 100%;
   min-width: 320px;
-  height: 100%;
-  min-height: 100%;
+  height: var(--app-viewport-height);
+  min-height: var(--app-viewport-height);
   margin: 0;
+  overflow: hidden;
 }
 
 body {
   overflow: hidden;
-  height: 100%;
+  height: var(--app-viewport-height);
   background:
     radial-gradient(760px 540px at 50% -16%, rgba(37, 228, 232, 0.18), transparent 64%),
     linear-gradient(132deg, rgba(21, 144, 255, 0.16), transparent 36%),
@@ -56,9 +58,10 @@ button {
 
 .app-shell {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: var(--app-viewport-height);
   min-height: 0;
   display: grid;
   place-items: center;
@@ -69,7 +72,7 @@ button {
 .phone-frame {
   position: relative;
   width: min(100%, 430px);
-  height: min(932px, calc(100% - 48px));
+  height: min(932px, calc(var(--app-viewport-height) - 48px));
   min-height: 640px;
   display: flex;
   flex-direction: column;
@@ -1532,7 +1535,7 @@ button {
 
   .phone-frame {
     width: 100%;
-    height: 100%;
+    height: var(--app-viewport-height);
     min-height: 0;
     border: 0;
     border-radius: 0;

@@ -18,6 +18,7 @@
         color-scheme: dark;
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --app-viewport-height: 100dvh;
       }
 
       html,
@@ -25,12 +26,15 @@
       #root {
         width: 100%;
         min-width: 320px;
-        min-height: 100%;
+        height: var(--app-viewport-height);
+        min-height: var(--app-viewport-height);
         margin: 0;
+        overflow: hidden;
       }
 
       body {
         overflow: hidden;
+        height: var(--app-viewport-height);
         background:
           radial-gradient(420px 360px at 78% 10%, rgba(37, 228, 232, 0.2), transparent 64%),
           linear-gradient(180deg, #061724, #020b12);
