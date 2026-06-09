@@ -8,6 +8,10 @@ export interface LessonSlot {
   id: string;
   dayIndex: number;
   dayName: string;
+  date?: string;
+  dateLabel?: string;
+  scheduleKind?: "classes" | "exam";
+  isConsultation?: boolean;
   pairIndex: number;
   start: string;
   end: string;

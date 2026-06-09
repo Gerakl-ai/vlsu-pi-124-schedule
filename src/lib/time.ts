@@ -16,6 +16,29 @@ export function currentDayIndex(date = new Date()) {
   return day === 0 ? 7 : day;
 }
 
+export function dateKeyFromDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+export function addDays(date: Date, days: number) {
+  const next = new Date(date);
+  next.setHours(0, 0, 0, 0);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+export function dateForWeekDay(dayIndex: number, baseDate = new Date()) {
+  const monday = addDays(baseDate, 1 - currentDayIndex(baseDate));
+  return addDays(monday, dayIndex - 1);
+}
+
+export function hasDatedLessons(lessons: LessonSlot[]) {
+  return lessons.some((lesson) => Boolean(lesson.date));
+}
+
 export function minutesFromTime(value: string) {
   const [hours, minutes] = value.split(":").map(Number);
   return hours * 60 + minutes;
@@ -43,9 +66,15 @@ export function minutesUntilStart(lesson: LessonSlot, date = new Date()) {
 }
 
 export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
+  if (lesson.date) {
+    const todayKey = dateKeyFromDate(date);
+    if (lesson.date < todayKey) return "past";
+    if (lesson.date > todayKey) return "future";
+  }
+
   const today = currentDayIndex(date);
-  if (lesson.dayIndex < today) return "past";
-  if (lesson.dayIndex > today) return "future";
+  if (!lesson.date && lesson.dayIndex < today) return "past";
+  if (!lesson.date && lesson.dayIndex > today) return "future";
 
   const now = nowMinutes(date);
   if (now >= minutesFromTime(lesson.end)) return "past";
@@ -53,14 +82,19 @@ export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
   return "future";
 }
 
-export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMode: WeekMode) {
+export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMode: WeekMode, date = new Date()) {
+  const targetDate = dateKeyFromDate(date);
   return lessons
-    .filter((lesson) => lesson.dayIndex === dayIndex && lessonAppliesToWeek(lesson, weekMode))
-    .sort((a, b) => a.pairIndex - b.pairIndex || a.subject.localeCompare(b.subject, "ru"));
+    .filter((lesson) => {
+      if (!lessonAppliesToWeek(lesson, weekMode)) return false;
+      if (lesson.date) return lesson.date === targetDate;
+      return lesson.dayIndex === dayIndex;
+    })
+    .sort((a, b) => a.start.localeCompare(b.start) || a.subject.localeCompare(b.subject, "ru"));
 }
 
 export function findCurrentAndNext(lessons: LessonSlot[], weekMode: WeekMode, date = new Date()) {
-  const todayLessons = selectDayLessons(lessons, currentDayIndex(date), weekMode);
+  const todayLessons = selectDayLessons(lessons, currentDayIndex(date), weekMode, date);
   const now = nowMinutes(date);
   const current = todayLessons.find((lesson) => minutesFromTime(lesson.start) <= now && now < minutesFromTime(lesson.end));
   const next = todayLessons.find((lesson) => minutesFromTime(lesson.start) > now);

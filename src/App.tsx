@@ -25,9 +25,13 @@ import { readReminderSettings, readScheduleCache, writeReminderSettings } from "
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
   currentDayIndex,
+  addDays,
+  dateForWeekDay,
+  dateKeyFromDate,
   findCurrentAndNext,
   formatUpdatedAt,
   formatWeekMode,
+  hasDatedLessons,
   lessonProgress,
   lessonTimingState,
   minutesFromTime,
@@ -105,20 +109,23 @@ function buildStudyWindows(lessons: LessonSlot[]): StudyWindow[] {
 }
 
 function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date): NextStudyDay | null {
+  const isDated = hasDatedLessons(lessons);
   const today = currentDayIndex(date);
   const currentMinutes = nowMinutes(date);
+  const maxOffset = isDated ? 90 : 6;
 
-  for (let offset = 0; offset < 6; offset += 1) {
-    const dayIndex = ((today - 1 + offset) % 6) + 1;
-    const dayLessons = selectDayLessons(lessons, dayIndex, weekMode);
+  for (let offset = 0; offset < maxOffset; offset += 1) {
+    const targetDate = addDays(date, offset);
+    const dayIndex = isDated ? currentDayIndex(targetDate) : ((today - 1 + offset) % 6) + 1;
+    const dayLessons = selectDayLessons(lessons, dayIndex, weekMode, targetDate);
     if (!dayLessons.length) continue;
 
-    if (dayIndex === today) {
+    if (offset === 0) {
       const upcoming = dayLessons.find((lesson) => minutesFromTime(lesson.start) > currentMinutes);
       if (!upcoming) continue;
       return {
         dayIndex,
-        dayName: WEEK_DAYS[dayIndex - 1],
+        dayName: upcoming.dateLabel ?? WEEK_DAYS[dayIndex - 1],
         firstLesson: upcoming,
         isToday: true,
         lessons: dayLessons
@@ -127,7 +134,7 @@ function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date)
 
     return {
       dayIndex,
-      dayName: WEEK_DAYS[dayIndex - 1],
+      dayName: dayLessons[0].dateLabel ?? WEEK_DAYS[dayIndex - 1],
       firstLesson: dayLessons[0],
       isToday: false,
       lessons: dayLessons
@@ -180,6 +187,7 @@ export function App() {
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, weekMode, nowDate) : null;
   const studyWindows = buildStudyWindows(todayLessons);
+  const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
   async function refreshSchedule(silent = false) {
     if (!silent || !schedule) setStatus("loading");
@@ -275,6 +283,7 @@ export function App() {
         <div className="light-sweep" />
         <Header
           currentWeek={currentWeek}
+          isSessionSchedule={isSessionSchedule}
           status={status}
           refreshedAt={schedule?.fetchedAt}
           onRefresh={() => refreshSchedule()}
@@ -342,12 +351,13 @@ export function App() {
 
 interface HeaderProps {
   currentWeek: WeekMode;
+  isSessionSchedule: boolean;
   status: ApiStatus;
   refreshedAt?: string;
   onRefresh: () => void;
 }
 
-function Header({ currentWeek, status, refreshedAt, onRefresh }: HeaderProps) {
+function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh }: HeaderProps) {
   return (
     <header className="topbar">
       <div className="brand">
@@ -360,7 +370,7 @@ function Header({ currentWeek, status, refreshedAt, onRefresh }: HeaderProps) {
 
       <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
         <CalendarDays size={18} />
-        <span>{formatWeekChip(currentWeek)}</span>
+        <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
         <RefreshCw className={status === "loading" ? "spin" : ""} size={16} />
       </button>
 
@@ -520,7 +530,7 @@ function DayCommandStrip({
   studyWindows: StudyWindow[];
 }) {
   const nearestWindow = studyWindows[0];
-  const nextShortDay = nextStudyDay ? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
+  const nextShortDay = nextStudyDay ? nextStudyDay.firstLesson.dateLabel ?? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
   const nextStudyLabel = nextStudyDay
     ? `${nextStudyDay.isToday ? "Сегодня" : nextShortDay}, ${nextStudyDay.firstLesson.start}`
     : "Нет данных";
@@ -680,6 +690,10 @@ function WeekView({
   weekOverride: WeekMode | "current";
   setWeekOverride: (mode: WeekMode | "current") => void;
 }) {
+  if (hasDatedLessons(lessons)) {
+    return <SessionScheduleView lessons={lessons} />;
+  }
+
   return (
     <div className="view-stack">
       <section className="week-toolbar">
@@ -711,7 +725,8 @@ function WeekView({
 
       <section className="week-list">
         {WEEK_DAYS.map((dayName, index) => {
-          const dayLessons = selectDayLessons(lessons, index + 1, weekMode);
+          const dayDate = dateForWeekDay(index + 1);
+          const dayLessons = selectDayLessons(lessons, index + 1, weekMode, dayDate);
           return (
             <article className="day-block" key={dayName}>
               <div className="day-title">
@@ -737,10 +752,73 @@ function WeekView({
   );
 }
 
+function SessionScheduleView({ lessons }: { lessons: LessonSlot[] }) {
+  const todayKey = dateKeyFromDate();
+  const upcoming = lessons.filter((lesson) => !lesson.date || lesson.date >= todayKey);
+  const visibleLessons = (upcoming.length ? upcoming : lessons).sort((a, b) => `${a.date ?? ""} ${a.start}`.localeCompare(`${b.date ?? ""} ${b.start}`, "ru"));
+  const groups = visibleLessons.reduce<Array<{ key: string; title: string; lessons: LessonSlot[] }>>((items, lesson) => {
+    const key = lesson.date ?? lesson.dayName;
+    const existing = items.find((item) => item.key === key);
+    const title = lesson.dateLabel ? `${lesson.dateLabel}` : lesson.dayName;
+    if (existing) {
+      existing.lessons.push(lesson);
+      return items;
+    }
+    return [...items, { key, title, lessons: [lesson] }];
+  }, []);
+
+  return (
+    <div className="view-stack">
+      <section className="week-toolbar">
+        <div>
+          <span>Расписание</span>
+          <h2>Сессия</h2>
+        </div>
+        <ShieldCheck size={34} />
+      </section>
+
+      <section className="week-map session-map" aria-label="Карта сессии">
+        <div className="week-map-head">
+          <span>Ближайшие даты</span>
+          <strong>{formatLessonCount(visibleLessons.length)}</strong>
+        </div>
+        <div className="session-map-grid">
+          {groups.slice(0, 6).map((group) => (
+            <div className="session-date-card" key={group.key}>
+              <strong>{group.title}</strong>
+              <span>{formatLessonCount(group.lessons.length)}</span>
+              <small>{group.lessons[0]?.start}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="week-list">
+        {groups.map((group) => (
+          <article className="day-block" key={group.key}>
+            <div className="day-title">
+              <h3>{group.title}</h3>
+              <span>{formatLessonCount(group.lessons.length)}</span>
+            </div>
+            {group.lessons.map((lesson) => (
+              <div className="mini-lesson" key={lesson.id}>
+                <span>{lesson.start}</span>
+                <strong>{lesson.subject}</strong>
+                <small>{[lesson.room, lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small>
+              </div>
+            ))}
+          </article>
+        ))}
+      </section>
+    </div>
+  );
+}
+
 function WeekMap({ lessons, weekMode }: { lessons: LessonSlot[]; weekMode: WeekMode }) {
   const today = currentDayIndex();
   const dayLoads = WEEK_DAYS.map((dayName, index) => {
-    const dayLessons = selectDayLessons(lessons, index + 1, weekMode);
+    const dayDate = dateForWeekDay(index + 1);
+    const dayLessons = selectDayLessons(lessons, index + 1, weekMode, dayDate);
     return {
       count: dayLessons.length,
       dayIndex: index + 1,
