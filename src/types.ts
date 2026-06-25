@@ -2,7 +2,14 @@ export type WeekMode = "all" | "numerator" | "denominator";
 
 export type AppTab = "today" | "week" | "settings";
 
-export type ApiStatus = "idle" | "loading" | "ready" | "stale" | "error";
+export type ApiStatus =
+  | "hydrating-from-cache"
+  | "loading"
+  | "ready"
+  | "refreshing"
+  | "updated"
+  | "stale"
+  | "error-without-cache";
 
 export interface LessonSlot {
   id: string;

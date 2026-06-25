@@ -9,7 +9,6 @@ import {
   CloudOff,
   Grid2X2,
   Info,
-  LocateFixed,
   MapPin,
   RefreshCw,
   Send,
@@ -46,8 +45,8 @@ const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
 const BRAND_MARK = "/images/brand-mark.png";
 const HERO_VISUAL = "/images/hero-schedule.png";
-const FRESH_CACHE_MS = 6 * 60 * 60 * 1000;
 const MIN_STUDY_WINDOW = 20;
+const INITIAL_SCHEDULE = readScheduleCache();
 
 type HeroMode = "current" | "next" | "done" | "free" | "loading";
 
@@ -144,15 +143,30 @@ function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date)
   return null;
 }
 
-function isFreshScheduleCache(state: ScheduleState | null) {
-  if (!state?.fetchedAt) return false;
-  const fetchedAt = new Date(state.fetchedAt).getTime();
-  return Number.isFinite(fetchedAt) && Date.now() - fetchedAt < FRESH_CACHE_MS;
+function syncStatusText(status: ApiStatus, refreshedAt?: string) {
+  const updatedText = refreshedAt ? `Обновлено ${formatUpdatedAt(refreshedAt)}` : "Кэш пуст";
+
+  if (status === "loading") return "Подключение к ВлГУ";
+  if (status === "refreshing") return refreshedAt ? `${updatedText} · синхронизация` : "Синхронизация";
+  if (status === "updated") return "Расписание обновлено";
+  if (status === "stale") return refreshedAt ? `Нет связи · ${updatedText}` : "Нет связи с ВлГУ";
+  if (status === "error-without-cache") return "Не удалось загрузить данные";
+
+  return updatedText;
+}
+
+function scheduleContentSignature(state: ScheduleState | null) {
+  if (!state) return "";
+  return JSON.stringify({
+    groupNrec: state.groupNrec,
+    currentInfo: state.currentInfo,
+    allLessons: state.allLessons
+  });
 }
 
 export function App() {
-  const [schedule, setSchedule] = useState<ScheduleState | null>(() => readScheduleCache());
-  const [status, setStatus] = useState<ApiStatus>(() => (readScheduleCache() ? "ready" : "loading"));
+  const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
+  const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>("today");
   const [weekOverride, setWeekOverride] = useState<WeekMode | "current">("current");
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
@@ -189,14 +203,23 @@ export function App() {
   const studyWindows = buildStudyWindows(todayLessons);
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
-  async function refreshSchedule(silent = false) {
-    if (!silent || !schedule) setStatus("loading");
+  async function refreshSchedule() {
+    const currentSchedule = schedule;
+    const hasCache = Boolean(currentSchedule);
+    setStatus(hasCache ? "refreshing" : "loading");
+
     try {
       const loaded = await loadSchedule();
+      const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(loaded);
       setSchedule(loaded);
-      setStatus("ready");
+      setStatus(changed && hasCache ? "updated" : "ready");
     } catch {
-      setStatus(isFreshScheduleCache(schedule) ? "ready" : schedule ? "stale" : "error");
+      if (!currentSchedule) {
+        setStatus("error-without-cache");
+        return;
+      }
+
+      setStatus("stale");
     }
   }
 
@@ -206,9 +229,16 @@ export function App() {
   }
 
   useEffect(() => {
-    refreshSchedule(Boolean(schedule));
+    const timer = window.setTimeout(() => refreshSchedule(), 0);
+    return () => window.clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (status !== "updated") return;
+    const timer = window.setTimeout(() => setStatus("ready"), 2400);
+    return () => window.clearTimeout(timer);
+  }, [status]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNowTick(Date.now()), 30_000);
@@ -290,8 +320,7 @@ export function App() {
         />
 
         <div className="content-scroll">
-          {status === "error" && <ErrorBanner />}
-          {status === "stale" && <StaleBanner />}
+          {status === "error-without-cache" && <ErrorBanner />}
 
           {isLoading && <SkeletonView />}
 
@@ -358,8 +387,10 @@ interface HeaderProps {
 }
 
 function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh }: HeaderProps) {
+  const isBusy = status === "loading" || status === "refreshing";
+
   return (
-    <header className="topbar">
+    <header className="topbar" data-sync-status={status}>
       <div className="brand">
         <img className="brand-mark" src={BRAND_MARK} alt="" aria-hidden="true" />
         <div>
@@ -371,12 +402,14 @@ function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh
       <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
         <CalendarDays size={18} />
         <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
-        <RefreshCw className={status === "loading" ? "spin" : ""} size={16} />
+        <RefreshCw className={isBusy ? "spin" : ""} size={16} />
       </button>
 
       <div className="sync-line">
         <span>{INSTITUTE_NAME}</span>
-        <span>{refreshedAt ? `Обновлено ${formatUpdatedAt(refreshedAt)}` : "Подключение к ВлГУ"}</span>
+        <span className={`sync-status sync-status-${status}`} aria-live="polite">
+          {syncStatusText(status, refreshedAt)}
+        </span>
       </div>
     </header>
   );
@@ -989,15 +1022,6 @@ function ErrorBanner() {
     <div className="banner error">
       <CloudOff size={18} />
       ВлГУ временно не ответил. Можно обновить ещё раз или открыть сохранённые данные.
-    </div>
-  );
-}
-
-function StaleBanner() {
-  return (
-    <div className="banner">
-      <LocateFixed size={18} />
-      Нет связи с ВлГУ. Показываю сохранённое расписание.
     </div>
   );
 }

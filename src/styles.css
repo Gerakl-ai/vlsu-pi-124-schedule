@@ -242,6 +242,25 @@ button {
   max-width: 58%;
 }
 
+.sync-status {
+  text-align: right;
+  color: var(--muted);
+}
+
+.sync-status-updated {
+  color: var(--green);
+}
+
+.sync-status-stale,
+.sync-status-error-without-cache {
+  color: var(--warning);
+}
+
+.sync-status-refreshing,
+.sync-status-loading {
+  color: #d8eef7;
+}
+
 .content-scroll {
   position: relative;
   z-index: 1;

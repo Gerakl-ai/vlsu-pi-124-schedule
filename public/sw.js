@@ -1,4 +1,4 @@
-const CACHE_NAME = "pi-124-schedule-v21";
+const CACHE_NAME = "pi-124-schedule-v23";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -53,8 +53,8 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      caches.match("/index.html").then((cached) => {
-        const fresh = fetch(request).then((response) => {
+      caches.match("/index.html").then(async (cached) => {
+        const fresh = fetch(request, { cache: "no-store" }).then((response) => {
           if (response.ok) {
             const clone = response.clone();
             event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", clone)));
@@ -62,7 +62,12 @@ self.addEventListener("fetch", (event) => {
           return response;
         });
 
-        return fresh.catch(() => cached || caches.match("/index.html"));
+        if (cached) {
+          event.waitUntil(fresh.catch(() => undefined));
+          return cached;
+        }
+
+        return fresh.catch(async () => (await caches.match("/index.html")) || Response.error());
       })
     );
     return;
@@ -87,7 +92,7 @@ self.addEventListener("fetch", (event) => {
       }
 
       return fresh;
-      })
+    })
   );
 });
 
