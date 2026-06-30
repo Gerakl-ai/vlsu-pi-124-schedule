@@ -44,7 +44,7 @@ const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Ч
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
 const BRAND_MARK = "/images/brand-mark.png";
-const HERO_VISUAL = "/images/hero-schedule.png";
+const HERO_VISUAL = "/images/hero-obsidian-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
 

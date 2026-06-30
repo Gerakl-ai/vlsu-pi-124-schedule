@@ -1,4 +1,4 @@
-const CACHE_NAME = "pi-124-schedule-v23";
+const CACHE_NAME = "pi-124-schedule-v24";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -8,7 +8,7 @@ const APP_SHELL = [
   "/icons/icon-512.png",
   "/images/brand-mark.png",
   "/images/pi-124-avatar-source.png",
-  "/images/hero-schedule.png"
+  "/images/hero-obsidian-campus.jpg"
 ];
 
 async function discoverBuildAssets() {
