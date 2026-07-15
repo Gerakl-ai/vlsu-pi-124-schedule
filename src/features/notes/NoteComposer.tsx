@@ -1,8 +1,8 @@
 import { Check, Folder, LoaderCircle, Pin, Save, Trash2, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { noteKindLabel } from "./noteClassifier";
-import { loadDraft, removeDraft, storeDraft } from "./noteStorage";
+import { loadDraft, readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 import { plainTextToHtml, RichNoteEditor } from "./RichNoteEditor";
 
@@ -10,6 +10,8 @@ interface NoteComposerProps {
   note: SmartNote | null;
   folders: NoteFolder[];
   open: boolean;
+  initialSeed?: string;
+  voiceStartToken?: number;
   classifyDraft: (text: string) => NoteClassification;
   onClose: () => void;
   onDelete: (noteId: string) => Promise<void>;
@@ -18,7 +20,7 @@ interface NoteComposerProps {
 
 type DraftState = "idle" | "saving" | "saved";
 
-export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
+export function NoteComposer({ note, folders, open, initialSeed = "", voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
   const [contentHtml, setContentHtml] = useState("<p></p>");
   const [text, setText] = useState("");
   const [pinned, setPinned] = useState(false);
@@ -32,23 +34,39 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
   const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
   const draftId = note?.id ?? "new";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
+  const classifiedText = useDeferredValue(text);
   const preview = useMemo(() => {
     if (!hasContent) return null;
-    const classification = classifyDraft(text);
+    const classification = classifyDraft(classifiedText);
     return spaceOverride ? { ...classification, space: spaceOverride } : classification;
-  }, [classifyDraft, hasContent, spaceOverride, text]);
+  }, [classifiedText, classifyDraft, hasContent, spaceOverride]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     let active = true;
     draftRevisionRef.current += 1;
-    hydratedDraftRef.current = null;
-    setHydrating(true);
+    const openingRevision = draftRevisionRef.current;
+    const snapshot = readDraftSnapshot(draftId);
+    const canRestoreSnapshot = Boolean(snapshot && (!note || snapshot.updatedAt > note.updatedAt));
+    const immediateHtml = canRestoreSnapshot
+      ? snapshot!.contentHtml
+      : note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
+    setContentHtml(immediateHtml || "<p></p>");
+    setText(canRestoreSnapshot ? snapshot!.text : note?.text ?? initialSeed);
+    setPinned(canRestoreSnapshot ? snapshot!.pinned : note?.pinned ?? false);
+    setSpaceOverride(canRestoreSnapshot ? snapshot!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
+    setEditorKey((value) => value + 1);
+    hydratedDraftRef.current = draftId;
+    setHydrating(false);
     setSaving(false);
-    setDraftState("idle");
+    setDraftState(canRestoreSnapshot ? "saved" : "idle");
+
     void loadDraft(draftId).then((draft) => {
-      if (!active) return;
+      if (!active || draftRevisionRef.current !== openingRevision) return;
+      const snapshotUpdatedAt = snapshot?.updatedAt ?? note?.updatedAt ?? "";
+      if (!draft || draft.updatedAt <= snapshotUpdatedAt) return;
       const canRestore = Boolean(draft && (!note || draft.updatedAt > note.updatedAt));
+      if (!canRestore) return;
       const nextHtml = canRestore
         ? draft!.contentHtml
         : note?.contentHtml ?? plainTextToHtml(note?.text ?? "");
@@ -58,13 +76,12 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
       setSpaceOverride(canRestore ? draft!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
       setEditorKey((value) => value + 1);
       hydratedDraftRef.current = draftId;
-      setHydrating(false);
-      setDraftState(canRestore ? "saved" : "idle");
+      setDraftState("saved");
     });
     return () => {
       active = false;
     };
-  }, [draftId, note, open]);
+  }, [draftId, initialSeed, note, open]);
 
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return;
@@ -159,8 +176,9 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
           <div>
             <span>{note ? "Редактирование" : "Новая запись"}</span>
             <h2 id="composer-title">{note ? note.title : "Чистый лист"}</h2>
-            <small className={`draft-status ${draftState}`}>
-              {draftState === "saving" ? <><LoaderCircle className="spin" size={11} /> Сохраняем</> : draftState === "saved" ? <><Save size={11} /> Черновик сохранён</> : "Локально на устройстве"}
+            <small className={`draft-status ${draftState}`} aria-label={draftState === "saving" ? "Сохраняем черновик" : "Черновик защищён"}>
+              {draftState === "saving" ? <LoaderCircle className="spin" size={11} /> : <Save size={11} />}
+              Черновик защищён
             </small>
           </div>
           <button className="composer-done" type="button" onClick={() => void submit()} disabled={!hasContent || saving} aria-label="Сохранить запись">
@@ -173,7 +191,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
           {hydrating ? (
             <div className="rich-editor-loading" aria-label="Восстановление черновика"><span /><span /><span /></div>
           ) : (
-            <RichNoteEditor key={`${draftId}-${editorKey}`} initialContent={contentHtml} onChange={handleEditorChange} />
+            <RichNoteEditor key={`${draftId}-${editorKey}`} initialContent={contentHtml} autoStartVoiceToken={voiceStartToken} onChange={handleEditorChange} />
           )}
         </div>
 
@@ -205,7 +223,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
         </div>
 
         <footer className="composer-toolbar">
-          <span className="composer-storage-note">{draftState === "saved" ? "Изменения не потеряются" : "Автосохранение включено"}</span>
+          <span className="composer-storage-note">Автосохранение включено</span>
           {note && (
             <button className="composer-delete" type="button" onClick={() => void deleteCurrent()} disabled={saving} aria-label="Удалить запись" title="Удалить">
               <Trash2 size={19} />

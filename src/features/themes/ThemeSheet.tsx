@@ -81,10 +81,10 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
                 onClick={() => onSelect(theme.id)}
                 aria-pressed={active}
               >
-                <span className="theme-preview" aria-hidden="true">
-                  <span className="theme-preview-rail" />
-                  <span className="theme-preview-card" />
-                  <span className="theme-preview-line" />
+                <span className="theme-preview" style={{ background: theme.colors[0] }} aria-hidden="true">
+                  <span className="theme-preview-rail" style={{ background: theme.colors[2] }} />
+                  <span className="theme-preview-card" style={{ borderColor: theme.colors[1] }} />
+                  <span className="theme-preview-line" style={{ background: `linear-gradient(90deg, ${theme.colors[3]}, ${theme.colors[2]})` }} />
                 </span>
                 <span className="theme-option-copy">
                   <strong>{theme.name}</strong>

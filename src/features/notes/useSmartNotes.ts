@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
-import { buildSubjectOptions, classifyNote, noteTitle } from "./noteClassifier";
+import { buildSubjectOptions, classifyNote, explicitPersonalSpace, noteTitle } from "./noteClassifier";
 import { requestSmartClassification } from "./noteApi";
 import {
   DEFAULT_NOTE_FOLDERS,
@@ -75,14 +75,17 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
 
       setNotes((current) => {
         let enriched: SmartNote | undefined;
+        const protectedSpace = explicitPersonalSpace(note.text);
         const next = current.map((item) => {
           if (item.id !== note.id || item.text !== note.text) return item;
-          const enrichedSpace = item.spaceManual ? item.space : remote.space ?? item.space;
+          const enrichedSpace = item.spaceManual ? item.space : protectedSpace ?? remote.space ?? item.space;
           const nextNote: SmartNote = {
             ...item,
             ...remote,
             space: enrichedSpace,
             spaceManual: item.spaceManual,
+            subjectKey: protectedSpace ? undefined : remote.subjectKey ?? item.subjectKey,
+            subjectLabel: protectedSpace ? undefined : remote.subjectLabel ?? item.subjectLabel,
             dueLabel: remote.dueAt
               ? `До ${new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(remote.dueAt))}`
               : item.dueLabel,

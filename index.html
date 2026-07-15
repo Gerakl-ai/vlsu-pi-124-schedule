@@ -15,7 +15,7 @@
     <link rel="preload" href="/icons/icon-192.png" as="image" />
     <script>
       (() => {
-        const allowed = new Set(["obsidian", "porcelain", "signal", "field", "custom"]);
+        const allowed = new Set(["obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
         let theme = "signal";
         try {
           const stored = localStorage.getItem("lad.theme");
@@ -26,10 +26,20 @@
         if (theme === "custom") {
           try { custom = JSON.parse(localStorage.getItem("lad.custom-theme") || "null"); } catch {}
         }
-        const lightMode = custom?.mode === "light" || theme === "porcelain";
+        const lightMode = custom?.mode === "light" || theme === "porcelain" || theme === "glacier" || theme === "atelier";
         document.documentElement.dataset.themeMode = lightMode ? "light" : "dark";
-        document.documentElement.style.colorScheme = custom?.mode || (theme === "porcelain" ? "light" : "dark");
-        const colors = { obsidian: "#05070a", porcelain: "#eef2f7", signal: "#090a0c", field: "#07110f", custom: custom?.background || "#080b12" };
+        document.documentElement.style.colorScheme = custom?.mode || (lightMode ? "light" : "dark");
+        const colors = {
+          obsidian: "#05070a",
+          porcelain: "#eef2f7",
+          signal: "#090a0c",
+          field: "#07110f",
+          midnight: "#070914",
+          aurora: "#06110f",
+          glacier: "#f1f7fb",
+          atelier: "#f7f5fa",
+          custom: custom?.background || "#080b12"
+        };
         const chromeColor = colors[theme];
         document.documentElement.style.backgroundColor = chromeColor;
         if (custom) {
@@ -96,6 +106,46 @@
         --launch-muted: #98aaa0;
         --launch-accent: #bdd45a;
         --launch-signal: #78a9ff;
+      }
+
+      :root[data-theme="midnight"] {
+        --launch-bg: #070914;
+        --launch-panel: rgba(17, 21, 42, 0.9);
+        --launch-line: rgba(122, 162, 255, 0.19);
+        --launch-text: #f2f5ff;
+        --launch-muted: #a4aec8;
+        --launch-accent: #7aa2ff;
+        --launch-signal: #ffbf69;
+      }
+
+      :root[data-theme="aurora"] {
+        --launch-bg: #06110f;
+        --launch-panel: rgba(9, 31, 27, 0.9);
+        --launch-line: rgba(98, 230, 197, 0.19);
+        --launch-text: #effff9;
+        --launch-muted: #9ebbb2;
+        --launch-accent: #62e6c5;
+        --launch-signal: #ff7895;
+      }
+
+      :root[data-theme="glacier"] {
+        --launch-bg: #f1f7fb;
+        --launch-panel: rgba(255, 255, 255, 0.9);
+        --launch-line: rgba(8, 127, 156, 0.18);
+        --launch-text: #102333;
+        --launch-muted: #5b7180;
+        --launch-accent: #087f9c;
+        --launch-signal: #e75564;
+      }
+
+      :root[data-theme="atelier"] {
+        --launch-bg: #f7f5fa;
+        --launch-panel: rgba(255, 255, 255, 0.92);
+        --launch-line: rgba(76, 91, 212, 0.17);
+        --launch-text: #201b2c;
+        --launch-muted: #716a7f;
+        --launch-accent: #4c5bd4;
+        --launch-signal: #c53f68;
       }
 
       html,

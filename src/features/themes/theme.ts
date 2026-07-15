@@ -1,4 +1,13 @@
-export type ThemeId = "obsidian" | "porcelain" | "signal" | "field" | "custom";
+export type ThemeId =
+  | "obsidian"
+  | "porcelain"
+  | "signal"
+  | "field"
+  | "midnight"
+  | "aurora"
+  | "glacier"
+  | "atelier"
+  | "custom";
 
 export interface ThemeDefinition {
   id: ThemeId;
@@ -66,6 +75,36 @@ export const THEMES: ThemeDefinition[] = [
     caption: "Тёмный лес, сталь и сигнальный лайм",
     themeColor: "#07110f",
     colors: ["#07110f", "#edf3ee", "#bdd45a", "#78a9ff"]
+  },
+  {
+    id: "midnight",
+    name: "Midnight",
+    caption: "Ночной индиго, ледяной свет и янтарный импульс",
+    themeColor: "#070914",
+    colors: ["#070914", "#f2f5ff", "#7aa2ff", "#ffbf69"]
+  },
+  {
+    id: "aurora",
+    name: "Aurora",
+    caption: "Северная зелень, холодное стекло и розовый сигнал",
+    themeColor: "#06110f",
+    colors: ["#06110f", "#effff9", "#62e6c5", "#ff7895"]
+  },
+  {
+    id: "glacier",
+    name: "Glacier",
+    caption: "Снежный воздух, глубокие чернила и арктический циан",
+    themeColor: "#f1f7fb",
+    colors: ["#f1f7fb", "#102333", "#087f9c", "#e75564"],
+    isLight: true
+  },
+  {
+    id: "atelier",
+    name: "Atelier",
+    caption: "Чистая бумага, ультрамарин и малиновая печать",
+    themeColor: "#f7f5fa",
+    colors: ["#f7f5fa", "#201b2c", "#4c5bd4", "#c53f68"],
+    isLight: true
   },
   {
     id: "custom",

@@ -468,7 +468,9 @@ export function App() {
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
-  const lightHero = themeId === "porcelain" || (themeId === "custom" && customTheme.mode === "light");
+  const lightHero = themeId === "custom"
+    ? customTheme.mode === "light"
+    : Boolean(THEMES.find((theme) => theme.id === themeId)?.isLight);
 
   return (
     <main className="app-shell">
@@ -534,7 +536,9 @@ export function App() {
                 visualSrc={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
                 notes={smartNotes.notes}
                 folders={smartNotes.folders}
+                lessons={schedule?.allLessons ?? []}
                 ready={smartNotes.ready}
+                weekMode={currentWeek}
                 classifyDraft={smartNotes.classifyDraft}
                 onCreate={smartNotes.createNote}
                 onCreateFolder={smartNotes.createFolder}

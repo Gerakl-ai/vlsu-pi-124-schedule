@@ -1,7 +1,8 @@
 import {
-  AudioLines,
   BookOpenCheck,
+  CalendarDays,
   CheckCircle2,
+  ChevronRight,
   FolderHeart,
   FolderPlus,
   Inbox,
@@ -17,16 +18,20 @@ import {
   X
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { NoteCard } from "./NoteCard";
 import { NoteComposer } from "./NoteComposer";
+import { SmartCalendarSheet } from "./SmartCalendarSheet";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 interface NotesViewProps {
   visualSrc: string;
   notes: SmartNote[];
   folders: NoteFolder[];
+  lessons: LessonSlot[];
   ready: boolean;
+  weekMode: WeekMode;
   classifyDraft: (text: string) => NoteClassification;
   onCreate: (input: NoteDocumentInput) => Promise<SmartNote>;
   onCreateFolder: (name: string) => Promise<NoteFolder | null>;
@@ -61,7 +66,9 @@ export function NotesView({
   visualSrc,
   notes,
   folders,
+  lessons = [],
   ready,
+  weekMode = "all",
   classifyDraft,
   onCreate,
   onCreateFolder,
@@ -75,7 +82,10 @@ export function NotesView({
   const [query, setQuery] = useState("");
   const [composerOpen, setComposerOpen] = useState(() => new URLSearchParams(window.location.search).get("compose") === "1");
   const [folderSheetOpen, setFolderSheetOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
+  const [voiceStartToken, setVoiceStartToken] = useState(0);
+  const [composerSeed, setComposerSeed] = useState("");
 
   const filters = useMemo<SmartFilter[]>(() => {
     const folderFilters = folders.map((folder) => ({
@@ -110,6 +120,22 @@ export function NotesView({
   function closeComposer() {
     setComposerOpen(false);
     setEditingNote(null);
+    setVoiceStartToken(0);
+    setComposerSeed("");
+  }
+
+  function createBlankNote(seed = "") {
+    setEditingNote(null);
+    setComposerSeed(seed);
+    setVoiceStartToken(0);
+    setComposerOpen(true);
+  }
+
+  function startDictation() {
+    setEditingNote(null);
+    setComposerSeed("");
+    setVoiceStartToken((value) => value + 1 || 1);
+    setComposerOpen(true);
   }
 
   async function saveNote(input: NoteDocumentInput, noteId?: string) {
@@ -124,16 +150,14 @@ export function NotesView({
           <span>Личное пространство</span>
           <h2>Записи</h2>
         </div>
-        <button
-          className="notes-compose-button"
-          type="button"
-          onClick={() => { setEditingNote(null); setComposerOpen(true); }}
-          aria-label="Создать запись"
-          data-testid="open-note-composer"
-        >
-          <SquarePen size={21} />
-          <span>Создать запись</span>
-        </button>
+        <div className="notes-heading-actions">
+          <button type="button" onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
+            <Mic size={20} />
+          </button>
+          <button type="button" onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
+            <CalendarDays size={20} />
+          </button>
+        </div>
       </section>
 
       <section className="notes-pulse" aria-label="Сводка записей">
@@ -142,13 +166,13 @@ export function NotesView({
         <div><span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} /></div>
       </section>
 
-      <button className="quick-capture voice-entry" type="button" onClick={() => { setEditingNote(null); setComposerOpen(true); }} aria-label="Открыть умную диктовку">
-        <span className="quick-capture-icon"><Mic size={23} /></span>
+      <button className="quick-capture create-entry" type="button" onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
+        <span className="quick-capture-icon"><SquarePen size={23} /></span>
         <span>
-          <strong>Умная диктовка</strong>
-          <small>Голос станет записью, контекст разложит её сам</small>
+          <strong>Создать запись</strong>
+          <small>Текст, чек-лист, фото или идея в свободной форме</small>
         </span>
-        <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><AudioLines size={21} /></span>
+        <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><ChevronRight size={21} /></span>
       </button>
 
       <label className="notes-search">
@@ -185,6 +209,8 @@ export function NotesView({
               note={note}
               onEdit={(value) => {
                 setEditingNote(value);
+                setComposerSeed("");
+                setVoiceStartToken(0);
                 setComposerOpen(true);
               }}
               onToggle={onToggle}
@@ -203,7 +229,7 @@ export function NotesView({
               <button
                 className="notes-empty-create"
                 type="button"
-                onClick={() => { setEditingNote(null); setComposerOpen(true); }}
+                onClick={() => createBlankNote()}
               >
                 <SquarePen size={17} />
                 Создать запись
@@ -217,12 +243,25 @@ export function NotesView({
         note={editingNote}
         folders={folders}
         open={composerOpen}
+        initialSeed={composerSeed}
+        voiceStartToken={voiceStartToken}
         classifyDraft={classifyDraft}
         onClose={closeComposer}
         onDelete={onDelete}
         onSave={saveNote}
       />
       <FolderSheet folders={folders} open={folderSheetOpen} onClose={() => setFolderSheetOpen(false)} onCreate={onCreateFolder} onDelete={onDeleteFolder} />
+      <SmartCalendarSheet
+        lessons={lessons}
+        notes={notes}
+        open={calendarOpen}
+        weekMode={weekMode}
+        onClose={() => setCalendarOpen(false)}
+        onCreateForDate={(date) => {
+          const dateText = new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
+          createBlankNote(`Планы на ${dateText}\n`);
+        }}
+      />
     </div>
   );
 }

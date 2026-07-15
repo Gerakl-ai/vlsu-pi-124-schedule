@@ -151,6 +151,13 @@ function inferKind(text: string): NoteKind {
   return "note";
 }
 
+export function explicitPersonalSpace(text: string) {
+  const normalized = normalizeNoteText(text);
+  if (/(танц|хореограф|репетиц|связк|постановк)/.test(normalized)) return "Танцы";
+  if (/(радио|эфир|джингл|трек|плейлист|подкаст|студийн.*микрофон)/.test(normalized)) return "Радио";
+  return undefined;
+}
+
 function capitalize(value: string) {
   return value ? value[0].toLocaleUpperCase("ru-RU") + value.slice(1) : value;
 }
@@ -158,6 +165,8 @@ function capitalize(value: string) {
 function inferSpace(text: string, kind: NoteKind, hasSubject: boolean, spaces: string[]) {
   const explicitTag = text.match(/(?:^|\s)#([a-zа-я][a-zа-я0-9_-]{1,28})/i)?.[1];
   if (explicitTag) return capitalize(explicitTag.replace(/[_-]/g, " "));
+  const personalSpace = explicitPersonalSpace(text);
+  if (personalSpace) return personalSpace;
   const mentionedSpace = spaces
     .map((space) => ({ space, normalized: normalizeNoteText(space) }))
     .filter(({ normalized }) => normalized.length > 2 && normalized !== "входящие")
@@ -165,8 +174,6 @@ function inferSpace(text: string, kind: NoteKind, hasSubject: boolean, spaces: s
     .find(({ normalized }) => ` ${text} `.includes(` ${normalized} `));
   if (mentionedSpace) return mentionedSpace.space;
   if (hasSubject || /(учеб|универ|влгу|пара|препод|экзамен|зачет)/.test(text)) return "Учёба";
-  if (/(танц|хореограф|репетиц|связк|постановк)/.test(text)) return "Танцы";
-  if (/(радио|эфир|джингл|трек|плейлист|подкаст|микрофон)/.test(text)) return "Радио";
   if (/(проект|репозитор|релиз|дизайн|разработ|приложени|фича|бэклог)/.test(text)) return "Проект";
   if (/(купить|заказать|магазин|доставка)/.test(text)) return "Покупки";
   if (kind === "wish") return "Хотелки";
@@ -226,10 +233,12 @@ export function noteTitle(text: string) {
 
 export function classifyNote(text: string, subjects: SubjectOption[], spaces: string[] = []): NoteClassification {
   const normalized = normalizeNoteText(text);
-  const subject = matchSubject(normalized, subjects);
+  const dueText = text.toLocaleLowerCase("ru-RU").replace(/ё/g, "е").replace(/\s+/g, " ").trim();
+  const personalSpace = explicitPersonalSpace(normalized);
+  const subject = personalSpace ? undefined : matchSubject(normalized, subjects);
   const kind = inferKind(normalized);
-  const space = inferSpace(normalized, kind, Boolean(subject), spaces);
-  const due = parseDue(normalized, subject);
+  const space = personalSpace ?? inferSpace(normalized, kind, Boolean(subject), spaces);
+  const due = parseDue(dueText, subject);
   const signals = [subject, kind !== "note", space !== "Входящие", due.dueAt].filter(Boolean).length;
 
   return {

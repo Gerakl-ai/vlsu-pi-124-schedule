@@ -184,21 +184,27 @@ export async function loadDraft(draftId: string): Promise<NoteDraft | null> {
   }
 }
 
+export function readDraftSnapshot(draftId: string) {
+  return readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {})[draftId] ?? null;
+}
+
 export async function storeDraft(draft: NoteDraft): Promise<void> {
+  const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
+  writeFallback(DRAFTS_FALLBACK_KEY, { ...drafts, [draft.id]: draft });
   try {
     await putValue(DRAFTS_STORE, draft);
   } catch {
-    const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
-    writeFallback(DRAFTS_FALLBACK_KEY, { ...drafts, [draft.id]: draft });
+    // The synchronous mirror already protects the latest text.
   }
 }
 
 export async function removeDraft(draftId: string): Promise<void> {
+  const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
+  delete drafts[draftId];
+  writeFallback(DRAFTS_FALLBACK_KEY, drafts);
   try {
     await deleteValue(DRAFTS_STORE, draftId);
   } catch {
-    const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
-    delete drafts[draftId];
-    writeFallback(DRAFTS_FALLBACK_KEY, drafts);
+    // The mirror is authoritative when IndexedDB is unavailable.
   }
 }

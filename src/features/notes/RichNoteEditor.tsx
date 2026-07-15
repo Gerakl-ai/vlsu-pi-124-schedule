@@ -25,13 +25,14 @@ import {
   Underline as UnderlineIcon,
   Undo2
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const TEXT_COLORS = ["#f4f7fb", "#6bd6ff", "#59dfc1", "#ffc55f", "#ff756f", "#d89cff"];
 const HIGHLIGHT_COLORS = ["#ffe26a66", "#69e3c766", "#6aa9ff66", "#ff716b66", "#d89cff66"];
 
 interface RichNoteEditorProps {
   initialContent: string;
+  autoStartVoiceToken?: number;
   onChange: (html: string, text: string) => void;
 }
 
@@ -108,13 +109,14 @@ async function compressImage(file: File) {
   }
 }
 
-export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps) {
+export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChange }: RichNoteEditorProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState("");
   const [, setRevision] = useState(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const handledVoiceTokenRef = useRef(0);
   const voiceSupported = useMemo(() => Boolean(window.SpeechRecognition || window.webkitSpeechRecognition), []);
 
   const editor = useEditor({
@@ -146,12 +148,6 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
     onSelectionUpdate: () => setRevision((current) => current + 1)
   });
 
-  useEffect(() => {
-    if (!editor || editor.getHTML() === initialContent) return;
-    editor.commands.setContent(initialContent, { emitUpdate: false });
-    onChange(editor.getHTML(), editor.getText({ blockSeparator: "\n" }));
-  }, [editor, initialContent, onChange]);
-
   useEffect(() => () => recognitionRef.current?.stop(), []);
 
   function toolbarButton(active: boolean, label: string, icon: React.ReactNode, onClick: () => void, disabled = false) {
@@ -181,10 +177,10 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
     if (imageInputRef.current) imageInputRef.current.value = "";
   }
 
-  function toggleVoice() {
-    if (!editor || !voiceSupported) return;
-    if (listening) {
-      recognitionRef.current?.stop();
+  const startVoice = useCallback(() => {
+    if (!editor) return;
+    if (!voiceSupported) {
+      setVoiceError("Диктовка недоступна в этом браузере.");
       return;
     }
     setVoiceError("");
@@ -192,7 +188,7 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
     if (!Recognition) return;
     const recognition = new Recognition();
     recognition.lang = "ru-RU";
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
@@ -215,7 +211,21 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
       setVoiceError("Микрофон сейчас занят другим приложением.");
       setListening(false);
     }
-  }
+  }, [editor, voiceSupported]);
+
+  const toggleVoice = useCallback(() => {
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+    startVoice();
+  }, [listening, startVoice]);
+
+  useLayoutEffect(() => {
+    if (!autoStartVoiceToken || autoStartVoiceToken === handledVoiceTokenRef.current) return;
+    handledVoiceTokenRef.current = autoStartVoiceToken;
+    startVoice();
+  }, [autoStartVoiceToken, startVoice]);
 
   if (!editor) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;
   const imageSelected = editor.isActive("image");
