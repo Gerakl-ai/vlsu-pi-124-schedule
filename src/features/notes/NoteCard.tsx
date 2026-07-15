@@ -1,14 +1,22 @@
-import { BookCheck, CalendarClock, Check, ChevronRight, Circle, LoaderCircle, Pin } from "lucide-react";
+import { BookCheck, CalendarClock, Check, ChevronRight, Circle, LoaderCircle, Pin, Trash2 } from "lucide-react";
 import DOMPurify from "dompurify";
+import { useRef, useState } from "react";
+import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { noteKindLabel } from "./noteClassifier";
 import type { SmartNote } from "./noteTypes";
 
 interface NoteCardProps {
   note: SmartNote;
   onEdit: (note: SmartNote) => void;
+  onDelete: (noteId: string) => Promise<void>;
   onToggle: (noteId: string) => void;
   onTogglePinned: (noteId: string) => void;
+  onReveal: () => void;
+  onCloseReveal: () => void;
+  revealed: boolean;
 }
+
+const DELETE_REVEAL = 82;
 
 function noteBody(note: SmartNote) {
   const lines = note.text.split(/\r?\n/);
@@ -32,13 +40,108 @@ function formatNoteDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-export function NoteCard({ note, onEdit, onToggle, onTogglePinned }: NoteCardProps) {
+export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onReveal, onCloseReveal, revealed }: NoteCardProps) {
   const body = noteBody(note);
   const previewHtml = notePreviewHtml(note);
   const overdue = Boolean(note.dueAt && note.status === "open" && new Date(note.dueAt).getTime() < Date.now());
+  const [dragging, setDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const suppressClick = useRef(false);
+  const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0 });
+  const offset = dragOffset ?? (revealed ? -DELETE_REVEAL : 0);
+
+  function handlePointerDown(event: ReactPointerEvent<HTMLElement>) {
+    if (deleting || (event.pointerType === "mouse" && event.button !== 0)) return;
+    const base = revealed ? -DELETE_REVEAL : 0;
+    gesture.current = {
+      active: true,
+      horizontal: false,
+      startX: event.clientX,
+      startY: event.clientY,
+      base,
+      offset: base
+    };
+    setDragOffset(base);
+  }
+
+  function handlePointerMove(event: ReactPointerEvent<HTMLElement>) {
+    const value = gesture.current;
+    if (!value.active) return;
+    const deltaX = event.clientX - value.startX;
+    const deltaY = event.clientY - value.startY;
+    if (!value.horizontal) {
+      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 7) return;
+      if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+        value.active = false;
+        setDragOffset(null);
+        return;
+      }
+      value.horizontal = true;
+      setDragging(true);
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+    }
+    value.offset = Math.max(-DELETE_REVEAL, Math.min(0, value.base + deltaX));
+    setDragOffset(value.offset);
+  }
+
+  function finishGesture(event: ReactPointerEvent<HTMLElement>) {
+    const value = gesture.current;
+    if (!value.active) return;
+    value.active = false;
+    if (!value.horizontal) {
+      setDragOffset(null);
+      return;
+    }
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+    const shouldReveal = value.offset <= -DELETE_REVEAL * 0.42;
+    setDragging(false);
+    setDragOffset(null);
+    if (shouldReveal) onReveal();
+    else onCloseReveal();
+    suppressClick.current = true;
+    window.setTimeout(() => { suppressClick.current = false; }, 0);
+  }
+
+  async function deleteNote() {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      await onDelete(note.id);
+    } catch {
+      setDeleting(false);
+      onCloseReveal();
+    }
+  }
 
   return (
-    <article className={`note-card ${note.status === "done" ? "completed" : ""} ${overdue ? "overdue" : ""}`}>
+    <div className={`note-swipe-shell ${revealed ? "revealed" : ""} ${deleting ? "deleting" : ""}`}>
+      <button
+        className="note-delete-action"
+        type="button"
+        onClick={() => void deleteNote()}
+        onFocus={onReveal}
+        aria-label={`Удалить запись «${note.title}»`}
+        title="Удалить"
+        disabled={deleting}
+      >
+        {deleting ? <LoaderCircle className="spin" size={22} /> : <Trash2 size={22} />}
+        <span>Удалить</span>
+      </button>
+      <article
+        className={`note-card ${note.status === "done" ? "completed" : ""} ${overdue ? "overdue" : ""} ${dragging ? "dragging" : ""}`}
+        style={{ "--note-swipe-x": `${offset}px` } as CSSProperties}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishGesture}
+        onPointerCancel={finishGesture}
+        onClickCapture={(event) => {
+          if (!suppressClick.current && !revealed) return;
+          event.preventDefault();
+          event.stopPropagation();
+          if (revealed) onCloseReveal();
+        }}
+      >
       <button
         className="note-check"
         type="button"
@@ -78,6 +181,7 @@ export function NoteCard({ note, onEdit, onToggle, onTogglePinned }: NoteCardPro
         </button>
         <ChevronRight size={18} aria-hidden="true" />
       </div>
-    </article>
+      </article>
+    </div>
   );
 }

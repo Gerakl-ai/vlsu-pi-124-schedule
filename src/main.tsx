@@ -25,12 +25,9 @@ function syncAppViewportHeight() {
   );
 
   if (!keyboardOpen && currentHeight > 0) stableViewportHeight = currentHeight;
-  const height = keyboardOpen && stableViewportHeight > 0 ? stableViewportHeight : currentHeight;
-
-  if (height > 0) {
-    document.documentElement.style.setProperty("--app-viewport-height", `${height}px`);
-  }
-  document.documentElement.style.setProperty("--visual-viewport-height", `${Math.ceil(visualHeight || innerHeight || height)}px`);
+  // CSS 100dvh owns the app shell; standalone WebKit may report an innerHeight with safe areas already removed.
+  document.documentElement.style.removeProperty("--app-viewport-height");
+  document.documentElement.style.setProperty("--visual-viewport-height", `${Math.ceil(visualHeight || innerHeight)}px`);
   document.documentElement.style.setProperty("--visual-viewport-offset-top", `${Math.max(0, Math.floor(visualViewport?.offsetTop ?? 0))}px`);
   document.documentElement.dataset.keyboard = keyboardOpen ? "open" : "closed";
 }
@@ -84,7 +81,16 @@ createRoot(document.getElementById("root")!).render(
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let refreshing = false;
+    if (hadController) {
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (refreshing) return;
+        refreshing = true;
+        window.location.reload();
+      });
+    }
+    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {
       // PWA registration is progressive enhancement; the app still works online.
     });
   });

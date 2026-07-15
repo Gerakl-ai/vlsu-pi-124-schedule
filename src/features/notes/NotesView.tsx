@@ -17,7 +17,7 @@ import {
   SquarePen,
   X
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { NoteCard } from "./NoteCard";
@@ -86,6 +86,7 @@ export function NotesView({
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
   const [voiceStartToken, setVoiceStartToken] = useState(0);
   const [composerSeed, setComposerSeed] = useState("");
+  const [revealedNoteId, setRevealedNoteId] = useState<string | null>(null);
 
   const filters = useMemo<SmartFilter[]>(() => {
     const folderFilters = folders.map((folder) => ({
@@ -116,6 +117,14 @@ export function NotesView({
   const openCount = notes.filter((note) => note.status === "open").length;
   const studyCount = notes.filter((note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework")).length;
   const todayCount = notes.filter((note) => note.status === "open" && note.dueAt && new Date(note.dueAt).toDateString() === new Date().toDateString()).length;
+  const calendarDate = new Date();
+  const calendarDay = calendarDate.getDate();
+  const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(calendarDate).replace(".", "");
+  const deadlineCount = notes.filter((note) => note.status === "open" && note.dueAt).length;
+
+  useEffect(() => {
+    if (revealedNoteId && !notes.some((note) => note.id === revealedNoteId)) setRevealedNoteId(null);
+  }, [notes, revealedNoteId]);
 
   function closeComposer() {
     setComposerOpen(false);
@@ -175,9 +184,22 @@ export function NotesView({
         <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><ChevronRight size={21} /></span>
       </button>
 
+      <button className="calendar-launch-card" type="button" onClick={() => setCalendarOpen(true)} aria-label="Открыть календарь пар и записей" data-testid="calendar-launch-card">
+        <span className="calendar-launch-date" aria-hidden="true">
+          <small>{calendarMonth}</small>
+          <strong>{calendarDay}</strong>
+        </span>
+        <span className="calendar-launch-copy">
+          <small>Пары + личные планы</small>
+          <strong>Календарь</strong>
+          <em>{deadlineCount ? `Сроков в записях: ${deadlineCount}` : "Все даты в одном ритме"}</em>
+        </span>
+        <span className="calendar-launch-tail" aria-hidden="true"><CalendarDays size={18} /><ChevronRight size={21} /></span>
+      </button>
+
       <label className="notes-search">
         <Search size={18} />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Поиск по записям" aria-label="Поиск по записям" />
+        <input value={query} onChange={(event) => { setQuery(event.target.value); setRevealedNoteId(null); }} placeholder="Поиск по записям" aria-label="Поиск по записям" />
         {query && <button type="button" onClick={() => setQuery("")} aria-label="Очистить поиск" title="Очистить"><X size={16} /></button>}
       </label>
 
@@ -185,7 +207,7 @@ export function NotesView({
         {filters.map(({ id, label, space, color, icon: Icon }) => {
           const count = notes.filter((note) => !space || note.space === space).length;
           return (
-            <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => setActiveFilter(id)} aria-pressed={selectedFilter.id === id}>
+            <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
               {color ? <i className="folder-color" style={{ background: color }} aria-hidden="true" /> : <Icon size={16} />}
               <span>{label}</span>
               <small>{count}</small>
@@ -207,12 +229,19 @@ export function NotesView({
             <NoteCard
               key={note.id}
               note={note}
+              revealed={revealedNoteId === note.id}
               onEdit={(value) => {
                 setEditingNote(value);
                 setComposerSeed("");
                 setVoiceStartToken(0);
                 setComposerOpen(true);
               }}
+              onDelete={async (noteId) => {
+                await onDelete(noteId);
+                setRevealedNoteId(null);
+              }}
+              onReveal={() => setRevealedNoteId(note.id)}
+              onCloseReveal={() => setRevealedNoteId(null)}
               onToggle={onToggle}
               onTogglePinned={onTogglePinned}
             />

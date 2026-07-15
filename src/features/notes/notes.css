@@ -71,8 +71,7 @@
 
 .notes-heading-actions button:active,
 .composer-done:active,
-.quick-capture:active,
-.note-card:active {
+.quick-capture:active {
   transform: scale(0.98);
 }
 
@@ -206,6 +205,120 @@
   animation: create-entry-chevron 2.4s ease-in-out infinite;
 }
 
+.calendar-launch-card {
+  position: relative;
+  width: 100%;
+  min-height: 76px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  overflow: hidden;
+  padding: 10px 12px;
+  color: var(--text);
+  border: 1px solid rgba(var(--accent-rgb), .32);
+  border-radius: 8px;
+  background:
+    linear-gradient(112deg, rgba(var(--accent-rgb), .12), transparent 48%),
+    repeating-linear-gradient(90deg, rgba(var(--accent-soft-rgb), .035) 0 1px, transparent 1px 34px),
+    var(--theme-panel);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 30px rgba(var(--accent-rgb), .08);
+  text-align: left;
+  cursor: pointer;
+  transition: transform .2s ease, border-color .25s ease, box-shadow .25s ease;
+}
+
+.calendar-launch-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(104deg, transparent 32%, rgba(255,255,255,.09) 49%, transparent 66%);
+  transform: translateX(-120%);
+  animation: voice-sheen 8s 2.2s ease-in-out infinite;
+}
+
+.calendar-launch-card:hover {
+  border-color: var(--cyan);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 15px 34px rgba(var(--accent-rgb), .14);
+}
+
+.calendar-launch-card:active {
+  transform: scale(.985);
+}
+
+.calendar-launch-date {
+  width: 50px;
+  height: 54px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  overflow: hidden;
+  color: var(--bg-deep);
+  border-radius: 8px;
+  background: linear-gradient(145deg, var(--cyan), color-mix(in srgb, var(--blue) 72%, var(--cyan)));
+  box-shadow: 0 9px 24px rgba(var(--accent-rgb), .26), inset 0 1px 0 rgba(255,255,255,.34);
+}
+
+.calendar-launch-date small {
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.calendar-launch-date strong {
+  margin-top: 2px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.calendar-launch-copy {
+  min-width: 0;
+}
+
+.calendar-launch-copy small,
+.calendar-launch-copy strong,
+.calendar-launch-copy em {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-launch-copy small {
+  color: var(--cyan);
+  font-size: 9px;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.calendar-launch-copy strong {
+  margin-top: 2px;
+  font-size: 17px;
+  line-height: 1.15;
+}
+
+.calendar-launch-copy em {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.calendar-launch-tail {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--cyan);
+}
+
+.calendar-launch-tail svg:first-child {
+  opacity: .72;
+}
+
 .notes-search {
   min-height: 46px;
   display: grid;
@@ -336,21 +449,78 @@
   color: var(--muted);
 }
 
+.note-swipe-shell {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--theme-panel-border);
+  background: color-mix(in srgb, var(--coral) 72%, #7a1825);
+  isolation: isolate;
+}
+
+.note-swipe-shell:last-child {
+  border-bottom: 0;
+}
+
+.note-delete-action {
+  position: absolute;
+  z-index: 0;
+  inset: 0 0 0 auto;
+  width: 82px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0;
+  color: #fff;
+  border: 0;
+  background:
+    linear-gradient(145deg, rgba(255,255,255,.16), transparent 46%),
+    linear-gradient(180deg, #e65360, #b5253a);
+  box-shadow: inset 1px 0 0 rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.16);
+  cursor: pointer;
+}
+
+.note-delete-action span {
+  font-size: 9px;
+  font-weight: 900;
+}
+
+.note-delete-action:active {
+  filter: brightness(.9);
+}
+
+.note-delete-action:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: -4px;
+}
+
 .note-card {
   position: relative;
+  z-index: 1;
+  width: 100%;
   min-height: 102px;
   display: grid;
   grid-template-columns: 30px minmax(0, 1fr) 30px;
   align-items: start;
   gap: 8px;
   padding: 14px 10px 14px 12px;
-  border-bottom: 1px solid var(--theme-panel-border);
-  background: rgba(255, 255, 255, 0.018);
-  transition: transform 0.18s ease, background 0.18s ease, opacity 0.18s ease;
+  border: 0;
+  background: color-mix(in srgb, var(--theme-panel-solid) 96%, transparent);
+  touch-action: pan-y;
+  transform: translate3d(var(--note-swipe-x, 0), 0, 0);
+  will-change: transform;
+  transition: transform .36s cubic-bezier(.2,.88,.22,1), background .18s ease, opacity .22s ease;
 }
 
-.note-card:last-child {
-  border-bottom: 0;
+.note-card.dragging {
+  transition: none;
+}
+
+.note-swipe-shell.deleting .note-card {
+  opacity: 0;
+  transform: translate3d(-105%, 0, 0);
+  transition: transform .32s cubic-bezier(.45,0,.8,.25), opacity .24s ease;
 }
 
 .note-card:hover {
@@ -1748,6 +1918,7 @@
 
 .notes-heading-actions button:focus-visible,
 .quick-capture:focus-visible,
+.calendar-launch-card:focus-visible,
 .notes-search input:focus-visible,
 .space-rail button:focus-visible,
 .note-card button:focus-visible,
@@ -1818,6 +1989,7 @@
   .notes-heading,
   .notes-pulse,
   .quick-capture,
+  .calendar-launch-card,
   .notes-search,
   .space-rail {
     grid-column: 1;
@@ -1827,7 +1999,7 @@
   .notes-loading,
   .notes-empty {
     grid-column: 2;
-    grid-row: 1 / span 5;
+    grid-row: 1 / span 6;
   }
 
   .space-rail {
