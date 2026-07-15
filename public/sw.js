@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v27";
+const CACHE_NAME = "lad-pi-124-v28";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -13,10 +13,20 @@ async function discoverBuildAssets() {
     const response = await fetch("/index.html", { cache: "no-store" });
     const html = await response.text();
     const matches = [...html.matchAll(/(?:src|href)="([^"]+)"/g)];
-    return matches
+    const directAssets = matches
       .map((match) => match[1])
       .filter((url) => url.startsWith("/assets/") || url.startsWith("assets/"))
       .map((url) => (url.startsWith("/") ? url : `/${url}`));
+    const nestedAssets = await Promise.all(directAssets.filter((url) => url.endsWith(".js")).map(async (asset) => {
+      try {
+        const script = await (await fetch(asset, { cache: "no-store" })).text();
+        return [...script.matchAll(/["'(]((?:\/?assets\/|\.\.?\/)[^"'()\s]+\.(?:js|css|png|jpg|jpeg|webp|svg))/g)]
+          .map((match) => new URL(match[1], new URL(asset, self.location.origin)).pathname);
+      } catch {
+        return [];
+      }
+    }));
+    return [...new Set([...directAssets, ...nestedAssets.flat()])];
   } catch {
     return [];
   }
@@ -104,6 +114,24 @@ self.addEventListener("message", (event) => {
       icon: "/icons/icon-192.png",
       badge: "/icons/icon-192.png",
       data: { url: "/" }
+    })
+  );
+});
+
+self.addEventListener("push", (event) => {
+  let payload = { title: "Лад · ПИ-124", body: "Проверьте ближайшую пару.", tag: "lad-schedule-push", url: "/" };
+  try {
+    if (event.data) payload = { ...payload, ...event.data.json() };
+  } catch {
+    if (event.data) payload.body = event.data.text();
+  }
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      tag: payload.tag,
+      icon: "/icons/icon-192.png",
+      badge: "/icons/icon-192.png",
+      data: { url: payload.url || "/" }
     })
   );
 });

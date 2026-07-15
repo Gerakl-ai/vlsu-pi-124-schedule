@@ -3,10 +3,11 @@
   "short_name": "Лад",
   "description": "Расписание и умные записи ПИ-124, ИИТЭ, ВлГУ",
   "start_url": "/",
+  "id": "/",
   "display": "standalone",
   "background_color": "#090a0c",
   "theme_color": "#090a0c",
-  "orientation": "portrait-primary",
+  "orientation": "any",
   "lang": "ru",
   "icons": [
     {

@@ -2,7 +2,7 @@
 <html lang="ru">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#090a0c" />
     <meta name="description" content="Лад: расписание и умные записи ПИ-124, ИИТЭ, ВлГУ" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -15,15 +15,29 @@
     <link rel="preload" href="/images/hero-obsidian-campus.jpg" as="image" />
     <script>
       (() => {
-        const allowed = new Set(["obsidian", "porcelain", "signal", "field"]);
+        const allowed = new Set(["obsidian", "porcelain", "signal", "field", "custom"]);
         let theme = "signal";
         try {
           const stored = localStorage.getItem("lad.theme");
           if (allowed.has(stored)) theme = stored;
         } catch {}
         document.documentElement.dataset.theme = theme;
-        document.documentElement.style.colorScheme = theme === "porcelain" ? "light" : "dark";
-        const colors = { obsidian: "#05070a", porcelain: "#eef2f7", signal: "#090a0c", field: "#07110f" };
+        let custom = null;
+        if (theme === "custom") {
+          try { custom = JSON.parse(localStorage.getItem("lad.custom-theme") || "null"); } catch {}
+        }
+        document.documentElement.style.colorScheme = custom?.mode || (theme === "porcelain" ? "light" : "dark");
+        const colors = { obsidian: "#05070a", porcelain: "#eef2f7", signal: "#090a0c", field: "#07110f", custom: custom?.background || "#080b12" };
+        if (custom) {
+          const root = document.documentElement.style;
+          root.setProperty("--launch-bg", custom.background);
+          root.setProperty("--launch-panel", custom.surface);
+          root.setProperty("--launch-line", `${custom.accent}33`);
+          root.setProperty("--launch-text", custom.text);
+          root.setProperty("--launch-muted", custom.muted);
+          root.setProperty("--launch-accent", custom.accent);
+          root.setProperty("--launch-signal", custom.signal);
+        }
         document.querySelector('meta[name="theme-color"]').setAttribute("content", colors[theme]);
       })();
     </script>

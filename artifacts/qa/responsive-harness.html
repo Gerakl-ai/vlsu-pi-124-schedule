@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Лад responsive QA</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; padding: 24px; background: #15171b; color: #f7f7f4; font: 14px system-ui, sans-serif; }
+    main { display: grid; gap: 28px; }
+    section { display: grid; gap: 10px; }
+    h1, h2 { margin: 0; }
+    h1 { font-size: 22px; }
+    h2 { font-size: 14px; color: #93a0b2; }
+    iframe { display: block; border: 1px solid #394150; border-radius: 8px; background: #08090b; box-shadow: 0 24px 70px #0008; }
+    #portrait { width: 402px; height: 874px; }
+    #landscape { width: 874px; height: 402px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Лад · responsive QA</h1>
+    <section>
+      <h2>iPhone 16 Pro · 402 × 874</h2>
+      <iframe id="portrait" name="portrait" src="/?qa=portrait" title="Portrait QA"></iframe>
+    </section>
+    <section>
+      <h2>iPhone 16 Pro landscape · 874 × 402</h2>
+      <iframe id="landscape" name="landscape" src="/?qa=landscape" title="Landscape QA"></iframe>
+    </section>
+  </main>
+</body>
+</html>

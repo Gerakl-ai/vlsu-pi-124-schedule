@@ -2,11 +2,21 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
 import { buildSubjectOptions, classifyNote, noteTitle } from "./noteClassifier";
 import { requestSmartClassification } from "./noteApi";
-import { loadNotes, removeNote, storeNote } from "./noteStorage";
-import type { SmartNote } from "./noteTypes";
+import {
+  DEFAULT_NOTE_FOLDERS,
+  loadFolders,
+  loadNotes,
+  removeFolder,
+  removeNote,
+  storeFolder,
+  storeNote
+} from "./noteStorage";
+import type { NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
-function createId() {
-  return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `note-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+const FOLDER_COLORS = ["#6bd6ff", "#59dfc1", "#ffc55f", "#ff8a7f", "#d89cff", "#76a8ff"];
+
+function createId(prefix: string) {
+  return typeof crypto.randomUUID === "function" ? crypto.randomUUID() : `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function sortNotes(notes: SmartNote[]) {
@@ -17,17 +27,26 @@ function sortNotes(notes: SmartNote[]) {
   });
 }
 
+function normalizedFolderName(value: string) {
+  return value.trim().replace(/\s+/g, " ");
+}
+
 export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabled: boolean) {
   const [notes, setNotes] = useState<SmartNote[]>([]);
+  const [folders, setFolders] = useState<NoteFolder[]>(DEFAULT_NOTE_FOLDERS);
   const [ready, setReady] = useState(false);
   const subjects = useMemo(() => buildSubjectOptions(lessons, weekMode), [lessons, weekMode]);
-  const spaces = useMemo(() => [...new Set(notes.map((note) => note.space))], [notes]);
+  const spaces = useMemo(
+    () => [...new Set([...folders.map((folder) => folder.name), ...notes.map((note) => note.space)])],
+    [folders, notes]
+  );
 
   useEffect(() => {
     let active = true;
-    loadNotes().then((stored) => {
+    Promise.all([loadNotes(), loadFolders()]).then(([storedNotes, storedFolders]) => {
       if (!active) return;
-      setNotes(sortNotes(stored));
+      setNotes(sortNotes(storedNotes));
+      setFolders(storedFolders);
       setReady(true);
     });
     return () => {
@@ -58,9 +77,12 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
         let enriched: SmartNote | undefined;
         const next = current.map((item) => {
           if (item.id !== note.id || item.text !== note.text) return item;
-          enriched = {
+          const enrichedSpace = item.spaceManual ? item.space : remote.space ?? item.space;
+          const nextNote: SmartNote = {
             ...item,
             ...remote,
+            space: enrichedSpace,
+            spaceManual: item.spaceManual,
             dueLabel: remote.dueAt
               ? `До ${new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(remote.dueAt))}`
               : item.dueLabel,
@@ -68,7 +90,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
             classificationPending: false,
             updatedAt: new Date().toISOString()
           };
-          return enriched;
+          enriched = nextNote;
+          return nextNote;
         });
         if (enriched) void storeNote(enriched);
         return sortNotes(next);
@@ -76,15 +99,18 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     });
   }, [aiEnabled, spaces, subjects]);
 
-  const createNote = useCallback(async (text: string, pinned = false) => {
+  const createNote = useCallback(async (input: NoteDocumentInput) => {
     const timestamp = new Date().toISOString();
-    const classification = classifyNote(text, subjects);
+    const classification = classifyNote(input.text, subjects, spaces);
+    if (input.spaceOverride) classification.space = input.spaceOverride;
     const note: SmartNote = {
-      id: createId(),
-      text: text.trim(),
-      title: noteTitle(text),
+      id: createId("note"),
+      text: input.text.trim(),
+      contentHtml: input.contentHtml,
+      title: noteTitle(input.text),
       status: "open",
-      pinned,
+      pinned: input.pinned,
+      spaceManual: Boolean(input.spaceOverride),
       createdAt: timestamp,
       updatedAt: timestamp,
       classificationSource: "local",
@@ -95,18 +121,21 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     await storeNote(note);
     enrichNote(note);
     return note;
-  }, [aiEnabled, enrichNote, subjects]);
+  }, [aiEnabled, enrichNote, spaces, subjects]);
 
-  const updateNote = useCallback(async (noteId: string, text: string, pinned: boolean) => {
+  const updateNote = useCallback(async (noteId: string, input: NoteDocumentInput) => {
     const existing = notes.find((note) => note.id === noteId);
     if (!existing) return;
-    const classification = classifyNote(text, subjects);
+    const classification = classifyNote(input.text, subjects, spaces);
+    if (input.spaceOverride) classification.space = input.spaceOverride;
     const note: SmartNote = {
       ...existing,
       ...classification,
-      text: text.trim(),
-      title: noteTitle(text),
-      pinned,
+      text: input.text.trim(),
+      contentHtml: input.contentHtml,
+      title: noteTitle(input.text),
+      pinned: input.pinned,
+      spaceManual: Boolean(input.spaceOverride),
       updatedAt: new Date().toISOString(),
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine
@@ -114,7 +143,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     setNotes((current) => sortNotes(current.map((item) => item.id === noteId ? note : item)));
     await storeNote(note);
     enrichNote(note);
-  }, [aiEnabled, enrichNote, notes, subjects]);
+    return note;
+  }, [aiEnabled, enrichNote, notes, spaces, subjects]);
 
   const toggleNote = useCallback((noteId: string) => {
     setNotes((current) => {
@@ -144,6 +174,37 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     await removeNote(noteId);
   }, []);
 
+  const createFolder = useCallback(async (name: string) => {
+    const normalized = normalizedFolderName(name);
+    if (!normalized) return null;
+    const existing = folders.find((folder) => folder.name.localeCompare(normalized, "ru", { sensitivity: "accent" }) === 0);
+    if (existing) return existing;
+    const folder: NoteFolder = {
+      id: createId("folder"),
+      name: normalized.slice(0, 28),
+      color: FOLDER_COLORS[folders.length % FOLDER_COLORS.length],
+      system: false,
+      createdAt: new Date().toISOString()
+    };
+    setFolders((current) => [...current, folder]);
+    await storeFolder(folder);
+    return folder;
+  }, [folders]);
+
+  const deleteFolder = useCallback(async (folderId: string) => {
+    const folder = folders.find((item) => item.id === folderId);
+    if (!folder || folder.system) return;
+    setFolders((current) => current.filter((item) => item.id !== folderId));
+    setNotes((current) => {
+      const next = current.map((note) => note.space === folder.name
+        ? { ...note, space: "Входящие", spaceManual: false, updatedAt: new Date().toISOString() }
+        : note);
+      next.filter((note, index) => note !== current[index]).forEach((note) => void storeNote(note));
+      return sortNotes(next);
+    });
+    await removeFolder(folderId);
+  }, [folders]);
+
   const importNotes = useCallback(async (incoming: SmartNote[]) => {
     let importedCount = 0;
     const merged = new Map(notes.map((note) => [note.id, note]));
@@ -160,10 +221,11 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     return importedCount;
   }, [notes]);
 
-  const classifyDraft = useCallback((text: string) => classifyNote(text, subjects), [subjects]);
+  const classifyDraft = useCallback((text: string) => classifyNote(text, subjects, spaces), [spaces, subjects]);
 
   return {
     notes,
+    folders,
     ready,
     subjects,
     spaces,
@@ -172,6 +234,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     toggleNote,
     togglePinned,
     deleteNote,
+    createFolder,
+    deleteFolder,
     importNotes,
     classifyDraft
   };

@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import {
   Bell,
   BellRing,
@@ -26,14 +27,21 @@ import {
   Waves
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
-import { NotesView } from "./features/notes/NotesView";
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
 import { normalizeSubjectKey } from "./features/notes/noteClassifier";
 import { readAiEnabled, writeAiEnabled } from "./features/notes/notePreferences";
 import type { SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
-import { applyTheme, readTheme, THEMES, type ThemeId } from "./features/themes/theme";
+import {
+  applyTheme,
+  readCustomTheme,
+  readTheme,
+  saveCustomTheme,
+  THEMES,
+  type CustomTheme,
+  type ThemeId
+} from "./features/themes/theme";
 import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule } from "./lib/scheduleApi";
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
@@ -62,6 +70,7 @@ const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL = "/images/hero-obsidian-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
+const NotesView = lazy(() => import("./features/notes/NotesView").then((module) => ({ default: module.NotesView })));
 
 type HeroMode = "current" | "next" | "done" | "free" | "loading";
 
@@ -193,10 +202,26 @@ function scheduleContentSignature(state: ScheduleState | null) {
   });
 }
 
+function initialAppTab(): AppTab {
+  const requested = new URLSearchParams(window.location.search).get("tab");
+  return requested === "week" || requested === "notes" || requested === "settings" ? requested : "today";
+}
+
+function withViewTransition(update: () => void) {
+  const startViewTransition = (document as Document & {
+    startViewTransition?: (callback: () => void) => { finished: Promise<void> };
+  }).startViewTransition;
+  if (!startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    update();
+    return;
+  }
+  startViewTransition.call(document, () => flushSync(update));
+}
+
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
-  const [activeTab, setActiveTab] = useState<AppTab>("today");
+  const [activeTab, setActiveTab] = useState<AppTab>(initialAppTab);
   const [weekOverride, setWeekOverride] = useState<WeekMode | "current">("current");
   const [settings, setSettings] = useState<ReminderSettings>(() => readReminderSettings());
   const [notice, setNotice] = useState("");
@@ -204,6 +229,7 @@ export function App() {
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
   const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
+  const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -347,9 +373,18 @@ export function App() {
   }
 
   function selectTheme(nextTheme: ThemeId) {
-    setThemeId(nextTheme);
-    applyTheme(nextTheme);
-    window.setTimeout(() => setThemeSheetOpen(false), 180);
+    withViewTransition(() => {
+      setThemeId(nextTheme);
+      applyTheme(nextTheme, customTheme);
+    });
+    if (nextTheme !== "custom") window.setTimeout(() => setThemeSheetOpen(false), 180);
+  }
+
+  function updateCustomTheme(nextTheme: CustomTheme) {
+    saveCustomTheme(nextTheme);
+    setCustomTheme(nextTheme);
+    setThemeId("custom");
+    applyTheme("custom", nextTheme);
   }
 
   const navigateToTab = useCallback((nextTab: AppTab) => {
@@ -361,7 +396,7 @@ export function App() {
       return;
     }
     if (container) tabScrollPositionsRef.current[activeTab] = container.scrollTop;
-    setActiveTab(nextTab);
+    withViewTransition(() => setActiveTab(nextTab));
   }, [activeTab]);
 
   useLayoutEffect(() => {
@@ -431,16 +466,21 @@ export function App() {
           )}
 
           {activeTab === "notes" && (
-            <NotesView
-              notes={smartNotes.notes}
-              ready={smartNotes.ready}
-              classifyDraft={smartNotes.classifyDraft}
-              onCreate={(text, pinned) => void smartNotes.createNote(text, pinned)}
-              onDelete={(noteId) => void smartNotes.deleteNote(noteId)}
-              onToggle={smartNotes.toggleNote}
-              onTogglePinned={smartNotes.togglePinned}
-              onUpdate={(noteId, text, pinned) => void smartNotes.updateNote(noteId, text, pinned)}
-            />
+            <Suspense fallback={<section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>}>
+              <NotesView
+                notes={smartNotes.notes}
+                folders={smartNotes.folders}
+                ready={smartNotes.ready}
+                classifyDraft={smartNotes.classifyDraft}
+                onCreate={smartNotes.createNote}
+                onCreateFolder={smartNotes.createFolder}
+                onDelete={smartNotes.deleteNote}
+                onDeleteFolder={smartNotes.deleteFolder}
+                onToggle={smartNotes.toggleNote}
+                onTogglePinned={smartNotes.togglePinned}
+                onUpdate={smartNotes.updateNote}
+              />
+            </Suspense>
           )}
 
           {activeTab === "settings" && (
@@ -454,6 +494,7 @@ export function App() {
               onMinutes={updateReminderMinutes}
               schedule={schedule}
               themeId={themeId}
+              customThemeName={customTheme.name}
               onThemeOpen={() => setThemeSheetOpen(true)}
               notes={smartNotes.notes}
               onImportNotes={smartNotes.importNotes}
@@ -467,7 +508,14 @@ export function App() {
         </div>
 
         <BottomNav activeTab={activeTab} onTabChange={navigateToTab} />
-        <ThemeSheet currentTheme={themeId} open={themeSheetOpen} onClose={() => setThemeSheetOpen(false)} onSelect={selectTheme} />
+        <ThemeSheet
+          currentTheme={themeId}
+          customTheme={customTheme}
+          open={themeSheetOpen}
+          onClose={() => setThemeSheetOpen(false)}
+          onCustomChange={updateCustomTheme}
+          onSelect={selectTheme}
+        />
       </section>
     </main>
   );
@@ -688,7 +736,7 @@ function DayCommandStrip({
   return (
     <section className="command-strip" aria-label="Быстрая сводка дня">
       <div className="command-item">
-        <span><Waves size={16} /> Пульс</span>
+        <span><Waves size={16} /> Прогресс</span>
         <strong>{lessons.length ? `${completedCount}/${lessons.length}` : "0 пар"}</strong>
         <small>{lessons.length ? `${dayProgress}% дня закрыто` : "учебный день свободен"}</small>
       </div>
@@ -745,7 +793,7 @@ function Timeline({
     <section className="timeline-card">
       <div className="timeline-summary">
         <div>
-          <span>Пульс дня</span>
+          <span>Сегодня</span>
           <strong>{completedCount}/{lessons.length} пройдено</strong>
         </div>
         <p>{focusLesson ? `${focusCopy}: ${lessonKeySubject(focusLesson)}` : focusCopy}</p>
@@ -867,7 +915,7 @@ function WeekView({
   }
 
   return (
-    <div className="view-stack">
+    <div className="view-stack week-view">
       <section className="week-toolbar">
         <div>
           <span>Неделя</span>
@@ -944,7 +992,7 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
   }, []);
 
   return (
-    <div className="view-stack">
+    <div className="view-stack week-view session-view">
       <section className="week-toolbar">
         <div>
           <span>Расписание</span>
@@ -1044,6 +1092,7 @@ function SettingsView({
   onMinutes,
   schedule,
   themeId,
+  customThemeName,
   onThemeOpen,
   notes,
   onImportNotes,
@@ -1059,6 +1108,7 @@ function SettingsView({
   onMinutes: (minutes: number) => void;
   schedule: ScheduleState | null;
   themeId: ThemeId;
+  customThemeName: string;
   onThemeOpen: () => void;
   notes: SmartNote[];
   onImportNotes: (notes: SmartNote[]) => Promise<number>;
@@ -1066,6 +1116,7 @@ function SettingsView({
   onAiEnabled: (enabled: boolean) => void;
 }) {
   const activeTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
+  const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
 
@@ -1097,7 +1148,7 @@ function SettingsView({
         <div className="setting-row appearance-row">
           <div>
             <span>Оформление</span>
-            <strong>{activeTheme.name}</strong>
+            <strong>{activeThemeName}</strong>
           </div>
           <button type="button" className="theme-settings-button" onClick={onThemeOpen}>
             <Palette size={18} />

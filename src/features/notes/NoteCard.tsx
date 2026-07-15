@@ -1,4 +1,5 @@
 import { BookCheck, CalendarClock, Check, ChevronRight, Circle, LoaderCircle, Pin } from "lucide-react";
+import DOMPurify from "dompurify";
 import { noteKindLabel } from "./noteClassifier";
 import type { SmartNote } from "./noteTypes";
 
@@ -15,12 +16,25 @@ function noteBody(note: SmartNote) {
   return lines.slice(1).join("\n").trim();
 }
 
+function notePreviewHtml(note: SmartNote) {
+  if (!note.contentHtml) return "";
+  const documentValue = new DOMParser().parseFromString(note.contentHtml, "text/html");
+  const firstBlock = documentValue.body.querySelector("p, h1, h2, h3");
+  if (firstBlock && !firstBlock.querySelector("img") && firstBlock.textContent?.trim() === note.title) firstBlock.remove();
+  return DOMPurify.sanitize(documentValue.body.innerHTML, {
+    ALLOWED_TAGS: ["p", "br", "strong", "b", "em", "i", "u", "s", "mark", "span", "ul", "ol", "li", "blockquote", "h2", "h3", "img"],
+    ALLOWED_ATTR: ["class", "style", "src", "alt", "title", "width", "height", "data-type", "data-checked"],
+    ADD_DATA_URI_TAGS: ["img"]
+  });
+}
+
 function formatNoteDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
 export function NoteCard({ note, onEdit, onToggle, onTogglePinned }: NoteCardProps) {
   const body = noteBody(note);
+  const previewHtml = notePreviewHtml(note);
   const overdue = Boolean(note.dueAt && note.status === "open" && new Date(note.dueAt).getTime() < Date.now());
 
   return (
@@ -41,7 +55,9 @@ export function NoteCard({ note, onEdit, onToggle, onTogglePinned }: NoteCardPro
           <time>{formatNoteDate(note.updatedAt)}</time>
         </span>
         <strong>{note.title}</strong>
-        {body && <span className="note-excerpt">{body}</span>}
+        {previewHtml
+          ? <span className="note-rich-preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+          : body && <span className="note-excerpt">{body}</span>}
         <span className="note-metadata">
           <span>{note.space}</span>
           {note.subjectLabel && <span>{note.subjectLabel}</span>}

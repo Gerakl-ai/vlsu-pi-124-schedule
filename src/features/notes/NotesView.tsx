@@ -1,86 +1,98 @@
 import {
-  BookCheck,
+  BookOpenCheck,
   CheckCircle2,
   FolderHeart,
+  FolderPlus,
   Inbox,
   Lightbulb,
   ListTodo,
-  Mic2,
   Music2,
+  PanelsTopLeft,
+  Radio,
   Search,
   Sparkles,
   SquarePen,
   X
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { FolderSheet } from "./FolderSheet";
 import { NoteCard } from "./NoteCard";
 import { NoteComposer } from "./NoteComposer";
-import type { NoteClassification, NoteKind, SmartNote } from "./noteTypes";
+import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 interface NotesViewProps {
   notes: SmartNote[];
+  folders: NoteFolder[];
   ready: boolean;
   classifyDraft: (text: string) => NoteClassification;
-  onCreate: (text: string, pinned: boolean) => void;
-  onDelete: (noteId: string) => void;
+  onCreate: (input: NoteDocumentInput) => Promise<SmartNote>;
+  onCreateFolder: (name: string) => Promise<NoteFolder | null>;
+  onDelete: (noteId: string) => Promise<void>;
+  onDeleteFolder: (folderId: string) => Promise<void>;
   onToggle: (noteId: string) => void;
   onTogglePinned: (noteId: string) => void;
-  onUpdate: (noteId: string, text: string, pinned: boolean) => void;
+  onUpdate: (noteId: string, input: NoteDocumentInput) => Promise<SmartNote | undefined>;
 }
 
 interface SmartFilter {
   id: string;
   label: string;
-  kind?: NoteKind;
   space?: string;
+  color?: string;
   icon: typeof Inbox;
 }
 
 function iconForSpace(space: string) {
   const value = space.toLocaleLowerCase("ru-RU");
-  if (value.includes("учёб") || value.includes("учеб")) return BookCheck;
+  if (value.includes("учёб") || value.includes("учеб")) return BookOpenCheck;
   if (value.includes("танц")) return Music2;
-  if (value.includes("радио")) return Mic2;
-  if (value.includes("иде")) return Lightbulb;
+  if (value.includes("радио")) return Radio;
+  if (value.includes("проект")) return PanelsTopLeft;
+  if (value.includes("дел")) return ListTodo;
   if (value.includes("хот")) return FolderHeart;
+  if (value.includes("иде")) return Lightbulb;
   return Sparkles;
 }
 
 export function NotesView({
   notes,
+  folders,
   ready,
   classifyDraft,
   onCreate,
+  onCreateFolder,
   onDelete,
+  onDeleteFolder,
   onToggle,
   onTogglePinned,
   onUpdate
 }: NotesViewProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
-  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerOpen, setComposerOpen] = useState(() => new URLSearchParams(window.location.search).get("compose") === "1");
+  const [folderSheetOpen, setFolderSheetOpen] = useState(false);
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
 
   const filters = useMemo<SmartFilter[]>(() => {
-    const core: SmartFilter[] = [
-      { id: "all", label: "Все", icon: Inbox },
-      { id: "homework", label: "ДЗ", kind: "homework", icon: BookCheck },
-      { id: "task", label: "Дела", kind: "task", icon: ListTodo },
-      { id: "wish", label: "Хотелки", kind: "wish", icon: FolderHeart }
-    ];
-    const reserved = new Set(core.map((item) => item.label.toLocaleLowerCase("ru-RU")));
-    const spaces = [...new Set(notes.map((note) => note.space))]
+    const folderFilters = folders.map((folder) => ({
+      id: `folder:${folder.id}`,
+      label: folder.name,
+      space: folder.name,
+      color: folder.color,
+      icon: iconForSpace(folder.name)
+    }));
+    const reserved = new Set(folders.map((folder) => folder.name.toLocaleLowerCase("ru-RU")));
+    const dynamic = [...new Set(notes.map((note) => note.space))]
       .filter((space) => !reserved.has(space.toLocaleLowerCase("ru-RU")))
       .sort((a, b) => a.localeCompare(b, "ru"))
       .map((space) => ({ id: `space:${space}`, label: space, space, icon: iconForSpace(space) }));
-    return [...core, ...spaces];
-  }, [notes]);
+    return [{ id: "all", label: "Все", icon: Inbox }, ...folderFilters, ...dynamic];
+  }, [folders, notes]);
 
   const selectedFilter = filters.find((filter) => filter.id === activeFilter) ?? filters[0];
   const visibleNotes = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ru-RU");
     return notes.filter((note) => {
-      if (selectedFilter.kind && note.kind !== selectedFilter.kind) return false;
       if (selectedFilter.space && note.space !== selectedFilter.space) return false;
       if (!normalizedQuery) return true;
       return `${note.title} ${note.text} ${note.space} ${note.subjectLabel ?? ""}`.toLocaleLowerCase("ru-RU").includes(normalizedQuery);
@@ -88,7 +100,7 @@ export function NotesView({
   }, [notes, query, selectedFilter]);
 
   const openCount = notes.filter((note) => note.status === "open").length;
-  const homeworkCount = notes.filter((note) => note.status === "open" && note.kind === "homework").length;
+  const studyCount = notes.filter((note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework")).length;
   const todayCount = notes.filter((note) => note.status === "open" && note.dueAt && new Date(note.dueAt).toDateString() === new Date().toDateString()).length;
 
   function closeComposer() {
@@ -96,15 +108,9 @@ export function NotesView({
     setEditingNote(null);
   }
 
-  function saveNote(text: string, pinned: boolean, noteId?: string) {
-    if (noteId) onUpdate(noteId, text, pinned);
-    else onCreate(text, pinned);
-    closeComposer();
-  }
-
-  function deleteCurrent(noteId: string) {
-    onDelete(noteId);
-    closeComposer();
+  async function saveNote(input: NoteDocumentInput, noteId?: string) {
+    if (noteId) await onUpdate(noteId, input);
+    else await onCreate(input);
   }
 
   return (
@@ -117,7 +123,7 @@ export function NotesView({
         <button
           className="notes-compose-button"
           type="button"
-          onClick={() => setComposerOpen(true)}
+          onClick={() => { setEditingNote(null); setComposerOpen(true); }}
           aria-label="Создать запись"
           data-testid="open-note-composer"
         >
@@ -128,15 +134,15 @@ export function NotesView({
 
       <section className="notes-pulse" aria-label="Сводка записей">
         <div><span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} /></div>
-        <div><span>ДЗ</span><strong>{homeworkCount}</strong><BookCheck size={18} /></div>
+        <div><span>Учёба</span><strong>{studyCount}</strong><BookOpenCheck size={18} /></div>
         <div><span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} /></div>
       </section>
 
-      <button className="quick-capture" type="button" onClick={() => setComposerOpen(true)}>
+      <button className="quick-capture" type="button" onClick={() => { setEditingNote(null); setComposerOpen(true); }}>
         <span className="quick-capture-icon"><Sparkles size={21} /></span>
         <span>
-          <strong>Написать как думаете</strong>
-          <small>Мысль, дело, ДЗ или идея</small>
+          <strong>Записать как думаете</strong>
+          <small>Мысль, дело, идея или план</small>
         </span>
         <SquarePen size={19} />
       </button>
@@ -147,17 +153,21 @@ export function NotesView({
         {query && <button type="button" onClick={() => setQuery("")} aria-label="Очистить поиск" title="Очистить"><X size={16} /></button>}
       </label>
 
-      <div className="space-rail" aria-label="Умные разделы">
-        {filters.map(({ id, label, kind, space, icon: Icon }) => {
-          const count = notes.filter((note) => (!kind || note.kind === kind) && (!space || note.space === space)).length;
+      <div className="space-rail" aria-label="Папки записей">
+        {filters.map(({ id, label, space, color, icon: Icon }) => {
+          const count = notes.filter((note) => !space || note.space === space).length;
           return (
             <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => setActiveFilter(id)} aria-pressed={selectedFilter.id === id}>
-              <Icon size={16} />
+              {color ? <i className="folder-color" style={{ background: color }} aria-hidden="true" /> : <Icon size={16} />}
               <span>{label}</span>
               <small>{count}</small>
             </button>
           );
         })}
+        <button className="folder-manage-button" type="button" onClick={() => setFolderSheetOpen(true)} aria-label="Добавить или изменить папки" title="Папки">
+          <FolderPlus size={16} />
+          <span>Папки</span>
+        </button>
       </div>
 
       {!ready ? (
@@ -191,12 +201,14 @@ export function NotesView({
 
       <NoteComposer
         note={editingNote}
+        folders={folders}
         open={composerOpen}
         classifyDraft={classifyDraft}
         onClose={closeComposer}
-        onDelete={deleteCurrent}
+        onDelete={onDelete}
         onSave={saveNote}
       />
+      <FolderSheet folders={folders} open={folderSheetOpen} onClose={() => setFolderSheetOpen(false)} onCreate={onCreateFolder} onDelete={onDeleteFolder} />
     </div>
   );
 }

@@ -18,6 +18,8 @@
   --chrome: rgba(244, 247, 251, 0.1);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --nav-bar-height: 70px;
   --nav-total-height: calc(var(--nav-bar-height) + var(--safe-bottom));
   --app-viewport-height: 100dvh;
@@ -30,6 +32,12 @@
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
+  -webkit-text-size-adjust: 100%;
 }
 
 html,
@@ -57,6 +65,8 @@ body {
 
 button {
   font: inherit;
+  touch-action: manipulation;
+  user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -71,6 +81,14 @@ button {
   place-items: center;
   padding: 24px;
   overflow: hidden;
+  user-select: none;
+}
+
+input,
+textarea,
+select,
+.rich-note-surface {
+  user-select: text;
 }
 
 .phone-frame {
@@ -129,6 +147,8 @@ button {
     repeating-linear-gradient(90deg, rgba(var(--accent-soft-rgb), 0.034) 0 1px, transparent 1px 40px),
     repeating-linear-gradient(0deg, rgba(var(--accent-soft-rgb), 0.021) 0 1px, transparent 1px 40px);
   mask-image: linear-gradient(to bottom, #000, transparent 82%);
+  background-position: 0 0, 0 0;
+  animation: grid-travel 26s linear infinite;
 }
 
 .light-sweep {
@@ -378,6 +398,17 @@ button {
   background:
     linear-gradient(90deg, rgba(3, 6, 11, 0.88) 0%, rgba(3, 6, 11, 0.68) 38%, rgba(3, 6, 11, 0.16) 74%, rgba(3, 6, 11, 0.46) 100%),
     linear-gradient(180deg, rgba(255,255,255,0.045), transparent 46%, rgba(2, 4, 10, 0.34));
+}
+
+.hero-card::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -30% -55%;
+  pointer-events: none;
+  background: linear-gradient(108deg, transparent 43%, rgba(255,255,255,.075) 48%, rgba(var(--accent-rgb),.09) 50%, transparent 55%);
+  transform: translate3d(-42%, 0, 0);
+  animation: cinematic-sheen 10s cubic-bezier(.4,0,.2,1) infinite;
 }
 
 .hero-visual {
@@ -2039,6 +2070,27 @@ button {
   filter: drop-shadow(0 0 10px rgba(var(--accent-rgb), 0.66));
 }
 
+.bottom-nav button::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 5px;
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--cyan);
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), .7);
+  opacity: 0;
+  transform: translateX(-50%) scaleX(.3);
+  transition: opacity .25s ease, transform .32s cubic-bezier(.2,.85,.25,1);
+}
+
+.bottom-nav button.active::after {
+  opacity: 1;
+  transform: translateX(-50%) scaleX(1);
+  animation: nav-beacon 2.8s ease-in-out infinite;
+}
+
 .bottom-nav button:focus-visible,
 .week-chip:focus-visible,
 .header-icon-button:focus-visible,
@@ -2119,6 +2171,38 @@ button {
 @keyframes signal-slide {
   from { transform: translate3d(-2%, 0, 0); opacity: 0.72; }
   to { transform: translate3d(2%, 0, 0); opacity: 1; }
+}
+
+@keyframes grid-travel {
+  to { background-position: 40px 0, 0 40px; }
+}
+
+@keyframes cinematic-sheen {
+  0%, 68% { transform: translate3d(-42%, 0, 0); opacity: 0; }
+  74% { opacity: .9; }
+  92%, 100% { transform: translate3d(42%, 0, 0); opacity: 0; }
+}
+
+@keyframes nav-beacon {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.45); }
+}
+
+::view-transition-old(root) {
+  animation: app-view-old .24s ease both;
+}
+
+::view-transition-new(root) {
+  animation: app-view-new .42s cubic-bezier(.2,.85,.25,1) both;
+}
+
+@keyframes app-view-old {
+  to { opacity: 0; transform: scale(.985); filter: blur(4px); }
+}
+
+@keyframes app-view-new {
+  from { opacity: 0; transform: scale(1.012); filter: blur(6px); }
+  to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
 @keyframes sigil-breathe {
@@ -2326,6 +2410,252 @@ button {
     min-height: 40px;
   }
 
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  :root {
+    --landscape-rail: 168px;
+  }
+
+  .app-shell {
+    padding: 0;
+  }
+
+  .phone-frame {
+    width: 100%;
+    max-width: none;
+    height: var(--app-viewport-height);
+    min-height: 0;
+    display: grid;
+    grid-template-columns: var(--landscape-rail) minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    border: 0;
+    border-radius: 0;
+  }
+
+  .topbar {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: calc(10px + var(--safe-top)) 10px 8px calc(10px + var(--safe-left));
+    border-right: 1px solid var(--theme-panel-border);
+    background: color-mix(in srgb, var(--theme-panel-solid) 72%, transparent);
+  }
+
+  .brand {
+    gap: 9px;
+  }
+
+  .brand-mark {
+    width: 38px;
+    height: 38px;
+  }
+
+  .brand h1 {
+    font-size: 19px;
+  }
+
+  .brand p {
+    margin-top: 3px;
+    font-size: 11px;
+  }
+
+  .header-actions {
+    display: grid;
+    grid-template-columns: minmax(0,1fr) 38px;
+    gap: 6px;
+  }
+
+  .week-chip,
+  .header-icon-button {
+    height: 38px;
+  }
+
+  .week-chip {
+    max-width: none;
+    gap: 5px;
+    padding: 0 7px;
+  }
+
+  .week-chip span {
+    font-size: 9.5px;
+  }
+
+  .header-icon-button {
+    width: 38px;
+  }
+
+  .sync-line {
+    display: block;
+    font-size: 9px;
+  }
+
+  .sync-line > span:first-child {
+    display: none;
+  }
+
+  .sync-status {
+    display: block;
+    text-align: left;
+  }
+
+  .content-scroll {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    padding: calc(10px + var(--safe-top)) calc(14px + var(--safe-right)) calc(12px + var(--safe-bottom)) 14px;
+  }
+
+  .bottom-nav {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    align-self: stretch;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, minmax(46px, 1fr));
+    padding: 6px 9px calc(7px + var(--safe-bottom)) calc(9px + var(--safe-left));
+    border-right: 1px solid var(--theme-panel-border);
+    box-shadow: inset 0 1px 0 var(--theme-panel-border);
+  }
+
+  .bottom-nav::before {
+    inset: 0 9px auto;
+  }
+
+  .bottom-nav button {
+    grid-row: auto;
+    display: grid;
+    grid-template-columns: 28px minmax(0,1fr);
+    place-items: center start;
+    align-content: center;
+    gap: 8px;
+    padding: 0 9px;
+    border-radius: 7px;
+    font-size: 10.5px;
+    text-align: left;
+  }
+
+  .bottom-nav button.active {
+    background: var(--theme-control-active);
+  }
+
+  .bottom-nav button::after {
+    left: 3px;
+    top: 50%;
+    bottom: auto;
+    width: 2px;
+    height: 20px;
+    transform: translateY(-50%) scaleY(.3);
+  }
+
+  .bottom-nav button.active::after {
+    transform: translateY(-50%) scaleY(1);
+  }
+
+  .view-stack {
+    gap: 10px;
+  }
+
+  .today-view {
+    grid-template-columns: minmax(300px, 1.08fr) minmax(276px, .92fr);
+    align-items: start;
+  }
+
+  .today-view > .hero-card {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    min-height: 252px;
+  }
+
+  .today-view > .command-strip {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .today-view > .focus-note-card,
+  .today-view > .next-card {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .today-view > .timeline-card {
+    grid-column: 1 / -1;
+  }
+
+  .hero-card h2 {
+    margin-top: 18px;
+    font-size: 30px;
+  }
+
+  .hero-card.compact-title h2 { font-size: 24px; }
+  .hero-card.dense-title h2 { font-size: 21px; }
+
+  .hero-meta {
+    margin-top: 13px;
+    gap: 6px;
+    font-size: 17px;
+  }
+
+  .progress-row {
+    margin-top: 14px;
+  }
+
+  .command-item {
+    min-height: 78px;
+    padding: 9px 8px;
+  }
+
+  .command-item strong { font-size: 12px; }
+  .command-item small { font-size: 8.5px; }
+
+  .week-view {
+    grid-template-columns: 258px minmax(0,1fr);
+    align-items: start;
+  }
+
+  .week-view > .week-toolbar,
+  .week-view > .week-map,
+  .week-view > .mode-switch {
+    grid-column: 1;
+  }
+
+  .week-view > .week-list {
+    grid-column: 2;
+    grid-row: 1 / span 3;
+  }
+
+  .session-view > .week-list {
+    grid-row: 1 / span 2;
+  }
+
+  .settings-view {
+    grid-template-columns: minmax(240px, .76fr) minmax(360px, 1.24fr);
+    align-items: start;
+  }
+
+  .settings-view > .settings-hero {
+    grid-column: 1;
+  }
+
+  .settings-view > .settings-panel {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .skeleton-hero {
+    min-height: 252px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 410px) {
+  .topbar { gap: 7px; padding-top: calc(7px + var(--safe-top)); }
+  .brand-mark { width: 34px; height: 34px; }
+  .bottom-nav { grid-template-rows: repeat(4, minmax(42px,1fr)); }
+  .bottom-nav button { font-size: 9.5px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
