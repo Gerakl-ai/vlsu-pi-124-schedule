@@ -11,14 +11,20 @@ function isStandaloneDisplay() {
 }
 
 function syncAppViewportHeight() {
-  const visualHeight = window.visualViewport?.height ?? 0;
+  const visualViewport = window.visualViewport;
+  const visualHeight = visualViewport?.height ?? 0;
   const innerHeight = window.innerHeight || 0;
   const screenHeight = isStandaloneDisplay() && window.matchMedia("(orientation: portrait)").matches ? window.screen.height || 0 : 0;
   const height = Math.ceil(Math.max(visualHeight, innerHeight, screenHeight));
+  const keyboardBaseline = Math.max(innerHeight, screenHeight);
+  const keyboardOpen = Boolean(visualViewport && visualHeight + 110 < keyboardBaseline);
 
   if (height > 0) {
     document.documentElement.style.setProperty("--app-viewport-height", `${height}px`);
   }
+  document.documentElement.style.setProperty("--visual-viewport-height", `${Math.ceil(visualHeight || innerHeight || height)}px`);
+  document.documentElement.style.setProperty("--visual-viewport-offset-top", `${Math.max(0, Math.floor(visualViewport?.offsetTop ?? 0))}px`);
+  document.documentElement.dataset.keyboard = keyboardOpen ? "open" : "closed";
 }
 
 syncAppViewportHeight();

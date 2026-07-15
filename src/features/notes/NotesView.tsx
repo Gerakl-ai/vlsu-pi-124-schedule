@@ -1,4 +1,5 @@
 import {
+  AudioLines,
   BookOpenCheck,
   CheckCircle2,
   FolderHeart,
@@ -6,6 +7,7 @@ import {
   Inbox,
   Lightbulb,
   ListTodo,
+  Mic,
   Music2,
   PanelsTopLeft,
   Radio,
@@ -21,6 +23,7 @@ import { NoteComposer } from "./NoteComposer";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 interface NotesViewProps {
+  visualSrc: string;
   notes: SmartNote[];
   folders: NoteFolder[];
   ready: boolean;
@@ -55,6 +58,7 @@ function iconForSpace(space: string) {
 }
 
 export function NotesView({
+  visualSrc,
   notes,
   folders,
   ready,
@@ -138,13 +142,13 @@ export function NotesView({
         <div><span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} /></div>
       </section>
 
-      <button className="quick-capture" type="button" onClick={() => { setEditingNote(null); setComposerOpen(true); }}>
-        <span className="quick-capture-icon"><Sparkles size={21} /></span>
+      <button className="quick-capture voice-entry" type="button" onClick={() => { setEditingNote(null); setComposerOpen(true); }} aria-label="Открыть умную диктовку">
+        <span className="quick-capture-icon"><Mic size={23} /></span>
         <span>
-          <strong>Записать как думаете</strong>
-          <small>Мысль, дело, идея или план</small>
+          <strong>Умная диктовка</strong>
+          <small>Голос станет записью, контекст разложит её сам</small>
         </span>
-        <SquarePen size={19} />
+        <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><AudioLines size={21} /></span>
       </button>
 
       <label className="notes-search">
@@ -190,7 +194,7 @@ export function NotesView({
         </section>
       ) : (
         <section className="notes-empty">
-          <img src="/images/hero-obsidian-campus.jpg" alt="Блокнот с расписанием и зарисовкой главного корпуса ВлГУ" />
+          <img src={visualSrc} alt="Блокнот с расписанием и зарисовкой главного корпуса ВлГУ" />
           <div>
             <Sparkles size={23} />
             <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>

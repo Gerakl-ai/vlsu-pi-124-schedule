@@ -202,6 +202,7 @@ export function applyTheme(themeId: ThemeId, customTheme = readCustomTheme()) {
   clearCustomProperties();
   if (custom) applyCustomProperties(customTheme);
   document.documentElement.dataset.theme = theme.id;
+  document.documentElement.dataset.themeMode = custom ? customTheme.mode : theme.isLight ? "light" : "dark";
   document.documentElement.style.colorScheme = custom ? customTheme.mode : theme.isLight ? "light" : "dark";
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", custom ? customTheme.background : theme.themeColor);
   try {

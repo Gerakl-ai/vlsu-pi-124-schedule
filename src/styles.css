@@ -23,6 +23,8 @@
   --nav-bar-height: 70px;
   --nav-total-height: calc(var(--nav-bar-height) + var(--safe-bottom));
   --app-viewport-height: 100dvh;
+  --visual-viewport-height: 100dvh;
+  --visual-viewport-offset-top: 0px;
   --shadow: 0 30px 90px rgba(0, 0, 0, 0.66);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -149,6 +151,30 @@ select,
   mask-image: linear-gradient(to bottom, #000, transparent 82%);
   background-position: 0 0, 0 0;
   animation: grid-travel 26s linear infinite;
+}
+
+.ambient-grid::before,
+.ambient-grid::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.ambient-grid::before {
+  inset: -16%;
+  background-image: radial-gradient(circle, rgba(var(--accent-soft-rgb), .42) 0 1px, transparent 1.4px);
+  background-size: 82px 68px;
+  mask-image: linear-gradient(135deg, transparent 4%, #000 28%, #000 72%, transparent 96%);
+  opacity: .42;
+  animation: data-particles 34s linear infinite;
+}
+
+.ambient-grid::after {
+  inset: -22% 0 auto;
+  height: 180px;
+  background: linear-gradient(180deg, transparent, rgba(var(--accent-rgb), .075) 48%, rgba(var(--accent-soft-rgb), .14) 50%, transparent 53%);
+  opacity: .5;
+  animation: data-scan 12s cubic-bezier(.4,0,.2,1) infinite;
 }
 
 .light-sweep {
@@ -324,7 +350,7 @@ select,
 .view-stack {
   display: grid;
   gap: 12px;
-  animation: view-in 0.42s cubic-bezier(.2,.85,.25,1) both;
+  animation: view-in 0.3s cubic-bezier(.2,.85,.25,1) both;
 }
 
 .banner {
@@ -2120,12 +2146,10 @@ select,
 
 @keyframes view-in {
   from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.985);
+    transform: translate3d(0, 9px, 0);
   }
   to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -2177,6 +2201,17 @@ select,
   to { background-position: 40px 0, 0 40px; }
 }
 
+@keyframes data-particles {
+  from { transform: translate3d(-20px, -12px, 0); }
+  to { transform: translate3d(62px, 56px, 0); }
+}
+
+@keyframes data-scan {
+  0%, 12% { transform: translateY(-40%); opacity: 0; }
+  18% { opacity: .5; }
+  72%, 100% { transform: translateY(620%); opacity: 0; }
+}
+
 @keyframes cinematic-sheen {
   0%, 68% { transform: translate3d(-42%, 0, 0); opacity: 0; }
   74% { opacity: .9; }
@@ -2186,23 +2221,6 @@ select,
 @keyframes nav-beacon {
   0%, 100% { filter: brightness(1); }
   50% { filter: brightness(1.45); }
-}
-
-::view-transition-old(root) {
-  animation: app-view-old .24s ease both;
-}
-
-::view-transition-new(root) {
-  animation: app-view-new .42s cubic-bezier(.2,.85,.25,1) both;
-}
-
-@keyframes app-view-old {
-  to { opacity: 0; transform: scale(.985); filter: blur(4px); }
-}
-
-@keyframes app-view-new {
-  from { opacity: 0; transform: scale(1.012); filter: blur(6px); }
-  to { opacity: 1; transform: scale(1); filter: blur(0); }
 }
 
 @keyframes sigil-breathe {

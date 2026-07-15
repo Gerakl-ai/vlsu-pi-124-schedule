@@ -7,6 +7,7 @@ import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
+  AudioWaveform,
   Bold,
   Heading2,
   Highlighter,
@@ -16,11 +17,11 @@ import {
   ListChecks,
   Maximize2,
   Mic,
-  MicOff,
   Minimize2,
   Palette,
   Quote,
   Redo2,
+  Sparkles,
   Strikethrough,
   Underline as UnderlineIcon,
   Undo2
@@ -111,6 +112,7 @@ async function compressImage(file: File) {
 export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [listening, setListening] = useState(false);
+  const [voiceError, setVoiceError] = useState("");
   const [, setRevision] = useState(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
@@ -187,6 +189,7 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
       recognitionRef.current?.stop();
       return;
     }
+    setVoiceError("");
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
     if (!Recognition) return;
     const recognition = new Recognition();
@@ -201,11 +204,19 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
         .trim();
       if (transcript) editor.chain().focus().insertContent(`${editor.isEmpty ? "" : " "}${escapeHtml(transcript)}`).run();
     };
-    recognition.onerror = () => setListening(false);
+    recognition.onerror = () => {
+      setVoiceError("Не удалось услышать. Проверьте доступ к микрофону.");
+      setListening(false);
+    };
     recognition.onend = () => setListening(false);
     recognitionRef.current = recognition;
-    setListening(true);
-    recognition.start();
+    try {
+      setListening(true);
+      recognition.start();
+    } catch {
+      setVoiceError("Микрофон сейчас занят другим приложением.");
+      setListening(false);
+    }
   }
 
   if (!editor) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;
@@ -213,6 +224,27 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
 
   return (
     <div className="rich-note-editor">
+      <button
+        className={`voice-command ${listening ? "listening" : ""}`}
+        type="button"
+        onClick={toggleVoice}
+        disabled={!voiceSupported}
+        aria-pressed={listening}
+        aria-label={voiceSupported ? (listening ? "Остановить умную диктовку" : "Начать умную диктовку") : "Умная диктовка не поддерживается"}
+      >
+        <span className="voice-command-icon">{listening ? <AudioWaveform size={25} /> : <Mic size={25} />}</span>
+        <span className="voice-command-copy">
+          <strong>{listening ? "Слушаю..." : "Умная диктовка"}</strong>
+          <small aria-live="polite">
+            {voiceError || (voiceSupported ? (listening ? "Говорите свободно, текст появится ниже" : "Речь станет записью, папка и предмет определятся сами") : "Недоступно в этом браузере")}
+          </small>
+        </span>
+        <span className="voice-intelligence" aria-hidden="true">
+          <Sparkles size={14} />
+          <span className="voice-meter"><i /><i /><i /><i /></span>
+        </span>
+      </button>
+
       <div className="rich-toolbar" aria-label="Форматирование записи">
         {toolbarButton(editor.isActive("heading", { level: 2 }), "Заголовок", <Heading2 size={18} />, () => editor.chain().focus().toggleHeading({ level: 2 }).run())}
         {toolbarButton(editor.isActive("bold"), "Жирный", <Bold size={18} />, () => editor.chain().focus().toggleBold().run())}
@@ -224,7 +256,6 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
         {toolbarButton(editor.isActive("blockquote"), "Цитата", <Quote size={18} />, () => editor.chain().focus().toggleBlockquote().run())}
         {toolbarButton(paletteOpen, "Цвет и выделение", <Palette size={18} />, () => setPaletteOpen((value) => !value))}
         {toolbarButton(false, "Добавить фото", <ImagePlus size={18} />, () => imageInputRef.current?.click())}
-        {toolbarButton(listening, voiceSupported ? (listening ? "Остановить диктовку" : "Голосовой ввод") : "Голосовой ввод не поддерживается", listening ? <MicOff size={18} /> : <Mic size={18} />, toggleVoice, !voiceSupported)}
         {toolbarButton(false, "Уменьшить фото", <Minimize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 180, height: null }).run(), !imageSelected)}
         {toolbarButton(false, "Увеличить фото", <Maximize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 520, height: null }).run(), !imageSelected)}
         {toolbarButton(false, "Отменить", <Undo2 size={18} />, () => editor.chain().focus().undo().run(), !editor.can().undo())}

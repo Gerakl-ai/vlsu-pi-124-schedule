@@ -1,11 +1,12 @@
-const CACHE_NAME = "lad-pi-124-v28";
+const CACHE_NAME = "lad-pi-124-v29";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/images/hero-obsidian-campus.jpg"
+  "/images/hero-obsidian-campus.jpg",
+  "/images/hero-porcelain-campus.jpg"
 ];
 
 async function discoverBuildAssets() {

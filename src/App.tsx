@@ -1,5 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { flushSync } from "react-dom";
+import { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BellRing,
@@ -67,10 +66,17 @@ const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Ч
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
 const BRAND_MARK = "/icons/icon-192.png";
-const HERO_VISUAL = "/images/hero-obsidian-campus.jpg";
+const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
+const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
-const NotesView = lazy(() => import("./features/notes/NotesView").then((module) => ({ default: module.NotesView })));
+type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
+
+let notesViewPromise: Promise<NotesViewComponent> | null = null;
+const loadNotesView = () => {
+  notesViewPromise ??= import("./features/notes/NotesView").then((module) => module.NotesView);
+  return notesViewPromise;
+};
 
 type HeroMode = "current" | "next" | "done" | "free" | "loading";
 
@@ -207,17 +213,6 @@ function initialAppTab(): AppTab {
   return requested === "week" || requested === "notes" || requested === "settings" ? requested : "today";
 }
 
-function withViewTransition(update: () => void) {
-  const startViewTransition = (document as Document & {
-    startViewTransition?: (callback: () => void) => { finished: Promise<void> };
-  }).startViewTransition;
-  if (!startViewTransition || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-    update();
-    return;
-  }
-  startViewTransition.call(document, () => flushSync(update));
-}
-
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
@@ -232,7 +227,9 @@ export function App() {
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
+  const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
+  const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
@@ -306,6 +303,39 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    let cancelled = false;
+    const preload = () => {
+      void loadNotesView().then((Component) => {
+        if (!cancelled) setNotesView(() => Component);
+      });
+    };
+    if (activeTab === "notes") {
+      preload();
+      return () => {
+        cancelled = true;
+      };
+    }
+    const idleWindow = window as typeof window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    if (idleWindow.requestIdleCallback) {
+      const handle = idleWindow.requestIdleCallback(preload, { timeout: 1400 });
+      return () => {
+        cancelled = true;
+        idleWindow.cancelIdleCallback?.(handle);
+      };
+    }
+    const timer = window.setTimeout(preload, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+    // The initial tab is intentional; later navigation loads on demand.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (status !== "updated") return;
     const timer = window.setTimeout(() => setStatus("ready"), 2400);
     return () => window.clearTimeout(timer);
@@ -373,10 +403,8 @@ export function App() {
   }
 
   function selectTheme(nextTheme: ThemeId) {
-    withViewTransition(() => {
-      setThemeId(nextTheme);
-      applyTheme(nextTheme, customTheme);
-    });
+    setThemeId(nextTheme);
+    applyTheme(nextTheme, customTheme);
     if (nextTheme !== "custom") window.setTimeout(() => setThemeSheetOpen(false), 180);
   }
 
@@ -388,6 +416,7 @@ export function App() {
   }
 
   const navigateToTab = useCallback((nextTab: AppTab) => {
+    pendingTabRef.current = nextTab;
     const container = contentScrollRef.current;
     if (nextTab === activeTab) {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
@@ -396,8 +425,15 @@ export function App() {
       return;
     }
     if (container) tabScrollPositionsRef.current[activeTab] = container.scrollTop;
-    withViewTransition(() => setActiveTab(nextTab));
-  }, [activeTab]);
+    if (nextTab === "notes" && !NotesView) {
+      void loadNotesView().then((Component) => {
+        setNotesView(() => Component);
+        if (pendingTabRef.current === "notes") startTransition(() => setActiveTab("notes"));
+      });
+      return;
+    }
+    setActiveTab(nextTab);
+  }, [NotesView, activeTab]);
 
   useLayoutEffect(() => {
     const container = contentScrollRef.current;
@@ -408,6 +444,7 @@ export function App() {
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
+  const lightHero = themeId === "porcelain" || (themeId === "custom" && customTheme.mode === "light");
 
   return (
     <main className="app-shell">
@@ -423,7 +460,7 @@ export function App() {
           onThemeOpen={() => setThemeSheetOpen(true)}
         />
 
-        <div className="content-scroll" ref={contentScrollRef}>
+        <div className="content-scroll" ref={contentScrollRef} data-active-tab={activeTab}>
           {status === "error-without-cache" && activeTab !== "notes" && <ErrorBanner />}
 
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
@@ -431,6 +468,8 @@ export function App() {
           {!isLoading && activeTab === "today" && (
             <TodayView
               heroSubject={heroSubject}
+              heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
+              lightHero={lightHero}
               heroRoom={heroRoom}
               heroTime={heroTime}
               heroMode={heroMode}
@@ -466,8 +505,9 @@ export function App() {
           )}
 
           {activeTab === "notes" && (
-            <Suspense fallback={<section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>}>
+            NotesView ? (
               <NotesView
+                visualSrc={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
                 notes={smartNotes.notes}
                 folders={smartNotes.folders}
                 ready={smartNotes.ready}
@@ -480,7 +520,7 @@ export function App() {
                 onTogglePinned={smartNotes.togglePinned}
                 onUpdate={smartNotes.updateNote}
               />
-            </Suspense>
+            ) : <section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>
           )}
 
           {activeTab === "settings" && (
@@ -566,6 +606,8 @@ function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh
 
 function TodayView({
   heroSubject,
+  heroVisual,
+  lightHero,
   heroRoom,
   heroTime,
   heroMode,
@@ -589,6 +631,8 @@ function TodayView({
   onOpenNotes
 }: {
   heroSubject: string;
+  heroVisual: string;
+  lightHero: boolean;
   heroRoom: string;
   heroTime: string;
   heroMode: HeroMode;
@@ -649,8 +693,8 @@ function TodayView({
 
   return (
     <div className="view-stack today-view">
-      <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""}`}>
-        <img className="hero-visual" src={HERO_VISUAL} alt="" aria-hidden="true" />
+      <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
+        <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
         <div className="hero-sigil" aria-hidden="true">
           <span>{sigilLabel}</span>
           <strong>{sigilValue}</strong>
