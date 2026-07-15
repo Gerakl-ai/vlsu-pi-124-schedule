@@ -132,7 +132,7 @@ export function NotesView({
           data-testid="open-note-composer"
         >
           <SquarePen size={21} />
-          <span>Новая</span>
+          <span>Создать запись</span>
         </button>
       </section>
 
@@ -199,6 +199,16 @@ export function NotesView({
             <Sparkles size={23} />
             <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>
             <p>{query ? "Попробуйте другой запрос." : "Новая запись появится в этом пространстве."}</p>
+            {!query && (
+              <button
+                className="notes-empty-create"
+                type="button"
+                onClick={() => { setEditingNote(null); setComposerOpen(true); }}
+              >
+                <SquarePen size={17} />
+                Создать запись
+              </button>
+            )}
           </div>
         </section>
       )}

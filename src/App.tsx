@@ -213,6 +213,24 @@ function initialAppTab(): AppTab {
   return requested === "week" || requested === "notes" || requested === "settings" ? requested : "today";
 }
 
+function isIosStandaloneWebApp() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return isiOS && (Boolean(nav.standalone) || window.matchMedia("(display-mode: standalone)").matches);
+}
+
+let iosThemeReloadScheduled = false;
+
+function refreshIosThemeChrome(activeTab: AppTab) {
+  if (!isIosStandaloneWebApp() || iosThemeReloadScheduled) return;
+  iosThemeReloadScheduled = true;
+  const url = new URL(window.location.href);
+  if (activeTab === "today") url.searchParams.delete("tab");
+  else url.searchParams.set("tab", activeTab);
+  window.history.replaceState(null, "", url);
+  window.setTimeout(() => window.location.reload(), 220);
+}
+
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
@@ -403,16 +421,22 @@ export function App() {
   }
 
   function selectTheme(nextTheme: ThemeId) {
+    const previousMode = document.documentElement.dataset.themeMode;
+    const definition = THEMES.find((theme) => theme.id === nextTheme);
+    const nextMode = nextTheme === "custom" ? customTheme.mode : definition?.isLight ? "light" : "dark";
     setThemeId(nextTheme);
     applyTheme(nextTheme, customTheme);
+    if (previousMode && previousMode !== nextMode) refreshIosThemeChrome(activeTab);
     if (nextTheme !== "custom") window.setTimeout(() => setThemeSheetOpen(false), 180);
   }
 
   function updateCustomTheme(nextTheme: CustomTheme) {
+    const previousMode = document.documentElement.dataset.themeMode;
     saveCustomTheme(nextTheme);
     setCustomTheme(nextTheme);
     setThemeId("custom");
     applyTheme("custom", nextTheme);
+    if (previousMode && previousMode !== nextTheme.mode) refreshIosThemeChrome(activeTab);
   }
 
   const navigateToTab = useCallback((nextTab: AppTab) => {
@@ -1339,11 +1363,14 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
           key={tab}
           className={activeTab === tab ? "active" : ""}
           type="button"
-          onClick={() => onTabChange(tab)}
+          onClick={(event) => {
+            event.currentTarget.blur();
+            onTabChange(tab);
+          }}
           aria-current={activeTab === tab ? "page" : undefined}
         >
-          <Icon size={24} />
-          <span>{label}</span>
+          <span className="nav-icon" aria-hidden="true"><Icon size={23} /></span>
+          <span className="nav-label">{label}</span>
         </button>
       ))}
     </nav>

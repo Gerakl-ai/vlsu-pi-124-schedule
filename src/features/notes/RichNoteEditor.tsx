@@ -2,7 +2,6 @@ import Highlight from "@tiptap/extension-highlight";
 import Image from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextStyleKit } from "@tiptap/extension-text-style";
-import Underline from "@tiptap/extension-underline";
 import { Placeholder } from "@tiptap/extensions";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -123,7 +122,6 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
       StarterKit,
       TaskList,
       TaskItem.configure({ nested: true }),
-      Underline,
       TextStyleKit,
       Highlight.configure({ multicolor: true }),
       Image.configure({
@@ -245,38 +243,40 @@ export function RichNoteEditor({ initialContent, onChange }: RichNoteEditorProps
         </span>
       </button>
 
-      <div className="rich-toolbar" aria-label="Форматирование записи">
-        {toolbarButton(editor.isActive("heading", { level: 2 }), "Заголовок", <Heading2 size={18} />, () => editor.chain().focus().toggleHeading({ level: 2 }).run())}
-        {toolbarButton(editor.isActive("bold"), "Жирный", <Bold size={18} />, () => editor.chain().focus().toggleBold().run())}
-        {toolbarButton(editor.isActive("italic"), "Курсив", <Italic size={18} />, () => editor.chain().focus().toggleItalic().run())}
-        {toolbarButton(editor.isActive("underline"), "Подчёркивание", <UnderlineIcon size={18} />, () => editor.chain().focus().toggleUnderline().run())}
-        {toolbarButton(editor.isActive("strike"), "Зачёркивание", <Strikethrough size={18} />, () => editor.chain().focus().toggleStrike().run())}
-        {toolbarButton(editor.isActive("bulletList"), "Маркированный список", <List size={18} />, () => editor.chain().focus().toggleBulletList().run())}
-        {toolbarButton(editor.isActive("taskList"), "Чек-лист", <ListChecks size={18} />, () => editor.chain().focus().toggleTaskList().run())}
-        {toolbarButton(editor.isActive("blockquote"), "Цитата", <Quote size={18} />, () => editor.chain().focus().toggleBlockquote().run())}
-        {toolbarButton(paletteOpen, "Цвет и выделение", <Palette size={18} />, () => setPaletteOpen((value) => !value))}
-        {toolbarButton(false, "Добавить фото", <ImagePlus size={18} />, () => imageInputRef.current?.click())}
-        {toolbarButton(false, "Уменьшить фото", <Minimize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 180, height: null }).run(), !imageSelected)}
-        {toolbarButton(false, "Увеличить фото", <Maximize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 520, height: null }).run(), !imageSelected)}
-        {toolbarButton(false, "Отменить", <Undo2 size={18} />, () => editor.chain().focus().undo().run(), !editor.can().undo())}
-        {toolbarButton(false, "Повторить", <Redo2 size={18} />, () => editor.chain().focus().redo().run(), !editor.can().redo())}
-      </div>
-
-      {paletteOpen && (
-        <div className="rich-palette" role="group" aria-label="Цвет текста и маркера">
-          <span>Текст</span>
-          {TEXT_COLORS.map((color) => (
-            <button key={color} type="button" style={{ "--swatch": color } as React.CSSProperties} onClick={() => editor.chain().focus().setColor(color).run()} aria-label={`Цвет текста ${color}`} />
-          ))}
-          <span>Маркер</span>
-          {HIGHLIGHT_COLORS.map((color) => (
-            <button key={color} className="highlight" type="button" style={{ "--swatch": color } as React.CSSProperties} onClick={() => editor.chain().focus().toggleHighlight({ color }).run()} aria-label={`Цвет выделения ${color}`} />
-          ))}
-          <button className="palette-clear" type="button" onClick={() => editor.chain().focus().unsetColor().unsetHighlight().run()} aria-label="Убрать цвет" title="Убрать цвет">
-            <Highlighter size={16} />
-          </button>
+      <div className="rich-format-dock">
+        <div className="rich-toolbar" aria-label="Форматирование записи">
+          {toolbarButton(editor.isActive("heading", { level: 2 }), "Заголовок", <Heading2 size={18} />, () => editor.chain().focus().toggleHeading({ level: 2 }).run())}
+          {toolbarButton(editor.isActive("bold"), "Жирный", <Bold size={18} />, () => editor.chain().focus().toggleBold().run())}
+          {toolbarButton(editor.isActive("italic"), "Курсив", <Italic size={18} />, () => editor.chain().focus().toggleItalic().run())}
+          {toolbarButton(editor.isActive("underline"), "Подчёркивание", <UnderlineIcon size={18} />, () => editor.chain().focus().toggleUnderline().run())}
+          {toolbarButton(editor.isActive("strike"), "Зачёркивание", <Strikethrough size={18} />, () => editor.chain().focus().toggleStrike().run())}
+          {toolbarButton(editor.isActive("bulletList"), "Маркированный список", <List size={18} />, () => editor.chain().focus().toggleBulletList().run())}
+          {toolbarButton(editor.isActive("taskList"), "Чек-лист", <ListChecks size={18} />, () => editor.chain().focus().toggleTaskList().run())}
+          {toolbarButton(editor.isActive("blockquote"), "Цитата", <Quote size={18} />, () => editor.chain().focus().toggleBlockquote().run())}
+          {toolbarButton(paletteOpen, "Цвет и выделение", <Palette size={18} />, () => setPaletteOpen((value) => !value))}
+          {toolbarButton(false, "Добавить фото", <ImagePlus size={18} />, () => imageInputRef.current?.click())}
+          {toolbarButton(false, "Уменьшить фото", <Minimize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 180, height: null }).run(), !imageSelected)}
+          {toolbarButton(false, "Увеличить фото", <Maximize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 520, height: null }).run(), !imageSelected)}
+          {toolbarButton(false, "Отменить", <Undo2 size={18} />, () => editor.chain().focus().undo().run(), !editor.can().undo())}
+          {toolbarButton(false, "Повторить", <Redo2 size={18} />, () => editor.chain().focus().redo().run(), !editor.can().redo())}
         </div>
-      )}
+
+        {paletteOpen && (
+          <div className="rich-palette" role="group" aria-label="Цвет текста и маркера">
+            <span>Текст</span>
+            {TEXT_COLORS.map((color) => (
+              <button key={color} type="button" style={{ "--swatch": color } as React.CSSProperties} onClick={() => editor.chain().focus().setColor(color).run()} aria-label={`Цвет текста ${color}`} />
+            ))}
+            <span>Маркер</span>
+            {HIGHLIGHT_COLORS.map((color) => (
+              <button key={color} className="highlight" type="button" style={{ "--swatch": color } as React.CSSProperties} onClick={() => editor.chain().focus().toggleHighlight({ color }).run()} aria-label={`Цвет выделения ${color}`} />
+            ))}
+            <button className="palette-clear" type="button" onClick={() => editor.chain().focus().unsetColor().unsetHighlight().run()} aria-label="Убрать цвет" title="Убрать цвет">
+              <Highlighter size={16} />
+            </button>
+          </div>
+        )}
+      </div>
 
       <EditorContent className="rich-editor-content" editor={editor} />
       <input ref={imageInputRef} className="visually-hidden" type="file" accept="image/*" multiple onChange={(event) => void addImages(event.target.files)} aria-label="Прикрепить фотографии" />

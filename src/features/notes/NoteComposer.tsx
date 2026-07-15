@@ -28,6 +28,8 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
   const [draftState, setDraftState] = useState<DraftState>("idle");
   const [editorKey, setEditorKey] = useState(0);
   const draftRevisionRef = useRef(0);
+  const hydratedDraftRef = useRef<string | null>(null);
+  const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
   const draftId = note?.id ?? "new";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
   const preview = useMemo(() => {
@@ -40,6 +42,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
     if (!open) return;
     let active = true;
     draftRevisionRef.current += 1;
+    hydratedDraftRef.current = null;
     setHydrating(true);
     setSaving(false);
     setDraftState("idle");
@@ -54,6 +57,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
       setPinned(canRestore ? draft!.pinned : note?.pinned ?? false);
       setSpaceOverride(canRestore ? draft!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
       setEditorKey((value) => value + 1);
+      hydratedDraftRef.current = draftId;
       setHydrating(false);
       setDraftState(canRestore ? "saved" : "idle");
     });
@@ -63,17 +67,22 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
   }, [draftId, note, open]);
 
   const persistDraft = useCallback(async () => {
-    if (!open || hydrating) return;
+    if (!open || hydrating || hydratedDraftRef.current !== draftId) return;
     const revision = draftRevisionRef.current;
     setDraftState("saving");
-    await storeDraft({
+    const snapshot = {
       id: draftId,
       text,
       contentHtml,
       pinned,
       spaceOverride: spaceOverride || undefined,
       updatedAt: new Date().toISOString()
-    });
+    };
+    const write = draftWriteRef.current
+      .catch(() => undefined)
+      .then(() => storeDraft(snapshot));
+    draftWriteRef.current = write;
+    await write;
     if (revision === draftRevisionRef.current) setDraftState("saved");
   }, [contentHtml, draftId, hydrating, open, pinned, spaceOverride, text]);
 
@@ -117,6 +126,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
         pinned,
         spaceOverride: spaceOverride || undefined
       }, note?.id);
+      await draftWriteRef.current.catch(() => undefined);
       await removeDraft(draftId);
       onClose();
     } finally {
@@ -128,6 +138,7 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
     if (!note || saving) return;
     setSaving(true);
     try {
+      await draftWriteRef.current.catch(() => undefined);
       await Promise.all([onDelete(note.id), removeDraft(draftId)]);
       onClose();
     } finally {
@@ -179,15 +190,19 @@ export function NoteComposer({ note, folders, open, classifyDraft, onClose, onDe
           </button>
         </div>
 
-        {preview && (
-          <div className="classification-preview" aria-live="polite">
-            <span>Лад</span>
-            <strong>{preview.space}</strong>
-            <i>{noteKindLabel(preview.kind)}</i>
-            {preview.subjectLabel && <i>{preview.subjectLabel}</i>}
-            {preview.dueLabel && <i>{preview.dueLabel}</i>}
-          </div>
-        )}
+        <div className={`classification-preview ${preview ? "ready" : "empty"}`} aria-live="polite">
+          {preview ? (
+            <>
+              <span>Лад</span>
+              <strong>{preview.space}</strong>
+              <i>{noteKindLabel(preview.kind)}</i>
+              {preview.subjectLabel && <i>{preview.subjectLabel}</i>}
+              {preview.dueLabel && <i>{preview.dueLabel}</i>}
+            </>
+          ) : (
+            <small>Папка и тип определятся по смыслу записи</small>
+          )}
+        </div>
 
         <footer className="composer-toolbar">
           <span className="composer-storage-note">{draftState === "saved" ? "Изменения не потеряются" : "Автосохранение включено"}</span>

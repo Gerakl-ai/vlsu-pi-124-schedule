@@ -154,6 +154,11 @@
   --theme-image-opacity: 0.7;
 }
 
+html {
+  background-color: var(--bg);
+  transition: background-color 0.35s ease;
+}
+
 body {
   background: var(--theme-body);
   transition: background 0.35s ease, color 0.25s ease;
@@ -206,9 +211,8 @@ body {
 }
 
 .bottom-nav {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   background: var(--theme-nav);
-  box-shadow: inset 0 1px 0 var(--theme-panel-border), 0 -24px 58px rgba(0, 0, 0, 0.36);
+  box-shadow: inset 0 1px 0 var(--theme-panel-border), 0 -18px 46px rgba(0, 0, 0, 0.3);
 }
 
 .bottom-nav button {
@@ -259,14 +263,6 @@ body {
   color: var(--text);
 }
 
-:root[data-theme="porcelain"] .hero-card,
-:root[data-theme="porcelain"] .hero-card h2,
-:root[data-theme="porcelain"] .hero-meta,
-:root[data-theme="porcelain"] .progress-copy,
-:root[data-theme="porcelain"] .hero-sigil strong {
-  color: #f8fbff;
-}
-
 :root[data-theme="porcelain"] .bottom-nav::after {
   background:
     linear-gradient(180deg, rgba(36, 87, 214, 0.025), transparent 42%),
@@ -274,11 +270,17 @@ body {
 }
 
 :root[data-theme="porcelain"] .bottom-nav::before {
-  background: linear-gradient(90deg, transparent, rgba(36, 87, 214, 0.28), transparent);
+  border-color: rgba(36, 87, 214, .13);
+  background: rgba(255, 255, 255, .7);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.94), 0 12px 28px rgba(45,68,102,.1);
 }
 
 :root[data-theme="porcelain"] .bottom-nav button {
   text-shadow: none;
+}
+
+:root[data-theme="porcelain"] .bottom-nav button.active {
+  color: var(--cyan);
 }
 
 :root[data-theme="porcelain"] .past .lesson-time strong,
@@ -378,6 +380,17 @@ body {
   text-shadow: 0 1px 10px rgba(255,255,255,.7);
 }
 
+:root[data-theme-mode="light"] .hero-card.light-hero,
+:root[data-theme-mode="light"] .hero-card.light-hero h2,
+:root[data-theme-mode="light"] .hero-card.light-hero.mode-free h2,
+:root[data-theme-mode="light"] .hero-card.light-hero.completed-day h2 {
+  color: #101827;
+}
+
+:root[data-theme-mode="light"] .hero-card.light-hero .hero-meta {
+  color: #263b5b;
+}
+
 .sheet-layer {
   position: absolute;
   z-index: 40;
@@ -387,6 +400,8 @@ body {
   background: rgba(0, 0, 0, 0.52);
   backdrop-filter: blur(8px);
   animation: sheet-backdrop-in 0.24s ease both;
+  overflow: hidden;
+  overflow: clip;
 }
 
 .theme-sheet {
@@ -746,11 +761,6 @@ body {
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
-  .bottom-nav {
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, minmax(46px, 1fr));
-  }
-
   .theme-sheet {
     width: min(720px, calc(100% - var(--safe-left)));
     height: 100%;

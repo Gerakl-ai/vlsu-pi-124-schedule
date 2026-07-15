@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#090a0c" />
     <meta name="description" content="Лад: расписание и умные записи ПИ-124, ИИТЭ, ВлГУ" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Лад" />
@@ -29,6 +30,8 @@
         document.documentElement.dataset.themeMode = lightMode ? "light" : "dark";
         document.documentElement.style.colorScheme = custom?.mode || (theme === "porcelain" ? "light" : "dark");
         const colors = { obsidian: "#05070a", porcelain: "#eef2f7", signal: "#090a0c", field: "#07110f", custom: custom?.background || "#080b12" };
+        const chromeColor = colors[theme];
+        document.documentElement.style.backgroundColor = chromeColor;
         if (custom) {
           const root = document.documentElement.style;
           root.setProperty("--launch-bg", custom.background);
@@ -44,7 +47,8 @@
         heroPreload.as = "image";
         heroPreload.href = lightMode ? "/images/hero-porcelain-campus.jpg" : "/images/hero-obsidian-campus.jpg";
         document.head.appendChild(heroPreload);
-        document.querySelector('meta[name="theme-color"]').setAttribute("content", colors[theme]);
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", chromeColor);
+        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", lightMode ? "default" : "black-translucent");
       })();
     </script>
     <style>
@@ -105,7 +109,14 @@
         overflow: hidden;
       }
 
+      html {
+        background-color: var(--launch-bg);
+      }
+
       body {
+        position: fixed;
+        inset: 0;
+        width: 100%;
         overflow: hidden;
         height: var(--app-viewport-height);
         background: var(--launch-bg);

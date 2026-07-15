@@ -199,12 +199,16 @@ function applyCustomProperties(theme: CustomTheme) {
 export function applyTheme(themeId: ThemeId, customTheme = readCustomTheme()) {
   const theme = THEMES.find((item) => item.id === themeId) ?? THEMES[0];
   const custom = theme.id === "custom";
+  const mode = custom ? customTheme.mode : theme.isLight ? "light" : "dark";
+  const chromeColor = custom ? customTheme.background : theme.themeColor;
   clearCustomProperties();
   if (custom) applyCustomProperties(customTheme);
   document.documentElement.dataset.theme = theme.id;
-  document.documentElement.dataset.themeMode = custom ? customTheme.mode : theme.isLight ? "light" : "dark";
-  document.documentElement.style.colorScheme = custom ? customTheme.mode : theme.isLight ? "light" : "dark";
-  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", custom ? customTheme.background : theme.themeColor);
+  document.documentElement.dataset.themeMode = mode;
+  document.documentElement.style.colorScheme = mode;
+  document.documentElement.style.backgroundColor = chromeColor;
+  document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", chromeColor);
+  document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute("content", mode === "light" ? "default" : "black-translucent");
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme.id);
   } catch {
