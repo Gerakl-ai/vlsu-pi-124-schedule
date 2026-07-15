@@ -411,6 +411,10 @@ body {
   opacity: 0.4;
 }
 
+:root[data-theme-mode="light"] {
+  --status-bar-bg: #101827;
+}
+
 :root[data-theme-mode="light"] .brand p,
 :root[data-theme-mode="light"] .sync-line,
 :root[data-theme-mode="light"] .bottom-nav button,

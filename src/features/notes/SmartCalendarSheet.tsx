@@ -10,7 +10,7 @@ import {
   Sparkles,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { currentDayIndex, dateKeyFromDate, selectDayLessons } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
@@ -129,6 +129,29 @@ function formatCount(count: number, one: string, few: string, many: string) {
   return `${count} ${many}`;
 }
 
+function dayDistance(date: Date, origin: Date) {
+  const stamp = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
+  return Math.round((stamp(date) - stamp(origin)) / 86_400_000);
+}
+
+function relativeDayLabel(date: Date, today: Date) {
+  const distance = dayDistance(date, today);
+  if (distance === 0) return "Сегодня";
+  if (distance === 1) return "Завтра";
+  if (distance === -1) return "Вчера";
+  if (distance > 1) return `Через ${formatCount(distance, "день", "дня", "дней")}`;
+  return `${formatCount(Math.abs(distance), "день", "дня", "дней")} назад`;
+}
+
+function relativeMonthLabel(month: Date, today: Date) {
+  const distance = (month.getFullYear() - today.getFullYear()) * 12 + month.getMonth() - today.getMonth();
+  if (distance === 0) return "Текущий месяц";
+  if (distance === 1) return "Следующий месяц";
+  if (distance === -1) return "Прошлый месяц";
+  if (distance > 1) return `Через ${formatCount(distance, "месяц", "месяца", "месяцев")}`;
+  return `${formatCount(Math.abs(distance), "месяц", "месяца", "месяцев")} назад`;
+}
+
 function buildIcs(events: CalendarEvent[], name: string) {
   const stamp = formatUtc(new Date());
   const rows = events.flatMap((event) => [
@@ -171,10 +194,12 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
 }
 
 export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, onCreateForDate }: SmartCalendarSheetProps) {
-  const today = useMemo(() => startOfDay(new Date()), []);
+  const [today, setToday] = useState(() => startOfDay(new Date()));
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
+  const [monthMotion, setMonthMotion] = useState<"next" | "previous" | "today">("today");
   const [exportState, setExportState] = useState<"idle" | "working" | "done">("idle");
+  const exportResetTimer = useRef<number | undefined>(undefined);
   const cells = useMemo(() => monthCells(month), [month]);
   const selectedEvents = useMemo(
     () => eventsForDate(lessons, notes, selectedDate, weekMode),
@@ -182,17 +207,32 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
   );
   const monthEvents = useMemo(
     () => cells
-      .filter((date) => date.getMonth() === month.getMonth())
+      .filter((date) => date.getMonth() === month.getMonth() && date.getFullYear() === month.getFullYear())
       .flatMap((date) => eventsForDate(lessons, notes, date, weekMode)),
     [cells, lessons, month, notes, weekMode]
   );
 
   useEffect(() => {
     if (!open) return;
+    setToday(startOfDay(new Date()));
     setExportState("idle");
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    let midnightTimer: number | undefined;
+    const scheduleMidnightRefresh = () => {
+      const now = new Date();
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      midnightTimer = window.setTimeout(() => {
+        setToday(startOfDay(new Date()));
+        scheduleMidnightRefresh();
+      }, Math.max(1_000, tomorrow.getTime() - now.getTime() + 750));
+    };
+    scheduleMidnightRefresh();
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
+      if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
+    };
   }, [onClose, open]);
 
   if (!open) return null;
@@ -203,14 +243,43 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
     try {
       await shareCalendar(events, fileName, title);
       setExportState("done");
-      window.setTimeout(() => setExportState("idle"), 1800);
+      if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
+      exportResetTimer.current = window.setTimeout(() => setExportState("idle"), 1800);
     } catch {
       setExportState("idle");
     }
   }
 
+  function moveMonth(offset: number) {
+    const target = new Date(month.getFullYear(), month.getMonth() + offset, 1);
+    setMonthMotion(offset > 0 ? "next" : "previous");
+    setMonth(target);
+    setSelectedDate(target);
+  }
+
+  function selectCalendarDate(date: Date) {
+    const target = startOfDay(date);
+    const distance = (target.getFullYear() - month.getFullYear()) * 12 + target.getMonth() - month.getMonth();
+    if (distance !== 0) {
+      setMonthMotion(distance > 0 ? "next" : "previous");
+      setMonth(new Date(target.getFullYear(), target.getMonth(), 1));
+    }
+    setSelectedDate(target);
+  }
+
+  function goToToday() {
+    const current = startOfDay(new Date());
+    setToday(current);
+    setMonthMotion("today");
+    setMonth(new Date(current.getFullYear(), current.getMonth(), 1));
+    setSelectedDate(current);
+  }
+
   const monthLabel = new Intl.DateTimeFormat("ru-RU", { month: "long", year: "numeric" }).format(month);
   const selectedLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
+  const selectedRelation = relativeDayLabel(selectedDate, today);
+  const monthRelation = relativeMonthLabel(month, today);
+  const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
 
   const layer = (
     <div className="sheet-layer calendar-layer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
@@ -227,22 +296,14 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
         </header>
 
         <div className="calendar-month-nav">
-          <button type="button" onClick={() => setMonth((value) => {
-            const target = new Date(value.getFullYear(), value.getMonth() - 1, 1);
-            setSelectedDate(target);
-            return target;
-          })} aria-label="Предыдущий месяц">
+          <button type="button" onClick={() => moveMonth(-1)} aria-label="Предыдущий месяц">
             <ChevronLeft size={19} />
           </button>
-          <button className="calendar-month-label" type="button" onClick={() => { setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); setSelectedDate(today); }}>
+          <button className="calendar-month-label" type="button" onClick={goToToday} title="Вернуться к сегодняшней дате">
             <strong>{monthLabel}</strong>
-            <small>Сегодня</small>
+            <small>{monthRelation}</small>
           </button>
-          <button type="button" onClick={() => setMonth((value) => {
-            const target = new Date(value.getFullYear(), value.getMonth() + 1, 1);
-            setSelectedDate(target);
-            return target;
-          })} aria-label="Следующий месяц">
+          <button type="button" onClick={() => moveMonth(1)} aria-label="Следующий месяц">
             <ChevronRight size={19} />
           </button>
         </div>
@@ -250,7 +311,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
         <div className="calendar-weekdays" aria-hidden="true">
           {WEEKDAYS.map((day) => <span key={day}>{day}</span>)}
         </div>
-        <div className="calendar-grid" aria-label={monthLabel}>
+        <div key={monthKey} className={`calendar-grid motion-${monthMotion}`} aria-label={monthLabel}>
           {cells.map((date) => {
             const key = dateKeyFromDate(date);
             const dayLessons = lessonsForDate(lessons, date, weekMode);
@@ -262,8 +323,9 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
                 key={key}
                 className={`${date.getMonth() !== month.getMonth() ? "outside" : ""} ${selected ? "selected" : ""} ${isToday ? "today" : ""}`}
                 type="button"
-                onClick={() => setSelectedDate(startOfDay(date))}
+                onClick={() => selectCalendarDate(date)}
                 aria-pressed={selected}
+                aria-current={isToday ? "date" : undefined}
                 aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "запись", "записи", "записей")}`}
               >
                 <span>{date.getDate()}</span>
@@ -280,13 +342,14 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
           <header>
             <div>
               <span>{selectedLabel}</span>
-              <strong>{selectedEvents.length ? formatEventCount(selectedEvents.length) : "Свободный день"}</strong>
+              <strong>{selectedRelation}</strong>
+              <small>{selectedEvents.length ? formatEventCount(selectedEvents.length) : "Свободный день"}</small>
             </div>
             <button type="button" onClick={() => { onClose(); onCreateForDate(selectedDate); }} aria-label="Создать запись на выбранную дату" title="Новая запись">
               <NotebookPen size={18} />
             </button>
           </header>
-          <div className="calendar-event-list">
+          <div key={dateKeyFromDate(selectedDate)} className="calendar-event-list calendar-event-list-enter">
             {selectedEvents.length ? selectedEvents.map((event) => (
               <article className={`calendar-event ${event.type}`} key={event.id}>
                 <span className="calendar-event-time"><Clock3 size={14} /> {event.start.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</span>

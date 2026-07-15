@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v33";
+const CACHE_NAME = "lad-pi-124-v34";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -45,9 +45,12 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
-    )
+    Promise.all([
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+      ),
+      self.registration.navigationPreload?.enable?.() ?? Promise.resolve()
+    ])
   );
   self.clients.claim();
 });
@@ -62,22 +65,18 @@ self.addEventListener("fetch", (event) => {
 
   if (request.mode === "navigate") {
     event.respondWith(
-      caches.match("/index.html").then(async (cached) => {
-        const fresh = fetch(request, { cache: "no-store" }).then((response) => {
-          if (response.ok) {
-            const clone = response.clone();
-            event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put("/index.html", clone)));
-          }
+      (async () => {
+        try {
+          const preloaded = await event.preloadResponse;
+          const response = preloaded || await fetch(request, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+          const cache = await caches.open(CACHE_NAME);
+          await cache.put("/index.html", response.clone());
           return response;
-        });
-
-        if (cached) {
-          event.waitUntil(fresh.catch(() => undefined));
-          return cached;
+        } catch {
+          return (await caches.match("/index.html")) || Response.error();
         }
-
-        return fresh.catch(async () => (await caches.match("/index.html")) || Response.error());
-      })
+      })()
     );
     return;
   }

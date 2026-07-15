@@ -247,7 +247,6 @@ export function applyTheme(themeId: ThemeId, customTheme = readCustomTheme()) {
   document.documentElement.style.colorScheme = mode;
   document.documentElement.style.backgroundColor = chromeColor;
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", chromeColor);
-  document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute("content", mode === "light" ? "default" : "black-translucent");
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme.id);
   } catch {

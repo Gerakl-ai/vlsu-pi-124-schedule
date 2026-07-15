@@ -27,6 +27,7 @@
   --app-viewport-height: 100vh;
   --visual-viewport-height: 100vh;
   --visual-viewport-offset-top: 0px;
+  --status-bar-bg: var(--bg);
   --shadow: 0 30px 90px rgba(0, 0, 0, 0.66);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
@@ -2385,7 +2386,7 @@ select,
     inset: 0 0 auto;
     height: var(--safe-top);
     pointer-events: none;
-    background: var(--bg);
+    background: var(--status-bar-bg);
   }
 
   .phone-frame {

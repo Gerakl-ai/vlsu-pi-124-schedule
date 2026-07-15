@@ -453,7 +453,7 @@
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid var(--theme-panel-border);
-  background: color-mix(in srgb, var(--coral) 72%, #7a1825);
+  background: var(--theme-panel-solid);
   isolation: isolate;
 }
 
@@ -506,7 +506,7 @@
   gap: 8px;
   padding: 14px 10px 14px 12px;
   border: 0;
-  background: color-mix(in srgb, var(--theme-panel-solid) 96%, transparent);
+  background: linear-gradient(var(--theme-panel-solid), var(--theme-panel-solid)), var(--bg);
   touch-action: pan-y;
   transform: translate3d(var(--note-swipe-x, 0), 0, 0);
   will-change: transform;
@@ -523,8 +523,10 @@
   transition: transform .32s cubic-bezier(.45,0,.8,.25), opacity .24s ease;
 }
 
-.note-card:hover {
-  background: var(--theme-control);
+@media (hover: hover) and (pointer: fine) {
+  .note-card:hover {
+    background: linear-gradient(var(--theme-control), var(--theme-control)), var(--bg);
+  }
 }
 
 .note-card.completed {
@@ -1672,6 +1674,20 @@
 
 .calendar-grid {
   gap: 3px;
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.calendar-grid.motion-next {
+  animation: calendar-grid-next .42s cubic-bezier(.2,.82,.2,1) both;
+}
+
+.calendar-grid.motion-previous {
+  animation: calendar-grid-previous .42s cubic-bezier(.2,.82,.2,1) both;
+}
+
+.calendar-grid.motion-today {
+  animation: calendar-grid-today .42s cubic-bezier(.2,.82,.2,1) both;
 }
 
 .calendar-grid > button {
@@ -1772,6 +1788,16 @@
   font-size: 13px;
 }
 
+.calendar-agenda > header small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 9.5px;
+  line-height: 1.15;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .calendar-event-list {
   max-height: 178px;
   overflow-y: auto;
@@ -1779,7 +1805,31 @@
   scrollbar-width: none;
 }
 
+.calendar-event-list-enter {
+  animation: calendar-agenda-enter .34s cubic-bezier(.2,.8,.2,1) both;
+}
+
 .calendar-event-list::-webkit-scrollbar { display: none; }
+
+@keyframes calendar-grid-next {
+  from { opacity: 0; transform: translate3d(18px, 0, 0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes calendar-grid-previous {
+  from { opacity: 0; transform: translate3d(-18px, 0, 0) scale(.985); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes calendar-grid-today {
+  from { opacity: .25; transform: translate3d(0, -5px, 0) scale(.975); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+@keyframes calendar-agenda-enter {
+  from { opacity: 0; transform: translate3d(0, 7px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
 
 .calendar-event {
   position: relative;

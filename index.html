@@ -58,7 +58,6 @@
         heroPreload.href = lightMode ? "/images/hero-porcelain-campus.jpg" : "/images/hero-obsidian-campus.jpg";
         document.head.appendChild(heroPreload);
         document.querySelector('meta[name="theme-color"]').setAttribute("content", chromeColor);
-        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", lightMode ? "default" : "black-translucent");
       })();
     </script>
     <style>
@@ -76,6 +75,7 @@
         --launch-muted: #8e9bad;
         --launch-accent: #8fb8ff;
         --launch-signal: #ff6b5f;
+        --launch-status: #05070a;
       }
 
       :root[data-theme="porcelain"] {
@@ -86,6 +86,7 @@
         --launch-muted: #5b6678;
         --launch-accent: #2457d6;
         --launch-signal: #e4473e;
+        --launch-status: #101827;
       }
 
       :root[data-theme="signal"] {
@@ -136,6 +137,7 @@
         --launch-muted: #5b7180;
         --launch-accent: #087f9c;
         --launch-signal: #e75564;
+        --launch-status: #102333;
       }
 
       :root[data-theme="atelier"] {
@@ -146,6 +148,7 @@
         --launch-muted: #716a7f;
         --launch-accent: #4c5bd4;
         --launch-signal: #c53f68;
+        --launch-status: #201b2c;
       }
 
       html,
@@ -186,6 +189,16 @@
           repeating-linear-gradient(90deg, color-mix(in srgb, var(--launch-accent) 5%, transparent) 0 1px, transparent 1px 42px),
           repeating-linear-gradient(0deg, color-mix(in srgb, var(--launch-accent) 3%, transparent) 0 1px, transparent 1px 42px),
           var(--launch-bg);
+      }
+
+      .launch-screen::before {
+        content: "";
+        position: fixed;
+        z-index: 2;
+        inset: 0 0 auto;
+        height: var(--safe-top);
+        background: var(--launch-status);
+        pointer-events: none;
       }
 
       .launch-card {

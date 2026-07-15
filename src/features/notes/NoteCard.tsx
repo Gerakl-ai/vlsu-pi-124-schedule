@@ -48,7 +48,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
   const [dragOffset, setDragOffset] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
   const suppressClick = useRef(false);
-  const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0 });
+  const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0, deltaX: 0 });
   const offset = dragOffset ?? (revealed ? -DELETE_REVEAL : 0);
 
   function handlePointerDown(event: ReactPointerEvent<HTMLElement>) {
@@ -60,7 +60,8 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
       startX: event.clientX,
       startY: event.clientY,
       base,
-      offset: base
+      offset: base,
+      deltaX: 0
     };
     setDragOffset(base);
   }
@@ -81,6 +82,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
       setDragging(true);
       event.currentTarget.setPointerCapture?.(event.pointerId);
     }
+    value.deltaX = deltaX;
     value.offset = Math.max(-DELETE_REVEAL, Math.min(0, value.base + deltaX));
     setDragOffset(value.offset);
   }
@@ -94,7 +96,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
       return;
     }
     if (event.currentTarget.hasPointerCapture?.(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-    const shouldReveal = value.offset <= -DELETE_REVEAL * 0.42;
+    const shouldReveal = value.base < 0 ? value.deltaX < 34 : value.deltaX <= -46;
     setDragging(false);
     setDragOffset(null);
     if (shouldReveal) onReveal();
@@ -120,7 +122,8 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
         className="note-delete-action"
         type="button"
         onClick={() => void deleteNote()}
-        onFocus={onReveal}
+        tabIndex={revealed ? 0 : -1}
+        aria-hidden={!revealed}
         aria-label={`Удалить запись «${note.title}»`}
         title="Удалить"
         disabled={deleting}
