@@ -1,11 +1,11 @@
 {
-  "name": "ПИ-124 Расписание",
-  "short_name": "ПИ-124",
-  "description": "Личное расписание ПИ-124, ИИТЭ, ВлГУ",
+  "name": "Лад · ПИ-124",
+  "short_name": "Лад",
+  "description": "Расписание и умные записи ПИ-124, ИИТЭ, ВлГУ",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#061622",
-  "theme_color": "#061622",
+  "background_color": "#090a0c",
+  "theme_color": "#090a0c",
   "orientation": "portrait-primary",
   "lang": "ru",
   "icons": [

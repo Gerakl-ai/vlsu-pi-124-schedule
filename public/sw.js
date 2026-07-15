@@ -1,13 +1,10 @@
-const CACHE_NAME = "pi-124-schedule-v24";
+const CACHE_NAME = "lad-pi-124-v27";
 const APP_SHELL = [
   "/",
   "/index.html",
   "/manifest.webmanifest",
-  "/icons/icon.svg",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
-  "/images/brand-mark.png",
-  "/images/pi-124-avatar-source.png",
   "/images/hero-obsidian-campus.jpg"
 ];
 
@@ -49,6 +46,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.pathname.startsWith("/vlsu-api/")) return;
+  if (url.pathname.startsWith("/app-api/")) return;
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {

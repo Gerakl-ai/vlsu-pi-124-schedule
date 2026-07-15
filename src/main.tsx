@@ -1,7 +1,10 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { applyTheme, readTheme } from "./features/themes/theme";
 import "./styles.css";
+import "./theme.css";
+import "./features/notes/notes.css";
 
 function isStandaloneDisplay() {
   return window.matchMedia("(display-mode: standalone)").matches || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
@@ -19,6 +22,7 @@ function syncAppViewportHeight() {
 }
 
 syncAppViewportHeight();
+applyTheme(readTheme());
 window.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("scroll", syncAppViewportHeight);

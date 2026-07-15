@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-07-15T10:02:18.377Z",
+  "build": {
+    "typescript": "pass",
+    "viteProduction": "pass",
+    "serviceWorkerSyntax": "pass",
+    "cloudflareDryRun": "pass",
+    "bundleGzipKb": 85.05,
+    "serviceWorkerCache": "lad-pi-124-v27",
+    "criticalPreloadedImagesKb": 184.3
+  },
+  "mobile": {
+    "393x852": {
+      "navBottomGap": 0,
+      "horizontalOverflow": false,
+      "navHeight": 70
+    },
+    "402x874": {
+      "navBottomGap": 0,
+      "horizontalOverflow": false,
+      "navHeight": 70,
+      "contentScroll": [
+        696,
+        1121
+      ]
+    },
+    "430x932": {
+      "navBottomGap": 0,
+      "horizontalOverflow": false,
+      "navHeight": 70,
+      "contentScroll": [
+        744,
+        1883
+      ]
+    }
+  },
+  "desktop": {
+    "viewport": [
+      1280,
+      800
+    ],
+    "frame": {
+      "bottom": 776,
+      "height": 752,
+      "left": 425,
+      "right": 855,
+      "top": 24,
+      "width": 430
+    },
+    "horizontalOverflow": false
+  },
+  "interactions": {
+    "smartClassification": "pass: homework/subject/next lesson and Radio/idea/date",
+    "linkedHomeworkToggle": "pass",
+    "autoSpaces": "pass",
+    "themes": "pass: Signal Room, Obsidian, Porcelain, Field Notes",
+    "tabScrollMemory": {
+      "firstWeekOpen": 0,
+      "todayRestored": 519,
+      "activeTabRetap": 0
+    },
+    "backupExport": "pass",
+    "aiOptInSwitch": "pass",
+    "offlineReloadAfterServerStop": "pass",
+    "staleStatusWithoutBanner": "pass",
+    "consoleErrorsAfterCleanReload": 0,
+    "offlineConsoleErrors": 0
+  }
+}

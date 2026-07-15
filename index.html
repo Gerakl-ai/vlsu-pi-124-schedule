@@ -3,22 +3,73 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#05070A" />
-    <meta name="description" content="Личное расписание ПИ-124, ИИТЭ, ВлГУ" />
+    <meta name="theme-color" content="#090a0c" />
+    <meta name="description" content="Лад: расписание и умные записи ПИ-124, ИИТЭ, ВлГУ" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="ПИ-124" />
+    <meta name="apple-mobile-web-app-title" content="Лад" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/icon-512.png" />
-    <link rel="preload" href="/images/brand-mark.png" as="image" />
+    <link rel="preload" href="/icons/icon-192.png" as="image" />
     <link rel="preload" href="/images/hero-obsidian-campus.jpg" as="image" />
+    <script>
+      (() => {
+        const allowed = new Set(["obsidian", "porcelain", "signal", "field"]);
+        let theme = "signal";
+        try {
+          const stored = localStorage.getItem("lad.theme");
+          if (allowed.has(stored)) theme = stored;
+        } catch {}
+        document.documentElement.dataset.theme = theme;
+        document.documentElement.style.colorScheme = theme === "porcelain" ? "light" : "dark";
+        const colors = { obsidian: "#05070a", porcelain: "#eef2f7", signal: "#090a0c", field: "#07110f" };
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", colors[theme]);
+      })();
+    </script>
     <style>
       :root {
         color-scheme: dark;
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
         --app-viewport-height: 100dvh;
+        --launch-bg: #05070a;
+        --launch-panel: rgba(10, 16, 26, 0.84);
+        --launch-line: rgba(183, 215, 255, 0.16);
+        --launch-text: #f7fbff;
+        --launch-muted: #8e9bad;
+        --launch-accent: #8fb8ff;
+        --launch-signal: #ff6b5f;
+      }
+
+      :root[data-theme="porcelain"] {
+        --launch-bg: #eef2f7;
+        --launch-panel: rgba(255, 255, 255, 0.82);
+        --launch-line: rgba(17, 24, 39, 0.15);
+        --launch-text: #111827;
+        --launch-muted: #5b6678;
+        --launch-accent: #2457d6;
+        --launch-signal: #e4473e;
+      }
+
+      :root[data-theme="signal"] {
+        --launch-bg: #090a0c;
+        --launch-panel: rgba(24, 25, 27, 0.88);
+        --launch-line: rgba(242, 240, 234, 0.15);
+        --launch-text: #f2f0ea;
+        --launch-muted: #9c9b97;
+        --launch-accent: #58dfc2;
+        --launch-signal: #ff4d52;
+      }
+
+      :root[data-theme="field"] {
+        --launch-bg: #07110f;
+        --launch-panel: rgba(11, 29, 24, 0.88);
+        --launch-line: rgba(216, 231, 220, 0.15);
+        --launch-text: #edf3ee;
+        --launch-muted: #98aaa0;
+        --launch-accent: #bdd45a;
+        --launch-signal: #78a9ff;
       }
 
       html,
@@ -35,10 +86,8 @@
       body {
         overflow: hidden;
         height: var(--app-viewport-height);
-        background:
-          radial-gradient(540px 360px at 72% -8%, rgba(91, 140, 255, 0.16), transparent 64%),
-          linear-gradient(180deg, #06090f, #02040a);
-        color: #f7fbff;
+        background: var(--launch-bg);
+        color: var(--launch-text);
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         -webkit-font-smoothing: antialiased;
       }
@@ -50,21 +99,22 @@
         place-items: center;
         padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
         background:
-          linear-gradient(118deg, transparent 0 46%, rgba(91, 140, 255, 0.11) 46% 46.5%, transparent 46.5%),
-          repeating-linear-gradient(90deg, rgba(183, 215, 255, 0.04) 0 1px, transparent 1px 42px),
-          repeating-linear-gradient(0deg, rgba(183, 215, 255, 0.025) 0 1px, transparent 1px 42px),
-          linear-gradient(180deg, #070b13, #02040a);
+          linear-gradient(118deg, transparent 0 46%, color-mix(in srgb, var(--launch-accent) 12%, transparent) 46% 46.5%, transparent 46.5%),
+          repeating-linear-gradient(90deg, color-mix(in srgb, var(--launch-accent) 5%, transparent) 0 1px, transparent 1px 42px),
+          repeating-linear-gradient(0deg, color-mix(in srgb, var(--launch-accent) 3%, transparent) 0 1px, transparent 1px 42px),
+          var(--launch-bg);
       }
 
       .launch-card {
-        width: min(100%, 360px);
+        width: min(100%, 330px);
         display: grid;
-        gap: 22px;
-        padding: 26px;
-        border: 1px solid rgba(119, 159, 255, 0.34);
+        gap: 24px;
+        padding: 24px;
+        border: 1px solid var(--launch-line);
         border-radius: 8px;
-        background: linear-gradient(145deg, rgba(18, 27, 42, 0.92), rgba(5, 8, 15, 0.96));
-        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        background: var(--launch-panel);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
       }
 
       .launch-brand {
@@ -74,18 +124,18 @@
       }
 
       .launch-icon {
-        width: 58px;
-        height: 58px;
+        width: 68px;
+        height: 68px;
         border-radius: 8px;
         background:
-          linear-gradient(135deg, rgba(91, 140, 255, 0.2), rgba(255, 107, 95, 0.12)),
-          url("/images/brand-mark.png") center / cover;
-        box-shadow: 0 0 34px rgba(91, 140, 255, 0.22);
+          linear-gradient(135deg, color-mix(in srgb, var(--launch-accent) 20%, transparent), color-mix(in srgb, var(--launch-signal) 12%, transparent)),
+          url("/icons/icon-192.png") center / cover;
+        box-shadow: 0 0 34px color-mix(in srgb, var(--launch-accent) 22%, transparent);
       }
 
       .launch-brand strong {
         display: block;
-        font-size: 28px;
+        font-size: 30px;
         line-height: 1;
         font-weight: 900;
       }
@@ -93,7 +143,7 @@
       .launch-brand span {
         display: block;
         margin-top: 6px;
-        color: #8fb8ff;
+        color: var(--launch-accent);
         font-size: 14px;
         font-weight: 900;
       }
@@ -102,7 +152,7 @@
         height: 6px;
         overflow: hidden;
         border-radius: 999px;
-        background: rgba(210, 235, 242, 0.14);
+        background: var(--launch-line);
       }
 
       .launch-line::before {
@@ -111,13 +161,13 @@
         width: 42%;
         height: 100%;
         border-radius: inherit;
-        background: linear-gradient(90deg, #ff6b5f, #5b8cff 62%, #b7d7ff);
+        background: linear-gradient(90deg, var(--launch-signal), var(--launch-accent));
         animation: launch-load 1.05s ease-in-out infinite alternate;
       }
 
       .launch-card p {
         margin: 0;
-        color: #9fb3c4;
+        color: var(--launch-muted);
         font-size: 13px;
         line-height: 1.35;
         font-weight: 800;
@@ -128,7 +178,7 @@
         to { transform: translateX(138%); }
       }
     </style>
-    <title>ПИ-124 | Расписание</title>
+    <title>Лад · ПИ-124</title>
   </head>
   <body>
     <div id="root">
@@ -138,11 +188,11 @@
             <div class="launch-icon"></div>
             <div>
               <strong>ПИ-124</strong>
-              <span>ИИТЭ / ВлГУ</span>
+              <span>ЛАД · ИИТЭ / ВлГУ</span>
             </div>
           </div>
           <div class="launch-line"></div>
-          <p>Поднимаем расписание и кэш, чтобы сразу открыть сегодняшний день.</p>
+          <p>Собираем сегодняшний ритм.</p>
         </div>
       </div>
     </div>

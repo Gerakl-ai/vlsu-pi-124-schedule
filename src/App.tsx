@@ -1,24 +1,39 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Bell,
   BellRing,
+  BrainCircuit,
+  BookCheck,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
   Clock3,
   CloudOff,
+  Download,
   Grid2X2,
+  HardDrive,
   Info,
   MapPin,
+  NotebookPen,
+  Palette,
   RefreshCw,
   Send,
   Settings,
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Upload,
   Waves
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
+import { NotesView } from "./features/notes/NotesView";
+import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
+import { normalizeSubjectKey } from "./features/notes/noteClassifier";
+import { readAiEnabled, writeAiEnabled } from "./features/notes/notePreferences";
+import type { SmartNote } from "./features/notes/noteTypes";
+import { useSmartNotes } from "./features/notes/useSmartNotes";
+import { ThemeSheet } from "./features/themes/ThemeSheet";
+import { applyTheme, readTheme, THEMES, type ThemeId } from "./features/themes/theme";
 import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule } from "./lib/scheduleApi";
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
@@ -43,7 +58,7 @@ import {
 const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const REMINDER_OPTIONS = [5, 10, 15, 30];
-const BRAND_MARK = "/images/brand-mark.png";
+const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL = "/images/hero-obsidian-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
@@ -74,12 +89,26 @@ function lessonKeySubject(lesson?: LessonSlot) {
   return lesson?.subject || "";
 }
 
+function notesForLesson(lesson: LessonSlot | undefined, notes: SmartNote[]) {
+  if (!lesson) return [];
+  const subjectKey = lesson.subjectKey ?? normalizeSubjectKey(lesson.subject);
+  return notes.filter((note) => note.status === "open" && note.subjectKey === subjectKey);
+}
+
 function formatLessonCount(count: number) {
   const mod10 = count % 10;
   const mod100 = count % 100;
   if (mod10 === 1 && mod100 !== 11) return `${count} пара`;
   if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} пары`;
   return `${count} пар`;
+}
+
+function formatNoteCount(count: number) {
+  const mod10 = count % 10;
+  const mod100 = count % 100;
+  if (mod10 === 1 && mod100 !== 11) return `${count} запись`;
+  if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} записи`;
+  return `${count} записей`;
 }
 
 function formatWeekChip(mode: WeekMode) {
@@ -174,11 +203,27 @@ export function App() {
   const noticeLockUntilRef = useRef(0);
   const [notificationBusy, setNotificationBusy] = useState(false);
   const [nowTick, setNowTick] = useState(() => Date.now());
+  const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
+  const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
+  const contentScrollRef = useRef<HTMLDivElement>(null);
+  const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
+  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled);
+  const openNotes = useMemo(() => smartNotes.notes.filter((note) => note.status === "open"), [smartNotes.notes]);
+  const focusNote = useMemo(() => {
+    return [...openNotes].sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+      if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
+      if (a.dueAt) return -1;
+      if (b.dueAt) return 1;
+      return b.updatedAt.localeCompare(a.updatedAt);
+    })[0];
+  }, [openNotes]);
 
   const { todayLessons, current, next } = useMemo(
     () => findCurrentAndNext(schedule?.allLessons ?? [], weekMode, nowDate),
@@ -301,6 +346,29 @@ export function App() {
     writeReminderSettings(nextSettings);
   }
 
+  function selectTheme(nextTheme: ThemeId) {
+    setThemeId(nextTheme);
+    applyTheme(nextTheme);
+    window.setTimeout(() => setThemeSheetOpen(false), 180);
+  }
+
+  const navigateToTab = useCallback((nextTab: AppTab) => {
+    const container = contentScrollRef.current;
+    if (nextTab === activeTab) {
+      const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+      container?.scrollTo({ top: 0, behavior });
+      tabScrollPositionsRef.current[nextTab] = 0;
+      return;
+    }
+    if (container) tabScrollPositionsRef.current[activeTab] = container.scrollTop;
+    setActiveTab(nextTab);
+  }, [activeTab]);
+
+  useLayoutEffect(() => {
+    const container = contentScrollRef.current;
+    if (container) container.scrollTop = tabScrollPositionsRef.current[activeTab];
+  }, [activeTab]);
+
   const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
@@ -317,12 +385,13 @@ export function App() {
           status={status}
           refreshedAt={schedule?.fetchedAt}
           onRefresh={() => refreshSchedule()}
+          onThemeOpen={() => setThemeSheetOpen(true)}
         />
 
-        <div className="content-scroll">
-          {status === "error-without-cache" && <ErrorBanner />}
+        <div className="content-scroll" ref={contentScrollRef}>
+          {status === "error-without-cache" && activeTab !== "notes" && <ErrorBanner />}
 
-          {isLoading && <SkeletonView />}
+          {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {!isLoading && activeTab === "today" && (
             <TodayView
@@ -344,8 +413,10 @@ export function App() {
               lessons={displayLessons}
               weekMode={weekMode}
               now={nowDate}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
+              notes={openNotes}
+              focusNote={focusNote}
+              onToggleNote={smartNotes.toggleNote}
+              onOpenNotes={() => navigateToTab("notes")}
             />
           )}
 
@@ -355,10 +426,24 @@ export function App() {
               weekMode={weekMode}
               weekOverride={weekOverride}
               setWeekOverride={setWeekOverride}
+              notes={openNotes}
             />
           )}
 
-          {!isLoading && activeTab === "settings" && (
+          {activeTab === "notes" && (
+            <NotesView
+              notes={smartNotes.notes}
+              ready={smartNotes.ready}
+              classifyDraft={smartNotes.classifyDraft}
+              onCreate={(text, pinned) => void smartNotes.createNote(text, pinned)}
+              onDelete={(noteId) => void smartNotes.deleteNote(noteId)}
+              onToggle={smartNotes.toggleNote}
+              onTogglePinned={smartNotes.togglePinned}
+              onUpdate={(noteId, text, pinned) => void smartNotes.updateNote(noteId, text, pinned)}
+            />
+          )}
+
+          {activeTab === "settings" && (
             <SettingsView
               settings={settings}
               notice={notice}
@@ -368,11 +453,21 @@ export function App() {
               onTest={testNotification}
               onMinutes={updateReminderMinutes}
               schedule={schedule}
+              themeId={themeId}
+              onThemeOpen={() => setThemeSheetOpen(true)}
+              notes={smartNotes.notes}
+              onImportNotes={smartNotes.importNotes}
+              aiEnabled={aiEnabled}
+              onAiEnabled={(enabled) => {
+                setAiEnabled(enabled);
+                writeAiEnabled(enabled);
+              }}
             />
           )}
         </div>
 
-        <BottomNav activeTab={activeTab} setActiveTab={setActiveTab} />
+        <BottomNav activeTab={activeTab} onTabChange={navigateToTab} />
+        <ThemeSheet currentTheme={themeId} open={themeSheetOpen} onClose={() => setThemeSheetOpen(false)} onSelect={selectTheme} />
       </section>
     </main>
   );
@@ -384,9 +479,10 @@ interface HeaderProps {
   status: ApiStatus;
   refreshedAt?: string;
   onRefresh: () => void;
+  onThemeOpen: () => void;
 }
 
-function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh }: HeaderProps) {
+function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen }: HeaderProps) {
   const isBusy = status === "loading" || status === "refreshing";
 
   return (
@@ -399,11 +495,16 @@ function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh
         </div>
       </div>
 
-      <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
-        <CalendarDays size={18} />
-        <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
-        <RefreshCw className={isBusy ? "spin" : ""} size={16} />
-      </button>
+      <div className="header-actions">
+        <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
+          <CalendarDays size={18} />
+          <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
+          <RefreshCw className={isBusy ? "spin" : ""} size={16} />
+        </button>
+        <button className="header-icon-button" type="button" onClick={onThemeOpen} aria-label="Сменить тему" title="Сменить тему" data-testid="open-theme-picker">
+          <Palette size={20} />
+        </button>
+      </div>
 
       <div className="sync-line">
         <span>{INSTITUTE_NAME}</span>
@@ -434,8 +535,10 @@ function TodayView({
   lessons,
   weekMode,
   now,
-  activeTab,
-  setActiveTab
+  notes,
+  focusNote,
+  onToggleNote,
+  onOpenNotes
 }: {
   heroSubject: string;
   heroRoom: string;
@@ -455,8 +558,10 @@ function TodayView({
   lessons: LessonSlot[];
   weekMode: WeekMode;
   now: Date;
-  activeTab: AppTab;
-  setActiveTab: (tab: AppTab) => void;
+  notes: SmartNote[];
+  focusNote?: SmartNote;
+  onToggleNote: (noteId: string) => void;
+  onOpenNotes: () => void;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const minutesToNext = next ? minutesUntilStart(next, now) : 0;
@@ -531,6 +636,18 @@ function TodayView({
         studyWindows={studyWindows}
       />
 
+      {focusNote && (
+        <button className="focus-note-card" type="button" onClick={onOpenNotes}>
+          <span className="focus-note-icon"><BookCheck size={22} /></span>
+          <span>
+            <small>{focusNote.subjectLabel ? "К ближайшей паре" : focusNote.space}</small>
+            <strong>{focusNote.title}</strong>
+            <i>{[focusNote.subjectLabel, focusNote.dueLabel].filter(Boolean).join(" · ") || "Открыть запись"}</i>
+          </span>
+          <ChevronRight size={20} />
+        </button>
+      )}
+
       {current && (
         <section className="next-card">
           <div className="next-icon"><Waves size={28} /></div>
@@ -543,8 +660,7 @@ function TodayView({
         </section>
       )}
 
-      <SegmentControl activeTab={activeTab} setActiveTab={setActiveTab} />
-      <Timeline lessons={lessons} current={current} next={next} now={now} />
+      <Timeline lessons={lessons} current={current} next={next} now={now} notes={notes} onToggleNote={onToggleNote} />
     </div>
   );
 }
@@ -590,22 +706,21 @@ function DayCommandStrip({
   );
 }
 
-function SegmentControl({ activeTab, setActiveTab }: { activeTab: AppTab; setActiveTab: (tab: AppTab) => void }) {
-  return (
-    <div className="segment-card" role="tablist" aria-label="Раздел">
-      <button className={activeTab === "today" ? "active" : ""} type="button" onClick={() => setActiveTab("today")}>
-        <CalendarDays size={18} />
-        Сегодня
-      </button>
-      <button className={activeTab === "week" ? "active" : ""} type="button" onClick={() => setActiveTab("week")}>
-        <Grid2X2 size={18} />
-        Неделя
-      </button>
-    </div>
-  );
-}
-
-function Timeline({ lessons, current, next, now }: { lessons: LessonSlot[]; current?: LessonSlot; next?: LessonSlot; now: Date }) {
+function Timeline({
+  lessons,
+  current,
+  next,
+  now,
+  notes,
+  onToggleNote
+}: {
+  lessons: LessonSlot[];
+  current?: LessonSlot;
+  next?: LessonSlot;
+  now: Date;
+  notes: SmartNote[];
+  onToggleNote: (noteId: string) => void;
+}) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   if (!lessons.length) {
@@ -644,6 +759,8 @@ function Timeline({ lessons, current, next, now }: { lessons: LessonSlot[]; curr
           isPast={lessonTimingState(lesson, now) === "past"}
           isExpanded={expandedId === lesson.id}
           onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
+          linkedNotes={notesForLesson(lesson, notes)}
+          onToggleNote={onToggleNote}
           index={index}
         />
       ))}
@@ -658,6 +775,8 @@ function LessonRow({
   isPast,
   isExpanded,
   onToggle,
+  linkedNotes,
+  onToggleNote,
   index
 }: {
   lesson: LessonSlot;
@@ -666,6 +785,8 @@ function LessonRow({
   isPast?: boolean;
   isExpanded: boolean;
   onToggle: () => void;
+  linkedNotes: SmartNote[];
+  onToggleNote: (noteId: string) => void;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
@@ -699,13 +820,29 @@ function LessonRow({
           {lesson.room || "Аудитория уточняется"}
           {lesson.kind ? <span>{lesson.kind}</span> : null}
         </span>
-        {isCurrent ? <span className="row-chip">Сейчас</span> : <ChevronRight className="row-chevron" size={20} />}
+        <span className="row-end" aria-hidden="true">
+          {isCurrent && <span className="row-chip">Сейчас</span>}
+          {linkedNotes.length > 0 && <span className="lesson-note-count"><BookCheck size={14} /> {linkedNotes.length}</span>}
+          {!isCurrent && linkedNotes.length === 0 && <ChevronRight className="row-chevron" size={20} />}
+        </span>
       </button>
       {isExpanded && (
         <div className="lesson-detail">
           <span>{formatWeekMode(lesson.weekMode)}</span>
           {lesson.teacher && <span>{lesson.teacher}</span>}
           <span>{lesson.rawText}</span>
+          {linkedNotes.length > 0 && (
+            <div className="lesson-linked-notes">
+              <strong><BookCheck size={15} /> Связано с предметом</strong>
+              {linkedNotes.map((note) => (
+                <button key={note.id} type="button" onClick={() => onToggleNote(note.id)}>
+                  <span className="linked-note-check"><CheckCircle2 size={15} /></span>
+                  <span>{note.title}</span>
+                  {note.dueLabel && <small>{note.dueLabel}</small>}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </article>
@@ -716,15 +853,17 @@ function WeekView({
   lessons,
   weekMode,
   weekOverride,
-  setWeekOverride
+  setWeekOverride,
+  notes
 }: {
   lessons: LessonSlot[];
   weekMode: WeekMode;
   weekOverride: WeekMode | "current";
   setWeekOverride: (mode: WeekMode | "current") => void;
+  notes: SmartNote[];
 }) {
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} />;
   }
 
   return (
@@ -767,13 +906,17 @@ function WeekView({
                 <span>{dayLessons.length ? formatLessonCount(dayLessons.length) : "без пар"}</span>
               </div>
               {dayLessons.length ? (
-                dayLessons.map((lesson) => (
-                  <div className="mini-lesson" key={lesson.id}>
-                    <span>{lesson.start}</span>
-                    <strong>{lesson.subject}</strong>
-                    <small>{lesson.room || lesson.kind || "ВлГУ"}</small>
-                  </div>
-                ))
+                dayLessons.map((lesson) => {
+                  const linkedCount = notesForLesson(lesson, notes).length;
+                  return (
+                    <div className="mini-lesson" key={lesson.id}>
+                      <span>{lesson.start}</span>
+                      <strong>{lesson.subject}</strong>
+                      <small>{lesson.room || lesson.kind || "ВлГУ"}</small>
+                      {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
+                    </div>
+                  );
+                })
               ) : (
                 <p className="quiet-copy">В расписании на этот день занятий нет.</p>
               )}
@@ -785,7 +928,7 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons }: { lessons: LessonSlot[] }) {
+function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes: SmartNote[] }) {
   const todayKey = dateKeyFromDate();
   const upcoming = lessons.filter((lesson) => !lesson.date || lesson.date >= todayKey);
   const visibleLessons = (upcoming.length ? upcoming : lessons).sort((a, b) => `${a.date ?? ""} ${a.start}`.localeCompare(`${b.date ?? ""} ${b.start}`, "ru"));
@@ -833,13 +976,17 @@ function SessionScheduleView({ lessons }: { lessons: LessonSlot[] }) {
               <h3>{group.title}</h3>
               <span>{formatLessonCount(group.lessons.length)}</span>
             </div>
-            {group.lessons.map((lesson) => (
-              <div className="mini-lesson" key={lesson.id}>
-                <span>{lesson.start}</span>
-                <strong>{lesson.subject}</strong>
-                <small>{[lesson.room, lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small>
-              </div>
-            ))}
+            {group.lessons.map((lesson) => {
+              const linkedCount = notesForLesson(lesson, notes).length;
+              return (
+                <div className="mini-lesson" key={lesson.id}>
+                  <span>{lesson.start}</span>
+                  <strong>{lesson.subject}</strong>
+                  <small>{[lesson.room, lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small>
+                  {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
+                </div>
+              );
+            })}
           </article>
         ))}
       </section>
@@ -895,7 +1042,13 @@ function SettingsView({
   onEnable,
   onTest,
   onMinutes,
-  schedule
+  schedule,
+  themeId,
+  onThemeOpen,
+  notes,
+  onImportNotes,
+  aiEnabled,
+  onAiEnabled
 }: {
   settings: ReminderSettings;
   notice: string;
@@ -905,7 +1058,29 @@ function SettingsView({
   onTest: () => void;
   onMinutes: (minutes: number) => void;
   schedule: ScheduleState | null;
+  themeId: ThemeId;
+  onThemeOpen: () => void;
+  notes: SmartNote[];
+  onImportNotes: (notes: SmartNote[]) => Promise<number>;
+  aiEnabled: boolean;
+  onAiEnabled: (enabled: boolean) => void;
 }) {
+  const activeTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
+  const importInputRef = useRef<HTMLInputElement>(null);
+  const [backupNotice, setBackupNotice] = useState("");
+
+  async function importBackup(file?: File) {
+    if (!file) return;
+    try {
+      const imported = await onImportNotes(parseNotesBackup(await file.text()));
+      setBackupNotice(imported ? `Добавлено или обновлено записей: ${imported}` : "Все записи уже актуальны.");
+    } catch {
+      setBackupNotice("Не удалось прочитать копию. Выберите JSON-файл, созданный в «Лад».");
+    } finally {
+      if (importInputRef.current) importInputRef.current.value = "";
+    }
+  }
+
   return (
     <div className="view-stack settings-view">
       <section className="settings-hero">
@@ -919,6 +1094,17 @@ function SettingsView({
       </section>
 
       <section className="settings-panel">
+        <div className="setting-row appearance-row">
+          <div>
+            <span>Оформление</span>
+            <strong>{activeTheme.name}</strong>
+          </div>
+          <button type="button" className="theme-settings-button" onClick={onThemeOpen}>
+            <Palette size={18} />
+            Сменить
+          </button>
+        </div>
+
         <div className={`capability-card ${capability.status}`}>
           <div>
             {capability.status === "available" ? <CheckCircle2 size={24} /> : capability.status === "denied" ? <ShieldAlert size={24} /> : <Info size={24} />}
@@ -975,6 +1161,51 @@ function SettingsView({
 
         {notice && <p className="notice">{notice}</p>}
       </section>
+
+      <section className="settings-panel personal-data-panel">
+        <header className="personal-data-head">
+          <span className="personal-data-icon"><HardDrive size={21} /></span>
+          <div>
+            <span>Личное пространство</span>
+            <strong>{formatNoteCount(notes.length)}</strong>
+          </div>
+        </header>
+        <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
+        <div className="ai-setting">
+          <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
+          <div>
+            <strong>Облачное уточнение</strong>
+            <small>Новые сложные записи уточняет Cloudflare AI. Локальная сортировка работает всегда.</small>
+          </div>
+          <button
+            className={`setting-switch ${aiEnabled ? "active" : ""}`}
+            type="button"
+            role="switch"
+            aria-checked={aiEnabled}
+            aria-label="Облачное уточнение записей"
+            onClick={() => onAiEnabled(!aiEnabled)}
+          >
+            <span />
+          </button>
+        </div>
+        <div className="backup-actions">
+          <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>
+            <Download size={17} /> Экспорт
+          </button>
+          <button type="button" onClick={() => importInputRef.current?.click()}>
+            <Upload size={17} /> Импорт
+          </button>
+        </div>
+        <input
+          ref={importInputRef}
+          className="visually-hidden"
+          type="file"
+          accept="application/json,.json"
+          onChange={(event) => void importBackup(event.target.files?.[0])}
+          aria-label="Импортировать резервную копию записей"
+        />
+        {backupNotice && <p className="backup-notice" role="status">{backupNotice}</p>}
+      </section>
     </div>
   );
 }
@@ -998,17 +1229,24 @@ function SkeletonView() {
   );
 }
 
-function BottomNav({ activeTab, setActiveTab }: { activeTab: AppTab; setActiveTab: (tab: AppTab) => void }) {
+function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange: (tab: AppTab) => void }) {
   const items = [
     { tab: "today" as const, label: "Сегодня", icon: CalendarDays },
     { tab: "week" as const, label: "Неделя", icon: Grid2X2 },
+    { tab: "notes" as const, label: "Записи", icon: NotebookPen },
     { tab: "settings" as const, label: "Настройки", icon: Settings }
   ];
 
   return (
     <nav className="bottom-nav" aria-label="Основная навигация">
       {items.map(({ tab, label, icon: Icon }) => (
-        <button key={tab} className={activeTab === tab ? "active" : ""} type="button" onClick={() => setActiveTab(tab)}>
+        <button
+          key={tab}
+          className={activeTab === tab ? "active" : ""}
+          type="button"
+          onClick={() => onTabChange(tab)}
+          aria-current={activeTab === tab ? "page" : undefined}
+        >
           <Icon size={24} />
           <span>{label}</span>
         </button>

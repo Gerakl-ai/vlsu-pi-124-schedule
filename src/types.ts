@@ -1,6 +1,6 @@
 export type WeekMode = "all" | "numerator" | "denominator";
 
-export type AppTab = "today" | "week" | "settings";
+export type AppTab = "today" | "week" | "notes" | "settings";
 
 export type ApiStatus =
   | "hydrating-from-cache"
@@ -23,6 +23,7 @@ export interface LessonSlot {
   start: string;
   end: string;
   subject: string;
+  subjectKey?: string;
   room?: string;
   kind?: string;
   teacher?: string;
