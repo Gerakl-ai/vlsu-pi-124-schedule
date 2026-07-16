@@ -32,6 +32,7 @@ interface NotesViewProps {
   lessons: LessonSlot[];
   ready: boolean;
   weekMode: WeekMode;
+  calendarRequestToken: number;
   classifyDraft: (text: string) => NoteClassification;
   onCreate: (input: NoteDocumentInput) => Promise<SmartNote>;
   onCreateFolder: (name: string) => Promise<NoteFolder | null>;
@@ -40,6 +41,7 @@ interface NotesViewProps {
   onToggle: (noteId: string) => void;
   onTogglePinned: (noteId: string) => void;
   onUpdate: (noteId: string, input: NoteDocumentInput) => Promise<SmartNote | undefined>;
+  onCalendarRequestHandled: () => void;
 }
 
 interface SmartFilter {
@@ -69,6 +71,7 @@ export function NotesView({
   lessons = [],
   ready,
   weekMode = "all",
+  calendarRequestToken,
   classifyDraft,
   onCreate,
   onCreateFolder,
@@ -76,7 +79,8 @@ export function NotesView({
   onDeleteFolder,
   onToggle,
   onTogglePinned,
-  onUpdate
+  onUpdate,
+  onCalendarRequestHandled
 }: NotesViewProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -125,6 +129,12 @@ export function NotesView({
   useEffect(() => {
     if (revealedNoteId && !notes.some((note) => note.id === revealedNoteId)) setRevealedNoteId(null);
   }, [notes, revealedNoteId]);
+
+  useEffect(() => {
+    if (!calendarRequestToken) return;
+    setCalendarOpen(true);
+    onCalendarRequestHandled();
+  }, [calendarRequestToken, onCalendarRequestHandled]);
 
   function closeComposer() {
     setComposerOpen(false);

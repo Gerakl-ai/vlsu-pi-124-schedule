@@ -244,6 +244,7 @@ export function App() {
   const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+  const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -517,6 +518,10 @@ export function App() {
               focusNote={focusNote}
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
+              onOpenCalendar={() => {
+                setCalendarRequestToken((value) => value + 1);
+                navigateToTab("notes");
+              }}
             />
           )}
 
@@ -539,6 +544,7 @@ export function App() {
                 lessons={schedule?.allLessons ?? []}
                 ready={smartNotes.ready}
                 weekMode={currentWeek}
+                calendarRequestToken={calendarRequestToken}
                 classifyDraft={smartNotes.classifyDraft}
                 onCreate={smartNotes.createNote}
                 onCreateFolder={smartNotes.createFolder}
@@ -547,6 +553,7 @@ export function App() {
                 onToggle={smartNotes.toggleNote}
                 onTogglePinned={smartNotes.togglePinned}
                 onUpdate={smartNotes.updateNote}
+                onCalendarRequestHandled={() => setCalendarRequestToken(0)}
               />
             ) : <section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>
           )}
@@ -656,7 +663,8 @@ function TodayView({
   notes,
   focusNote,
   onToggleNote,
-  onOpenNotes
+  onOpenNotes,
+  onOpenCalendar
 }: {
   heroSubject: string;
   heroVisual: string;
@@ -682,6 +690,7 @@ function TodayView({
   focusNote?: SmartNote;
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
+  onOpenCalendar: () => void;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const minutesToNext = next ? minutesUntilStart(next, now) : 0;
@@ -718,9 +727,30 @@ function TodayView({
     : heroMode === "done"
       ? `${completedCount} из ${lessons.length} пройдено`
       : `${formatLessonCount(lessons.length)} сегодня`;
+  const calendarDay = now.getDate();
+  const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(now).replace(".", "");
+  const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(now);
 
   return (
     <div className="view-stack today-view">
+      <button
+        className="today-date-launch"
+        type="button"
+        onClick={onOpenCalendar}
+        aria-label={`Открыть календарь: сегодня, ${calendarLabel}`}
+        data-testid="today-calendar-launch"
+      >
+        <span className="today-date-tile" aria-hidden="true">
+          <small>{calendarMonth}</small>
+          <strong>{calendarDay}</strong>
+        </span>
+        <span className="today-date-copy">
+          <small><CalendarDays size={14} /> Сегодня</small>
+          <strong>{calendarLabel}</strong>
+        </span>
+        <ChevronRight size={20} aria-hidden="true" />
+      </button>
+
       <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
         <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
         <div className="hero-sigil" aria-hidden="true">

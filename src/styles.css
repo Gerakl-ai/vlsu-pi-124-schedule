@@ -42,6 +42,17 @@
   }
 }
 
+/* Installed iOS PWAs subtract safe areas from dvh; vh still spans the physical display. */
+@media (display-mode: standalone) {
+  :root {
+    --app-viewport-height: 100vh;
+  }
+}
+
+:root[data-standalone="true"] {
+  --app-viewport-height: 100vh;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -413,6 +424,128 @@ select,
 
 .view-stack > * {
   animation: none;
+}
+
+.today-date-launch {
+  position: relative;
+  min-width: 0;
+  min-height: 56px;
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 11px;
+  padding: 6px 9px 6px 7px;
+  overflow: hidden;
+  color: var(--text);
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background:
+    linear-gradient(112deg, rgba(var(--accent-rgb), .12), transparent 44%),
+    var(--theme-panel-solid);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 30px rgba(0,0,0,.16), 0 0 24px rgba(var(--accent-rgb),.06);
+  text-align: left;
+  cursor: pointer;
+  transition: transform .3s cubic-bezier(.2,.82,.2,1), border-color .24s ease, box-shadow .3s ease;
+}
+
+.today-date-launch::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 -38%;
+  width: 28%;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,.1), transparent);
+  transform: skewX(-12deg);
+  animation: date-sheen 8s ease-in-out infinite;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .today-date-launch:hover {
+    border-color: rgba(var(--accent-rgb), .42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 15px 34px rgba(0,0,0,.2), 0 0 28px rgba(var(--accent-rgb),.1);
+  }
+}
+
+.today-date-launch:active {
+  transform: scale(.985);
+}
+
+.today-date-launch:focus-visible {
+  outline: 2px solid rgba(var(--accent-rgb), .72);
+  outline-offset: 2px;
+}
+
+.today-date-tile {
+  width: 46px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 1px;
+  color: var(--cyan);
+  border: 1px solid rgba(var(--accent-rgb), .28);
+  border-radius: 7px;
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb),.2), rgba(var(--accent-soft-rgb),.06)),
+    var(--theme-control);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 0 20px rgba(var(--accent-rgb),.1);
+}
+
+.today-date-tile small {
+  font-size: 8px;
+  line-height: 1;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.today-date-tile strong {
+  font-size: 21px;
+  line-height: .94;
+  font-weight: 950;
+}
+
+.today-date-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.today-date-copy small {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--cyan);
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.today-date-copy strong {
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.15;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.today-date-launch > svg {
+  justify-self: center;
+  color: var(--cyan);
+  filter: drop-shadow(0 0 8px rgba(var(--accent-rgb),.28));
+  transition: transform .28s cubic-bezier(.2,.82,.2,1);
+}
+
+.today-date-launch:active > svg {
+  transform: translateX(2px);
+}
+
+@keyframes date-sheen {
+  0%, 70% { transform: translateX(0) skewX(-12deg); opacity: 0; }
+  76% { opacity: .9; }
+  94%, 100% { transform: translateX(540%) skewX(-12deg); opacity: 0; }
 }
 
 .banner {
@@ -2746,25 +2879,32 @@ select,
     align-items: start;
   }
 
+  .today-view > .today-date-launch {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    min-height: 48px;
+  }
+
   .today-view > .hero-card {
     grid-column: 1;
-    grid-row: 1 / span 2;
+    grid-row: 2 / span 2;
     min-height: 252px;
   }
 
   .today-view > .command-strip {
     grid-column: 2;
-    grid-row: 1;
+    grid-row: 2;
   }
 
   .today-view > .focus-note-card,
   .today-view > .next-card {
     grid-column: 2;
-    grid-row: 2;
+    grid-row: 3;
   }
 
   .today-view > .timeline-card {
     grid-column: 1 / -1;
+    grid-row: 4;
   }
 
   .hero-card h2 {

@@ -15,6 +15,8 @@
     <link rel="preload" href="/icons/icon-192.png" as="image" />
     <script>
       (() => {
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+        document.documentElement.dataset.standalone = standalone ? "true" : "false";
         const allowed = new Set(["obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
         let theme = "signal";
         try {
@@ -76,6 +78,16 @@
         --launch-accent: #8fb8ff;
         --launch-signal: #ff6b5f;
         --launch-status: #05070a;
+      }
+
+      @media (display-mode: standalone) {
+        :root {
+          --app-viewport-height: 100vh;
+        }
+      }
+
+      :root[data-standalone="true"] {
+        --app-viewport-height: 100vh;
       }
 
       :root[data-theme="porcelain"] {
