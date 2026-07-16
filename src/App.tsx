@@ -65,6 +65,7 @@ import {
 
 const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+const WEEK_DATE_FORMATTER = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
 const REMINDER_OPTIONS = [5, 10, 15, 30];
 const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
@@ -1093,6 +1094,32 @@ function LessonRow({
   );
 }
 
+interface WeekDayLoad {
+  count: number;
+  date: Date;
+  dayIndex: number;
+  dayName: string;
+  firstLesson?: LessonSlot;
+  lessons: LessonSlot[];
+  short: string;
+}
+
+function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode): WeekDayLoad[] {
+  return WEEK_DAYS.map((dayName, index) => {
+    const date = dateForWeekDay(index + 1);
+    const dayLessons = selectDayLessons(lessons, index + 1, weekMode, date);
+    return {
+      count: dayLessons.length,
+      date,
+      dayIndex: index + 1,
+      dayName,
+      firstLesson: dayLessons[0],
+      lessons: dayLessons,
+      short: WEEK_DAYS_SHORT[index]
+    };
+  });
+}
+
 function WeekView({
   lessons,
   weekMode,
@@ -1110,17 +1137,29 @@ function WeekView({
     return <SessionScheduleView lessons={lessons} notes={notes} />;
   }
 
+  const dayLoads = buildWeekLoads(lessons, weekMode);
+  const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
+  const busiestDay = dayLoads.reduce((peak, day) => day.count > peak.count ? day : peak, dayLoads[0]);
+  const today = currentDayIndex();
+  const todayShort = WEEK_DAYS_SHORT[today - 1] ?? "Вс";
+  const todayDate = new Date();
+
   return (
     <div className="view-stack week-view">
       <section className="week-toolbar">
-        <div>
-          <span>Неделя</span>
+        <div className="week-toolbar-copy">
+          <span><Activity size={13} /> Учебный ритм</span>
           <h2>{formatWeekMode(weekMode)}</h2>
+          <p>{formatLessonCount(totalLessons)} · пик {busiestDay.count ? `${busiestDay.short}, ${busiestDay.count}` : "не задан"}</p>
         </div>
-        <ShieldCheck size={34} />
+        <div className="week-index-visual" aria-label={`Сегодня ${todayShort}, ${todayDate.getDate()} число`}>
+          <span>{todayShort}</span>
+          <strong>{String(todayDate.getDate()).padStart(2, "0")}</strong>
+          <small>сегодня</small>
+        </div>
       </section>
 
-      <WeekMap lessons={lessons} weekMode={weekMode} />
+      <WeekMap dayLoads={dayLoads} weekMode={weekMode} />
 
       <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
         {[
@@ -1140,17 +1179,22 @@ function WeekView({
       </div>
 
       <section className="week-list">
-        {WEEK_DAYS.map((dayName, index) => {
-          const dayDate = dateForWeekDay(index + 1);
-          const dayLessons = selectDayLessons(lessons, index + 1, weekMode, dayDate);
+        {dayLoads.map((day) => {
+          const isToday = day.dayIndex === today;
           return (
-            <article className="day-block" key={dayName}>
+            <article className={`day-block ${isToday ? "current-day" : ""} ${day.count ? "" : "empty-day"}`} key={day.dayName}>
               <div className="day-title">
-                <h3>{dayName}</h3>
-                <span>{dayLessons.length ? formatLessonCount(dayLessons.length) : "без пар"}</span>
+                <div className="day-title-main">
+                  <span className="day-date-tile">{String(day.date.getDate()).padStart(2, "0")}</span>
+                  <div>
+                    <h3>{day.dayName}</h3>
+                    <small>{isToday ? "Сегодня" : WEEK_DATE_FORMATTER.format(day.date).replace(".", "")}</small>
+                  </div>
+                </div>
+                <span>{day.count ? formatLessonCount(day.count) : "без пар"}</span>
               </div>
-              {dayLessons.length ? (
-                dayLessons.map((lesson) => {
+              {day.lessons.length ? (
+                day.lessons.map((lesson) => {
                   const linkedCount = notesForLesson(lesson, notes).length;
                   return (
                     <div className="mini-lesson" key={lesson.id}>
@@ -1190,11 +1234,16 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
   return (
     <div className="view-stack week-view session-view">
       <section className="week-toolbar">
-        <div>
-          <span>Расписание</span>
+        <div className="week-toolbar-copy">
+          <span><Activity size={13} /> Расписание</span>
           <h2>Сессия</h2>
+          <p>{formatLessonCount(visibleLessons.length)} в ближайшем плане</p>
         </div>
-        <ShieldCheck size={34} />
+        <div className="week-index-visual" aria-label={`${groups.length} дат в расписании`}>
+          <ShieldCheck size={18} />
+          <strong>{groups.length}</strong>
+          <small>дат</small>
+        </div>
       </section>
 
       <section className="week-map session-map" aria-label="Карта сессии">
@@ -1238,26 +1287,27 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
   );
 }
 
-function WeekMap({ lessons, weekMode }: { lessons: LessonSlot[]; weekMode: WeekMode }) {
+function WeekMap({ dayLoads, weekMode }: { dayLoads: WeekDayLoad[]; weekMode: WeekMode }) {
   const today = currentDayIndex();
-  const dayLoads = WEEK_DAYS.map((dayName, index) => {
-    const dayDate = dateForWeekDay(index + 1);
-    const dayLessons = selectDayLessons(lessons, index + 1, weekMode, dayDate);
-    return {
-      count: dayLessons.length,
-      dayIndex: index + 1,
-      dayName,
-      firstLesson: dayLessons[0],
-      short: WEEK_DAYS_SHORT[index]
-    };
-  });
   const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
+  const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
+  const activeDays = dayLoads.filter((day) => day.count > 0).length;
+  const busiestDay = dayLoads.reduce((peak, day) => day.count > peak.count ? day : peak, dayLoads[0]);
+  const earliestStart = dayLoads.flatMap((day) => day.lessons).sort((a, b) => a.start.localeCompare(b.start))[0]?.start ?? "—";
 
   return (
     <section className="week-map" aria-label="Карта нагрузки недели">
       <div className="week-map-head">
-        <span>Карта нагрузки</span>
-        <strong>{formatLessonCount(dayLoads.reduce((sum, day) => sum + day.count, 0))}</strong>
+        <div>
+          <span>Карта нагрузки</span>
+          <small>{formatWeekMode(weekMode)}</small>
+        </div>
+        <strong><Activity size={14} /> {formatLessonCount(totalLessons)}</strong>
+      </div>
+      <div className="week-map-insights" aria-label="Сводка недели">
+        <div><small>Пик</small><strong>{busiestDay.count ? `${busiestDay.short} · ${busiestDay.count}` : "Свободно"}</strong></div>
+        <div><small>Старт</small><strong>{earliestStart}</strong></div>
+        <div><small>Дней</small><strong>{activeDays} из 6</strong></div>
       </div>
       <div className="week-map-grid">
         {dayLoads.map((day) => (
@@ -1265,6 +1315,7 @@ function WeekMap({ lessons, weekMode }: { lessons: LessonSlot[]; weekMode: WeekM
             className={`week-map-day ${day.dayIndex === today ? "active" : ""} ${day.count ? "" : "empty"}`}
             key={day.dayName}
             title={`${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
+            aria-current={day.dayIndex === today ? "date" : undefined}
           >
             <div className="week-map-bar" aria-hidden="true">
               <span style={{ height: day.count ? `${Math.max(18, Math.round((day.count / maxCount) * 100))}%` : "8%" }} />
@@ -1487,7 +1538,9 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
 
   return (
     <nav className="bottom-nav" aria-label="Основная навигация" data-active-index={activeIndex}>
-      <span className="nav-selection" aria-hidden="true" />
+      <span className="nav-selection" aria-hidden="true">
+        <i key={activeTab} />
+      </span>
       {items.map(({ tab, label, icon: Icon }) => (
         <button
           key={tab}

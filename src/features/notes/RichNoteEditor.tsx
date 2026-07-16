@@ -28,7 +28,11 @@ import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useStat
 
 const TEXT_COLORS = ["#f4f7fb", "#6bd6ff", "#59dfc1", "#ffc55f", "#ff756f", "#d89cff"];
 const HIGHLIGHT_COLORS = ["#ffe26a66", "#69e3c766", "#6aa9ff66", "#ff716b66", "#d89cff66"];
-const BLOCK_STYLES = ["title", "paragraph", "body"] as const;
+const TEXT_SCALES = ["title", "paragraph", "body"] as const;
+const TEXT_SCALE_SIZES = {
+  title: "28px",
+  paragraph: "21px"
+} as const;
 
 interface RichNoteEditorProps {
   initialContent: string;
@@ -109,7 +113,7 @@ async function compressImage(file: File) {
   }
 }
 
-type BlockStyle = (typeof BLOCK_STYLES)[number];
+type TextScale = (typeof TEXT_SCALES)[number];
 
 function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onChange }: RichNoteEditorProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -151,11 +155,15 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
   const toolbarState = useEditorState({
     editor,
     selector: ({ editor: value }) => ({
-      blockStyle: value?.isActive("heading", { level: 2 })
+      textScale: value?.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.title
         ? "title" as const
-        : value?.isActive("heading", { level: 3 })
+        : value?.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.paragraph
           ? "paragraph" as const
-          : "body" as const,
+          : value?.isActive("heading", { level: 2 })
+            ? "title" as const
+            : value?.isActive("heading", { level: 3 })
+              ? "paragraph" as const
+              : "body" as const,
       bold: Boolean(value?.isActive("bold")),
       italic: Boolean(value?.isActive("italic")),
       underline: Boolean(value?.isActive("underline")),
@@ -250,16 +258,16 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
 
   if (!editor || !toolbarState) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;
 
-  function setBlockStyle(style: BlockStyle) {
+  function setTextScale(style: TextScale) {
     if (style === "title") {
-      editor!.chain().focus().setHeading({ level: 2 }).run();
+      editor!.chain().focus().setFontSize(TEXT_SCALE_SIZES.title).run();
       return;
     }
     if (style === "paragraph") {
-      editor!.chain().focus().setHeading({ level: 3 }).run();
+      editor!.chain().focus().setFontSize(TEXT_SCALE_SIZES.paragraph).run();
       return;
     }
-    editor!.chain().focus().setParagraph().run();
+    editor!.chain().focus().unsetFontSize().run();
   }
 
   return (
@@ -287,15 +295,15 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
 
       <div className="rich-format-dock">
         <div className="rich-block-styles" role="group" aria-label="Размер и роль текста">
-          {BLOCK_STYLES.map((style) => {
+          {TEXT_SCALES.map((style) => {
             const label = style === "title" ? "Заголовок" : style === "paragraph" ? "Абзац" : "Основной текст";
             return (
               <button
                 key={style}
-                className={toolbarState.blockStyle === style ? "active" : ""}
+                className={toolbarState.textScale === style ? "active" : ""}
                 type="button"
-                onClick={() => setBlockStyle(style)}
-                aria-pressed={toolbarState.blockStyle === style}
+                onClick={() => setTextScale(style)}
+                aria-pressed={toolbarState.textScale === style}
               >
                 {label}
               </button>
