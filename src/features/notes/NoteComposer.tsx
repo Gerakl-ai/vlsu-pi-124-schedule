@@ -33,6 +33,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
   const hydratedDraftRef = useRef<string | null>(null);
   const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
   const draftId = note?.id ?? "new";
+  const noteSavedAt = note?.contentUpdatedAt ?? note?.createdAt ?? note?.updatedAt ?? "";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
   const classifiedText = useDeferredValue(text);
   const preview = useMemo(() => {
@@ -47,7 +48,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     draftRevisionRef.current += 1;
     const openingRevision = draftRevisionRef.current;
     const snapshot = readDraftSnapshot(draftId);
-    const canRestoreSnapshot = Boolean(snapshot && (!note || snapshot.updatedAt > note.updatedAt));
+    const canRestoreSnapshot = Boolean(snapshot && (!note || snapshot.updatedAt > noteSavedAt));
     const immediateHtml = canRestoreSnapshot
       ? snapshot!.contentHtml
       : note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
@@ -63,9 +64,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
 
     void loadDraft(draftId).then((draft) => {
       if (!active || draftRevisionRef.current !== openingRevision) return;
-      const snapshotUpdatedAt = snapshot?.updatedAt ?? note?.updatedAt ?? "";
+      const snapshotUpdatedAt = snapshot?.updatedAt ?? noteSavedAt;
       if (!draft || draft.updatedAt <= snapshotUpdatedAt) return;
-      const canRestore = Boolean(draft && (!note || draft.updatedAt > note.updatedAt));
+      const canRestore = Boolean(draft && (!note || draft.updatedAt > noteSavedAt));
       if (!canRestore) return;
       const nextHtml = canRestore
         ? draft!.contentHtml
@@ -81,7 +82,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     return () => {
       active = false;
     };
-  }, [draftId, initialSeed, note, open]);
+  }, [draftId, initialSeed, note, noteSavedAt, open]);
 
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return;

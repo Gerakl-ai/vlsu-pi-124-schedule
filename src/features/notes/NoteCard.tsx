@@ -40,6 +40,10 @@ function formatNoteDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
+function formatFullNoteDate(value: string) {
+  return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
+}
+
 export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onReveal, onCloseReveal, revealed }: NoteCardProps) {
   const body = noteBody(note);
   const previewHtml = notePreviewHtml(note);
@@ -47,6 +51,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState<number | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const savedAt = note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt;
   const suppressClick = useRef(false);
   const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0, deltaX: 0 });
   const offset = dragOffset ?? (revealed ? -DELETE_REVEAL : 0);
@@ -158,7 +163,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
       <button className="note-card-main" type="button" onClick={() => onEdit(note)}>
         <span className="note-card-head">
           <span className="note-kind">{note.kind === "homework" && <BookCheck size={13} />}{noteKindLabel(note.kind)}</span>
-          <time>{formatNoteDate(note.updatedAt)}</time>
+          <time dateTime={savedAt} title={`Сохранено ${formatFullNoteDate(savedAt)}`}>{formatNoteDate(savedAt)}</time>
         </span>
         <strong>{note.title}</strong>
         {previewHtml

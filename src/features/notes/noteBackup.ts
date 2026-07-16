@@ -46,6 +46,7 @@ function isSmartNote(value: unknown): value is SmartNote {
     isOptionalBoolean(value.spaceManual) &&
     isDateString(value.createdAt) &&
     isDateString(value.updatedAt) &&
+    isOptionalDateString(value.contentUpdatedAt) &&
     (value.classificationSource === "local" || value.classificationSource === "ai") &&
     isOptionalDateString(value.completedAt) &&
     isOptionalString(value.subjectKey) &&

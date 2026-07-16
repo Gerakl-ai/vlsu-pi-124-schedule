@@ -668,8 +668,8 @@
   display: block;
   margin-top: 5px;
   overflow-wrap: break-word;
-  font-size: 15px;
-  line-height: 1.23;
+  font-size: 16.5px;
+  line-height: 1.28;
 }
 
 .note-excerpt {
@@ -677,8 +677,8 @@
   margin-top: 5px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.35;
+  font-size: 13px;
+  line-height: 1.42;
   font-weight: 700;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -690,8 +690,8 @@
   margin-top: 6px;
   overflow: hidden;
   color: var(--muted);
-  font-size: 11.5px;
-  line-height: 1.42;
+  font-size: 13px;
+  line-height: 1.5;
   font-weight: 700;
   mask-image: linear-gradient(to bottom, #000 76%, transparent);
   pointer-events: none;
@@ -905,6 +905,22 @@
   contain: layout paint;
 }
 
+body:has(.note-composer) .phone-frame > .ambient-grid,
+body:has(.note-composer) .phone-frame > .ambient-grid::before,
+body:has(.note-composer) .phone-frame > .ambient-grid::after,
+body:has(.note-composer) .phone-frame > .light-sweep,
+body:has(.note-composer) .phone-frame > .motion-scene,
+body:has(.note-composer) .phone-frame > .motion-scene *,
+body:has(.note-composer) .phone-frame > .motion-scene *::before,
+body:has(.note-composer) .phone-frame > .motion-scene *::after {
+  animation-play-state: paused !important;
+}
+
+.note-composer:focus-within .voice-command::after {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
 .note-composer::before {
   content: "";
   position: absolute;
@@ -917,11 +933,14 @@
 }
 
 .note-composer > .sheet-handle {
+  flex: 0 0 4px;
   width: 36px;
+  height: 4px;
   margin-bottom: 7px;
 }
 
 .composer-header {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: 42px minmax(0, 1fr) auto;
   align-items: center;
@@ -973,9 +992,11 @@
 }
 
 .composer-paper {
-  flex: 1 1 auto;
+  flex: 1 1 0;
   min-height: 0;
   overflow: hidden;
+  isolation: isolate;
+  contain: layout paint;
   border: 1px solid var(--theme-panel-border);
   border-radius: 8px;
   background:
@@ -989,12 +1010,46 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .rich-format-dock {
   position: relative;
   z-index: 5;
   flex: 0 0 auto;
+}
+
+.rich-block-styles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+  padding: 7px 7px 0;
+  background: color-mix(in srgb, var(--theme-panel-solid) 84%, transparent);
+}
+
+.rich-block-styles button {
+  min-width: 0;
+  min-height: 38px;
+  padding: 0 7px;
+  overflow: hidden;
+  color: var(--muted);
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 7px;
+  background: var(--theme-control);
+  font: inherit;
+  font-size: 10px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.rich-block-styles button.active {
+  color: var(--cyan);
+  border-color: rgba(var(--accent-rgb), .64);
+  background: var(--theme-control-active);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 16px rgba(var(--accent-rgb), .12);
 }
 
 .voice-command {
@@ -1203,10 +1258,13 @@
 .rich-editor-content {
   flex: 1 1 auto;
   min-height: 0;
+  overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior: none;
-  overscroll-behavior-y: none;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
+  contain: layout paint;
 }
 
 .rich-note-surface {
@@ -1215,8 +1273,8 @@
   color: var(--text);
   outline: 0;
   caret-color: var(--cyan);
-  font-size: 17px;
-  line-height: 1.68;
+  font-size: 18px;
+  line-height: 1.62;
   font-weight: 620;
 }
 
@@ -1228,14 +1286,23 @@
 .rich-note-surface ul,
 .rich-note-surface ol,
 .rich-note-surface blockquote,
-.rich-note-surface h2 {
+.rich-note-surface h2,
+.rich-note-surface h3 {
   margin: 0 0 12px;
 }
 
 .rich-note-surface h2 {
   overflow-wrap: anywhere;
-  font-size: 25px;
-  line-height: 1.14;
+  font-size: 28px;
+  line-height: 1.16;
+  font-weight: 900;
+}
+
+.rich-note-surface h3 {
+  overflow-wrap: anywhere;
+  font-size: 21px;
+  line-height: 1.34;
+  font-weight: 780;
 }
 
 .rich-note-surface ul,
@@ -1328,6 +1395,7 @@
 .rich-editor-loading span:nth-child(3) { width: 58%; }
 
 .composer-context {
+  flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(0, 1fr) 40px;
   gap: 8px;
@@ -1386,6 +1454,7 @@
 }
 
 .classification-preview {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   flex-wrap: nowrap;
@@ -1396,7 +1465,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
-  transition: height .28s ease, min-height .28s ease, padding .28s ease, opacity .2s ease;
+  transition: opacity .18s ease;
 }
 
 .classification-preview::-webkit-scrollbar {
@@ -1445,6 +1514,7 @@
 }
 
 .composer-toolbar {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1453,7 +1523,7 @@
   height: 22px;
   padding-top: 0;
   overflow: hidden;
-  transition: height .28s ease, min-height .28s ease, opacity .2s ease;
+  transition: none;
 }
 
 .composer-storage-note {
@@ -2057,6 +2127,7 @@
 .notes-search input:focus-visible,
 .space-rail button:focus-visible,
 .note-card button:focus-visible,
+.rich-block-styles button:focus-visible,
 .composer-toolbar button:focus-visible,
 .composer-done:focus-visible,
 .header-icon-button:focus-visible,
@@ -2064,6 +2135,19 @@
 .theme-option:focus-visible {
   outline: 2px solid var(--cyan);
   outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .composer-layer {
+    padding: max(6px, var(--safe-top)) 6px max(5px, var(--safe-bottom));
+  }
+
+  .note-composer {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
+  }
 }
 
 @media (max-width: 410px) {
@@ -2214,9 +2298,18 @@
   }
 
   .rich-toolbar {
-    grid-template-columns: repeat(14, minmax(0, 1fr));
+    grid-template-columns: repeat(13, minmax(0, 1fr));
     gap: 4px;
     padding: 5px;
+  }
+
+  .rich-block-styles {
+    padding: 5px 5px 0;
+  }
+
+  .rich-block-styles button {
+    min-height: 32px;
+    font-size: 9px;
   }
 
   .rich-toolbar button {
@@ -2288,6 +2381,54 @@
   padding-bottom: 4px;
 }
 
+:root[data-keyboard="open"] .voice-command {
+  min-height: 44px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  margin: 4px 4px 0;
+  padding: 4px 7px;
+}
+
+:root[data-keyboard="open"] .voice-command-icon {
+  width: 34px;
+  height: 34px;
+}
+
 :root[data-keyboard="open"] .voice-command-copy small {
-  visibility: hidden;
+  display: none;
+}
+
+:root[data-keyboard="open"] .voice-intelligence {
+  display: none;
+}
+
+:root[data-keyboard="open"] .rich-block-styles {
+  padding: 4px 4px 0;
+}
+
+:root[data-keyboard="open"] .rich-block-styles button {
+  min-height: 34px;
+}
+
+:root[data-keyboard="open"] .rich-toolbar {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+:root[data-keyboard="open"] .rich-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+:root[data-keyboard="open"] .rich-toolbar button {
+  width: 36px;
+  height: 34px;
+  flex: 0 0 36px;
+}
+
+:root[data-keyboard="open"] .composer-context,
+:root[data-keyboard="open"] .classification-preview,
+:root[data-keyboard="open"] .composer-toolbar {
+  display: none;
 }

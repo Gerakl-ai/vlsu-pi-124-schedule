@@ -109,11 +109,16 @@ async function deleteValue(storeName: string, id: string): Promise<void> {
 }
 
 export async function loadNotes(): Promise<SmartNote[]> {
+  let notes: SmartNote[];
   try {
-    return await getAll<SmartNote>(NOTES_STORE);
+    notes = await getAll<SmartNote>(NOTES_STORE);
   } catch {
-    return readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
+    notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
   }
+  return notes.map((note) => ({
+    ...note,
+    contentUpdatedAt: note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt
+  }));
 }
 
 export async function storeNote(note: SmartNote): Promise<void> {

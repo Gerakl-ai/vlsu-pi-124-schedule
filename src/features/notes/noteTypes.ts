@@ -49,6 +49,7 @@ export interface SmartNote extends NoteClassification {
   spaceManual?: boolean;
   createdAt: string;
   updatedAt: string;
+  contentUpdatedAt?: string;
   completedAt?: string;
   classificationSource: ClassificationSource;
   classificationPending?: boolean;

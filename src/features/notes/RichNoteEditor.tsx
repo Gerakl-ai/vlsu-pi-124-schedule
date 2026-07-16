@@ -3,12 +3,11 @@ import Image from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { TextStyleKit } from "@tiptap/extension-text-style";
 import { Placeholder } from "@tiptap/extensions";
-import { EditorContent, useEditor } from "@tiptap/react";
+import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
   AudioWaveform,
   Bold,
-  Heading2,
   Highlighter,
   ImagePlus,
   Italic,
@@ -25,10 +24,11 @@ import {
   Underline as UnderlineIcon,
   Undo2
 } from "lucide-react";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 const TEXT_COLORS = ["#f4f7fb", "#6bd6ff", "#59dfc1", "#ffc55f", "#ff756f", "#d89cff"];
 const HIGHLIGHT_COLORS = ["#ffe26a66", "#69e3c766", "#6aa9ff66", "#ff716b66", "#d89cff66"];
+const BLOCK_STYLES = ["title", "paragraph", "body"] as const;
 
 interface RichNoteEditorProps {
   initialContent: string;
@@ -109,11 +109,12 @@ async function compressImage(file: File) {
   }
 }
 
-export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChange }: RichNoteEditorProps) {
+type BlockStyle = (typeof BLOCK_STYLES)[number];
+
+function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onChange }: RichNoteEditorProps) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState("");
-  const [, setRevision] = useState(0);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const handledVoiceTokenRef = useRef(0);
@@ -134,6 +135,7 @@ export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChan
       Placeholder.configure({ placeholder: "Напишите как думаете..." })
     ],
     content: initialContent,
+    shouldRerenderOnTransaction: false,
     editorProps: {
       attributes: {
         class: "rich-note-surface",
@@ -143,9 +145,28 @@ export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChan
     },
     onUpdate: ({ editor: value }) => {
       onChange(value.getHTML(), value.getText({ blockSeparator: "\n" }));
-      setRevision((current) => current + 1);
-    },
-    onSelectionUpdate: () => setRevision((current) => current + 1)
+    }
+  });
+
+  const toolbarState = useEditorState({
+    editor,
+    selector: ({ editor: value }) => ({
+      blockStyle: value?.isActive("heading", { level: 2 })
+        ? "title" as const
+        : value?.isActive("heading", { level: 3 })
+          ? "paragraph" as const
+          : "body" as const,
+      bold: Boolean(value?.isActive("bold")),
+      italic: Boolean(value?.isActive("italic")),
+      underline: Boolean(value?.isActive("underline")),
+      strike: Boolean(value?.isActive("strike")),
+      bulletList: Boolean(value?.isActive("bulletList")),
+      taskList: Boolean(value?.isActive("taskList")),
+      blockquote: Boolean(value?.isActive("blockquote")),
+      imageSelected: Boolean(value?.isActive("image")),
+      canUndo: Boolean(value?.can().undo()),
+      canRedo: Boolean(value?.can().redo())
+    })
   });
 
   useEffect(() => () => recognitionRef.current?.stop(), []);
@@ -227,8 +248,19 @@ export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChan
     startVoice();
   }, [autoStartVoiceToken, startVoice]);
 
-  if (!editor) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;
-  const imageSelected = editor.isActive("image");
+  if (!editor || !toolbarState) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;
+
+  function setBlockStyle(style: BlockStyle) {
+    if (style === "title") {
+      editor!.chain().focus().setHeading({ level: 2 }).run();
+      return;
+    }
+    if (style === "paragraph") {
+      editor!.chain().focus().setHeading({ level: 3 }).run();
+      return;
+    }
+    editor!.chain().focus().setParagraph().run();
+  }
 
   return (
     <div className="rich-note-editor">
@@ -254,21 +286,37 @@ export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChan
       </button>
 
       <div className="rich-format-dock">
+        <div className="rich-block-styles" role="group" aria-label="Размер и роль текста">
+          {BLOCK_STYLES.map((style) => {
+            const label = style === "title" ? "Заголовок" : style === "paragraph" ? "Абзац" : "Основной текст";
+            return (
+              <button
+                key={style}
+                className={toolbarState.blockStyle === style ? "active" : ""}
+                type="button"
+                onClick={() => setBlockStyle(style)}
+                aria-pressed={toolbarState.blockStyle === style}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="rich-toolbar" aria-label="Форматирование записи">
-          {toolbarButton(editor.isActive("heading", { level: 2 }), "Заголовок", <Heading2 size={18} />, () => editor.chain().focus().toggleHeading({ level: 2 }).run())}
-          {toolbarButton(editor.isActive("bold"), "Жирный", <Bold size={18} />, () => editor.chain().focus().toggleBold().run())}
-          {toolbarButton(editor.isActive("italic"), "Курсив", <Italic size={18} />, () => editor.chain().focus().toggleItalic().run())}
-          {toolbarButton(editor.isActive("underline"), "Подчёркивание", <UnderlineIcon size={18} />, () => editor.chain().focus().toggleUnderline().run())}
-          {toolbarButton(editor.isActive("strike"), "Зачёркивание", <Strikethrough size={18} />, () => editor.chain().focus().toggleStrike().run())}
-          {toolbarButton(editor.isActive("bulletList"), "Маркированный список", <List size={18} />, () => editor.chain().focus().toggleBulletList().run())}
-          {toolbarButton(editor.isActive("taskList"), "Чек-лист", <ListChecks size={18} />, () => editor.chain().focus().toggleTaskList().run())}
-          {toolbarButton(editor.isActive("blockquote"), "Цитата", <Quote size={18} />, () => editor.chain().focus().toggleBlockquote().run())}
+          {toolbarButton(toolbarState.bold, "Жирный", <Bold size={18} />, () => editor.chain().focus().toggleBold().run())}
+          {toolbarButton(toolbarState.italic, "Курсив", <Italic size={18} />, () => editor.chain().focus().toggleItalic().run())}
+          {toolbarButton(toolbarState.underline, "Подчёркивание", <UnderlineIcon size={18} />, () => editor.chain().focus().toggleUnderline().run())}
+          {toolbarButton(toolbarState.strike, "Зачёркивание", <Strikethrough size={18} />, () => editor.chain().focus().toggleStrike().run())}
+          {toolbarButton(toolbarState.bulletList, "Маркированный список", <List size={18} />, () => editor.chain().focus().toggleBulletList().run())}
+          {toolbarButton(toolbarState.taskList, "Чек-лист", <ListChecks size={18} />, () => editor.chain().focus().toggleTaskList().run())}
+          {toolbarButton(toolbarState.blockquote, "Цитата", <Quote size={18} />, () => editor.chain().focus().toggleBlockquote().run())}
           {toolbarButton(paletteOpen, "Цвет и выделение", <Palette size={18} />, () => setPaletteOpen((value) => !value))}
           {toolbarButton(false, "Добавить фото", <ImagePlus size={18} />, () => imageInputRef.current?.click())}
-          {toolbarButton(false, "Уменьшить фото", <Minimize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 180, height: null }).run(), !imageSelected)}
-          {toolbarButton(false, "Увеличить фото", <Maximize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 520, height: null }).run(), !imageSelected)}
-          {toolbarButton(false, "Отменить", <Undo2 size={18} />, () => editor.chain().focus().undo().run(), !editor.can().undo())}
-          {toolbarButton(false, "Повторить", <Redo2 size={18} />, () => editor.chain().focus().redo().run(), !editor.can().redo())}
+          {toolbarButton(false, "Уменьшить фото", <Minimize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 180, height: null }).run(), !toolbarState.imageSelected)}
+          {toolbarButton(false, "Увеличить фото", <Maximize2 size={18} />, () => editor.chain().focus().updateAttributes("image", { width: 520, height: null }).run(), !toolbarState.imageSelected)}
+          {toolbarButton(false, "Отменить", <Undo2 size={18} />, () => editor.chain().focus().undo().run(), !toolbarState.canUndo)}
+          {toolbarButton(false, "Повторить", <Redo2 size={18} />, () => editor.chain().focus().redo().run(), !toolbarState.canRedo)}
         </div>
 
         {paletteOpen && (
@@ -293,3 +341,9 @@ export function RichNoteEditor({ initialContent, autoStartVoiceToken = 0, onChan
     </div>
   );
 }
+
+export const RichNoteEditor = memo(
+  RichNoteEditorComponent,
+  // NoteComposer changes the key for true hydration; keystroke props must not remount TipTap.
+  (previous, next) => previous.autoStartVoiceToken === next.autoStartVoiceToken && previous.onChange === next.onChange
+);

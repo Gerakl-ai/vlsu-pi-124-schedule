@@ -23,7 +23,9 @@ function sortNotes(notes: SmartNote[]) {
   return [...notes].sort((a, b) => {
     if (a.status !== b.status) return a.status === "open" ? -1 : 1;
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
-    return b.updatedAt.localeCompare(a.updatedAt);
+    const aSavedAt = a.contentUpdatedAt ?? a.createdAt ?? a.updatedAt;
+    const bSavedAt = b.contentUpdatedAt ?? b.createdAt ?? b.updatedAt;
+    return bSavedAt.localeCompare(aSavedAt);
   });
 }
 
@@ -116,6 +118,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       spaceManual: Boolean(input.spaceOverride),
       createdAt: timestamp,
       updatedAt: timestamp,
+      contentUpdatedAt: timestamp,
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
       ...classification
@@ -131,6 +134,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     if (!existing) return;
     const classification = classifyNote(input.text, subjects, spaces);
     if (input.spaceOverride) classification.space = input.spaceOverride;
+    const timestamp = new Date().toISOString();
     const note: SmartNote = {
       ...existing,
       ...classification,
@@ -139,7 +143,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       title: noteTitle(input.text),
       pinned: input.pinned,
       spaceManual: Boolean(input.spaceOverride),
-      updatedAt: new Date().toISOString(),
+      updatedAt: timestamp,
+      contentUpdatedAt: timestamp,
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine
     };
@@ -214,7 +219,11 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     incoming.forEach((note) => {
       const existing = merged.get(note.id);
       if (!existing || note.updatedAt > existing.updatedAt) {
-        merged.set(note.id, { ...note, classificationPending: false });
+        merged.set(note.id, {
+          ...note,
+          contentUpdatedAt: note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt,
+          classificationPending: false
+        });
         importedCount += 1;
       }
     });

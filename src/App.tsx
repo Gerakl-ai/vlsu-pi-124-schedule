@@ -1,4 +1,4 @@
-import { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   Bell,
@@ -72,6 +72,7 @@ const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
 const MOTION_PARTICLES = Array.from({ length: 14 }, (_, index) => index);
+const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
 
 let notesViewPromise: Promise<NotesViewComponent> | null = null;
@@ -264,6 +265,7 @@ export function App() {
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
+  const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
@@ -280,7 +282,9 @@ export function App() {
       if (a.dueAt && b.dueAt) return a.dueAt.localeCompare(b.dueAt);
       if (a.dueAt) return -1;
       if (b.dueAt) return 1;
-      return b.updatedAt.localeCompare(a.updatedAt);
+      const aSavedAt = a.contentUpdatedAt ?? a.createdAt ?? a.updatedAt;
+      const bSavedAt = b.contentUpdatedAt ?? b.createdAt ?? b.updatedAt;
+      return bSavedAt.localeCompare(aSavedAt);
     })[0];
   }, [openNotes]);
 
@@ -467,14 +471,19 @@ export function App() {
       return;
     }
     if (container) tabScrollPositionsRef.current[activeTab] = container.scrollTop;
+    const direction = TAB_ORDER.indexOf(nextTab) > TAB_ORDER.indexOf(activeTab) ? "forward" : "backward";
+    const commitTab = () => {
+      setTabMotion((current) => ({ id: current.id + 1, direction }));
+      setActiveTab(nextTab);
+    };
     if (nextTab === "notes" && !NotesView) {
       void loadNotesView().then((Component) => {
         setNotesView(() => Component);
-        if (pendingTabRef.current === "notes") startTransition(() => setActiveTab("notes"));
+        if (pendingTabRef.current === "notes") commitTab();
       });
       return;
     }
-    setActiveTab(nextTab);
+    commitTab();
   }, [NotesView, activeTab]);
 
   useLayoutEffect(() => {
@@ -506,6 +515,7 @@ export function App() {
         />
 
         <div className="content-scroll" ref={contentScrollRef} data-active-tab={activeTab}>
+          {tabMotion.id > 0 && <span key={tabMotion.id} className={`tab-motion-veil ${tabMotion.direction}`} aria-hidden="true" />}
           {status === "error-without-cache" && activeTab !== "notes" && <ErrorBanner />}
 
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
@@ -1473,9 +1483,11 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
     { tab: "notes" as const, label: "Записи", icon: NotebookPen },
     { tab: "settings" as const, label: "Настройки", icon: Settings }
   ];
+  const activeIndex = items.findIndex((item) => item.tab === activeTab);
 
   return (
-    <nav className="bottom-nav" aria-label="Основная навигация">
+    <nav className="bottom-nav" aria-label="Основная навигация" data-active-index={activeIndex}>
+      <span className="nav-selection" aria-hidden="true" />
       {items.map(({ tab, label, icon: Icon }) => (
         <button
           key={tab}
