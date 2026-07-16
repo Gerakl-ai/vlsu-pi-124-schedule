@@ -411,6 +411,18 @@ body {
   opacity: 0.4;
 }
 
+:root[data-theme-mode="light"] .motion-scene {
+  opacity: .56;
+}
+
+:root[data-theme-mode="light"] .data-route {
+  filter: drop-shadow(0 0 4px rgba(var(--accent-rgb), .18));
+}
+
+:root[data-theme-mode="light"] .day-motion-rail {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), 0 10px 24px rgba(35,57,90,.08);
+}
+
 :root[data-theme-mode="light"] {
   --status-bar-bg: #101827;
 }

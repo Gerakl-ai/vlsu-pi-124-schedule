@@ -1,5 +1,6 @@
 import { startTransition, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
+  Activity,
   Bell,
   BellRing,
   BrainCircuit,
@@ -70,6 +71,7 @@ const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
 const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const INITIAL_SCHEDULE = readScheduleCache();
+const MOTION_PARTICLES = Array.from({ length: 14 }, (_, index) => index);
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
 
 let notesViewPromise: Promise<NotesViewComponent> | null = null;
@@ -77,6 +79,21 @@ const loadNotesView = () => {
   notesViewPromise ??= import("./features/notes/NotesView").then((module) => module.NotesView);
   return notesViewPromise;
 };
+
+function MotionScene() {
+  return (
+    <div className="motion-scene" aria-hidden="true">
+      <span className="data-route data-route-a" />
+      <span className="data-route data-route-b" />
+      <span className="data-route data-route-c" />
+      <span className="data-gate data-gate-a" />
+      <span className="data-gate data-gate-b" />
+      <div className="motion-particles">
+        {MOTION_PARTICLES.map((particle) => <i key={particle} />)}
+      </div>
+    </div>
+  );
+}
 
 type HeroMode = "current" | "next" | "done" | "free" | "loading";
 
@@ -478,6 +495,7 @@ export function App() {
       <section className="phone-frame" aria-label="ПИ-124 расписание">
         <div className="ambient-grid" />
         <div className="light-sweep" />
+        <MotionScene />
         <Header
           currentWeek={currentWeek}
           isSessionSchedule={isSessionSchedule}
@@ -751,6 +769,16 @@ function TodayView({
         <ChevronRight size={20} aria-hidden="true" />
       </button>
 
+      <DayMotionRail
+        weekMode={weekMode}
+        lessons={lessons}
+        dayProgress={dayProgress}
+        remaining={remaining}
+        current={current}
+        next={next}
+        nextStudyDay={nextStudyDay}
+      />
+
       <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
         <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
         <div className="hero-sigil" aria-hidden="true">
@@ -812,6 +840,62 @@ function TodayView({
 
       <Timeline lessons={lessons} current={current} next={next} now={now} notes={notes} onToggleNote={onToggleNote} />
     </div>
+  );
+}
+
+function DayMotionRail({
+  weekMode,
+  lessons,
+  dayProgress,
+  remaining,
+  current,
+  next,
+  nextStudyDay
+}: {
+  weekMode: WeekMode;
+  lessons: LessonSlot[];
+  dayProgress: number;
+  remaining: number;
+  current?: LessonSlot;
+  next?: LessonSlot;
+  nextStudyDay: NextStudyDay | null;
+}) {
+  const timingSignal = current
+    ? `${remaining} мин до конца`
+    : next
+      ? `Старт в ${next.start}`
+      : nextStudyDay
+        ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
+        : "День свободен";
+  const signals = [
+    formatWeekMode(weekMode),
+    `${formatLessonCount(lessons.length)} сегодня`,
+    lessons.length ? `${dayProgress}% дня пройдено` : "Свободный день",
+    timingSignal
+  ];
+
+  return (
+    <section className="day-motion-rail" aria-label={signals.join(". ")}>
+      <span className="day-motion-label" aria-hidden="true">
+        <Activity size={14} />
+        <i />
+        Ритм
+      </span>
+      <div className="day-motion-window" aria-hidden="true">
+        <div className="day-motion-track">
+          {[0, 1].map((copy) => (
+            <span className="day-motion-set" key={copy}>
+              {signals.map((signal, index) => (
+                <span className="day-motion-item" key={`${copy}-${signal}`}>
+                  <i data-tone={index % 3} />
+                  {signal}
+                </span>
+              ))}
+            </span>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
