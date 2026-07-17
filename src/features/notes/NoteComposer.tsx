@@ -1,16 +1,20 @@
-import { Check, Folder, LoaderCircle, Pin, Save, Trash2, X } from "lucide-react";
-import { useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { CalendarClock, Check, Folder, LoaderCircle, Pin, Save, Share2, Trash2, X } from "lucide-react";
+import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { noteKindLabel } from "./noteClassifier";
+import { plainTextToHtml } from "./noteContent";
+import { localDateTimeToIso, resolveNoteDeadline, toLocalDateTimeValue } from "./noteDeadline";
 import { loadDraft, readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
-import { plainTextToHtml, RichNoteEditor } from "./RichNoteEditor";
+
+const LazyRichNoteEditor = lazy(async () => ({ default: (await import("./RichNoteEditor")).RichNoteEditor }));
 
 interface NoteComposerProps {
   note: SmartNote | null;
   folders: NoteFolder[];
   open: boolean;
   initialSeed?: string;
+  initialDueAt?: string;
   voiceStartToken?: number;
   classifyDraft: (text: string) => NoteClassification;
   onClose: () => void;
@@ -19,12 +23,17 @@ interface NoteComposerProps {
 }
 
 type DraftState = "idle" | "saving" | "saved";
+type ShareState = "idle" | "working" | "done" | "error";
 
-export function NoteComposer({ note, folders, open, initialSeed = "", voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
+export function NoteComposer({ note, folders, open, initialSeed = "", initialDueAt, voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
   const [contentHtml, setContentHtml] = useState("<p></p>");
   const [text, setText] = useState("");
   const [pinned, setPinned] = useState(false);
   const [spaceOverride, setSpaceOverride] = useState("");
+  const [deadlineValue, setDeadlineValue] = useState("");
+  const [deadlineTouched, setDeadlineTouched] = useState(false);
+  const [deadlineOpen, setDeadlineOpen] = useState(false);
+  const [shareState, setShareState] = useState<ShareState>("idle");
   const [hydrating, setHydrating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [draftState, setDraftState] = useState<DraftState>("idle");
@@ -32,15 +41,19 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
   const draftRevisionRef = useRef(0);
   const hydratedDraftRef = useRef<string | null>(null);
   const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
+  const shareResetTimerRef = useRef<number | undefined>(undefined);
   const draftId = note?.id ?? "new";
   const noteSavedAt = note?.contentUpdatedAt ?? note?.createdAt ?? note?.updatedAt ?? "";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
+  const hasShareableText = Boolean(text.trim());
   const classifiedText = useDeferredValue(text);
   const preview = useMemo(() => {
     if (!hasContent) return null;
     const classification = classifyDraft(classifiedText);
-    return spaceOverride ? { ...classification, space: spaceOverride } : classification;
-  }, [classifiedText, classifyDraft, hasContent, spaceOverride]);
+    const withSpace = spaceOverride ? { ...classification, space: spaceOverride } : classification;
+    const deadline = resolveNoteDeadline(withSpace, deadlineTouched ? localDateTimeToIso(deadlineValue) ?? null : undefined);
+    return { ...withSpace, ...deadline };
+  }, [classifiedText, classifyDraft, deadlineTouched, deadlineValue, hasContent, spaceOverride]);
 
   useLayoutEffect(() => {
     if (!open) return;
@@ -56,6 +69,16 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     setText(canRestoreSnapshot ? snapshot!.text : note?.text ?? initialSeed);
     setPinned(canRestoreSnapshot ? snapshot!.pinned : note?.pinned ?? false);
     setSpaceOverride(canRestoreSnapshot ? snapshot!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
+    const snapshotHasDeadline = Boolean(canRestoreSnapshot && Object.prototype.hasOwnProperty.call(snapshot, "dueAtOverride"));
+    const immediateDeadline = snapshotHasDeadline
+      ? snapshot!.dueAtOverride
+      : note?.dueManual
+        ? note.dueAt ?? null
+        : initialDueAt;
+    setDeadlineTouched(immediateDeadline !== undefined);
+    setDeadlineValue(typeof immediateDeadline === "string" ? toLocalDateTimeValue(immediateDeadline) : note?.dueManual ? "" : toLocalDateTimeValue(note?.dueAt));
+    setDeadlineOpen(Boolean(initialDueAt));
+    setShareState("idle");
     setEditorKey((value) => value + 1);
     hydratedDraftRef.current = draftId;
     setHydrating(false);
@@ -75,6 +98,14 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
       setText(canRestore ? draft!.text : note?.text ?? "");
       setPinned(canRestore ? draft!.pinned : note?.pinned ?? false);
       setSpaceOverride(canRestore ? draft!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
+      const draftHasDeadline = Object.prototype.hasOwnProperty.call(draft, "dueAtOverride");
+      const restoredDeadline = draftHasDeadline
+        ? draft!.dueAtOverride
+        : note?.dueManual
+          ? note.dueAt ?? null
+          : initialDueAt;
+      setDeadlineTouched(restoredDeadline !== undefined);
+      setDeadlineValue(typeof restoredDeadline === "string" ? toLocalDateTimeValue(restoredDeadline) : note?.dueManual ? "" : toLocalDateTimeValue(note?.dueAt));
       setEditorKey((value) => value + 1);
       hydratedDraftRef.current = draftId;
       setDraftState("saved");
@@ -82,7 +113,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     return () => {
       active = false;
     };
-  }, [draftId, initialSeed, note, noteSavedAt, open]);
+  }, [draftId, initialDueAt, initialSeed, note, noteSavedAt, open]);
 
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return;
@@ -94,6 +125,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
       contentHtml,
       pinned,
       spaceOverride: spaceOverride || undefined,
+      ...(deadlineTouched ? { dueAtOverride: localDateTimeToIso(deadlineValue) ?? null } : {}),
       updatedAt: new Date().toISOString()
     };
     const write = draftWriteRef.current
@@ -102,13 +134,17 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     draftWriteRef.current = write;
     await write;
     if (revision === draftRevisionRef.current) setDraftState("saved");
-  }, [contentHtml, draftId, hydrating, open, pinned, spaceOverride, text]);
+  }, [contentHtml, deadlineTouched, deadlineValue, draftId, hydrating, open, pinned, spaceOverride, text]);
 
   useEffect(() => {
     if (!open || hydrating) return;
     const timer = window.setTimeout(() => void persistDraft(), 480);
     return () => window.clearTimeout(timer);
-  }, [contentHtml, hydrating, open, persistDraft, pinned, spaceOverride, text]);
+  }, [contentHtml, deadlineTouched, deadlineValue, hydrating, open, persistDraft, pinned, spaceOverride, text]);
+
+  useEffect(() => () => {
+    if (shareResetTimerRef.current !== undefined) window.clearTimeout(shareResetTimerRef.current);
+  }, []);
 
   const markDraftDirty = useCallback(() => {
     draftRevisionRef.current += 1;
@@ -134,6 +170,42 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
     markDraftDirty();
   }, [markDraftDirty]);
 
+  function scheduleShareReset() {
+    if (shareResetTimerRef.current !== undefined) window.clearTimeout(shareResetTimerRef.current);
+    shareResetTimerRef.current = window.setTimeout(() => setShareState("idle"), 1800);
+  }
+
+  async function shareCurrent() {
+    const value = text.trim();
+    if (!value || shareState === "working") return;
+    setShareState("working");
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: note?.title ?? value.split("\n")[0].slice(0, 80), text: value });
+      } else if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+      } else {
+        const field = document.createElement("textarea");
+        field.value = value;
+        field.style.position = "fixed";
+        field.style.opacity = "0";
+        document.body.append(field);
+        field.select();
+        document.execCommand("copy");
+        field.remove();
+      }
+      setShareState("done");
+      scheduleShareReset();
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        setShareState("idle");
+        return;
+      }
+      setShareState("error");
+      scheduleShareReset();
+    }
+  }
+
   async function submit() {
     if (!hasContent || saving) return;
     setSaving(true);
@@ -142,7 +214,8 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
         text: text.trim(),
         contentHtml,
         pinned,
-        spaceOverride: spaceOverride || undefined
+        spaceOverride: spaceOverride || undefined,
+        ...(deadlineTouched ? { dueAtOverride: localDateTimeToIso(deadlineValue) ?? null } : {})
       }, note?.id);
       await draftWriteRef.current.catch(() => undefined);
       await removeDraft(draftId);
@@ -192,7 +265,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
           {hydrating ? (
             <div className="rich-editor-loading" aria-label="Восстановление черновика"><span /><span /><span /></div>
           ) : (
-            <RichNoteEditor key={`${draftId}-${editorKey}`} initialContent={contentHtml} autoStartVoiceToken={voiceStartToken} onChange={handleEditorChange} />
+            <Suspense fallback={<div className="rich-editor-loading" aria-label="Подготовка редактора"><span /><span /><span /></div>}>
+              <LazyRichNoteEditor key={`${draftId}-${editorKey}`} initialContent={contentHtml} autoStartVoiceToken={voiceStartToken} onChange={handleEditorChange} />
+            </Suspense>
           )}
         </div>
 
@@ -204,10 +279,39 @@ export function NoteComposer({ note, folders, open, initialSeed = "", voiceStart
               {folders.map((folder) => <option key={folder.id} value={folder.name}>{folder.name}</option>)}
             </select>
           </label>
+          <button className={preview?.dueAt ? "active" : ""} type="button" onClick={() => setDeadlineOpen((value) => !value)} aria-label="Выбрать срок" aria-expanded={deadlineOpen} title={preview?.dueLabel ?? "Срок"}>
+            <CalendarClock size={17} />
+          </button>
+          <button className={shareState === "done" ? "active" : shareState === "error" ? "error" : ""} type="button" onClick={() => void shareCurrent()} disabled={!hasShareableText || shareState === "working"} aria-label={shareState === "done" ? "Запись скопирована или отправлена" : shareState === "error" ? "Не удалось поделиться записью" : "Поделиться записью"} title={shareState === "done" ? "Готово" : shareState === "error" ? "Не удалось поделиться" : "Поделиться"}>
+            {shareState === "working" ? <LoaderCircle className="spin" size={17} /> : shareState === "done" ? <Check size={17} /> : <Share2 size={17} />}
+          </button>
           <button className={pinned ? "active" : ""} type="button" onClick={() => { setPinned((value) => !value); markDraftDirty(); }} aria-label={pinned ? "Открепить" : "Закрепить"} title={pinned ? "Открепить" : "Закрепить"}>
             <Pin size={17} fill={pinned ? "currentColor" : "none"} />
           </button>
         </div>
+
+        {deadlineOpen && (
+          <div className="composer-deadline-panel">
+            <label>
+              <CalendarClock size={16} />
+              <span>Точный срок</span>
+              <input
+                type="datetime-local"
+                value={deadlineValue}
+                step="60"
+                onChange={(event) => {
+                  setDeadlineValue(event.target.value);
+                  setDeadlineTouched(true);
+                  markDraftDirty();
+                }}
+                aria-label="Дата и время срока"
+              />
+            </label>
+            <button type="button" onClick={() => { setDeadlineValue(""); setDeadlineTouched(true); markDraftDirty(); }} disabled={!deadlineValue} aria-label="Убрать срок" title="Убрать срок">
+              <X size={16} />
+            </button>
+          </div>
+        )}
 
         <div className={`classification-preview ${preview ? "ready" : "empty"}`} aria-live="polite">
           {preview ? (

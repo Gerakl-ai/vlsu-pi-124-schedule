@@ -25,6 +25,7 @@ import {
   Undo2
 } from "lucide-react";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { escapeNoteHtml } from "./noteContent";
 
 const TEXT_COLORS = ["#f4f7fb", "#6bd6ff", "#59dfc1", "#ffc55f", "#ff756f", "#d89cff"];
 const HIGHLIGHT_COLORS = ["#ffe26a66", "#69e3c766", "#6aa9ff66", "#ff716b66", "#d89cff66"];
@@ -62,21 +63,6 @@ declare global {
     SpeechRecognition?: SpeechRecognitionConstructor;
     webkitSpeechRecognition?: SpeechRecognitionConstructor;
   }
-}
-
-function escapeHtml(value: string) {
-  return value.replace(/[&<>"']/g, (symbol) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    "\"": "&quot;",
-    "'": "&#039;"
-  })[symbol] ?? symbol);
-}
-
-export function plainTextToHtml(value: string) {
-  const paragraphs = value.split(/\r?\n/).map((line) => `<p>${escapeHtml(line) || "<br>"}</p>`);
-  return paragraphs.join("") || "<p></p>";
 }
 
 async function compressImage(file: File) {
@@ -225,7 +211,7 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
         .map((result) => result[0]?.transcript ?? "")
         .join(" ")
         .trim();
-      if (transcript) editor.chain().focus().insertContent(`${editor.isEmpty ? "" : " "}${escapeHtml(transcript)}`).run();
+      if (transcript) editor.chain().focus().insertContent(`${editor.isEmpty ? "" : " "}${escapeNoteHtml(transcript)}`).run();
     };
     recognition.onerror = () => {
       setVoiceError("Не удалось услышать. Проверьте доступ к микрофону.");

@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v40";
+const CACHE_NAME = "lad-pi-124-v41";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -18,16 +18,31 @@ async function discoverBuildAssets() {
       .map((match) => match[1])
       .filter((url) => url.startsWith("/assets/") || url.startsWith("assets/"))
       .map((url) => (url.startsWith("/") ? url : `/${url}`));
-    const nestedAssets = await Promise.all(directAssets.filter((url) => url.endsWith(".js")).map(async (asset) => {
+    const assets = new Set(directAssets);
+    const pendingScripts = directAssets.filter((url) => url.endsWith(".js"));
+    const scannedScripts = new Set();
+
+    while (pendingScripts.length && assets.size < 100) {
+      const asset = pendingScripts.shift();
+      if (!asset || scannedScripts.has(asset)) continue;
+      scannedScripts.add(asset);
       try {
-        const script = await (await fetch(asset, { cache: "no-store" })).text();
-        return [...script.matchAll(/["'(]((?:\/?assets\/|\.\.?\/)[^"'()\s]+\.(?:js|css|png|jpg|jpeg|webp|svg))/g)]
-          .map((match) => new URL(match[1], new URL(asset, self.location.origin)).pathname);
+        const scriptResponse = await fetch(asset, { cache: "no-store" });
+        if (!scriptResponse.ok) continue;
+        const script = await scriptResponse.text();
+        const nestedAssets = [...script.matchAll(/["'(]((?:\/?assets\/|\.\.?\/)[^"'()\s]+\.(?:js|css|png|jpg|jpeg|webp|svg))/g)]
+          .map((match) => new URL(match[1], new URL(asset, self.location.origin)).pathname)
+          .filter((url) => url.startsWith("/assets/"));
+        nestedAssets.forEach((url) => {
+          if (assets.has(url)) return;
+          assets.add(url);
+          if (url.endsWith(".js")) pendingScripts.push(url);
+        });
       } catch {
-        return [];
+        // A runtime request can still populate the cache when an optional chunk is unavailable during install.
       }
-    }));
-    return [...new Set([...directAssets, ...nestedAssets.flat()])];
+    }
+    return [...assets];
   } catch {
     return [];
   }

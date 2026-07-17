@@ -1,6 +1,6 @@
 import type { NoteKind, NoteStatus, SmartNote } from "./noteTypes";
 
-const BACKUP_VERSION = 2;
+const BACKUP_VERSION = 3;
 const NOTE_KINDS = new Set<NoteKind>(["note", "task", "homework", "wish", "idea"]);
 const NOTE_STATUSES = new Set<NoteStatus>(["open", "done"]);
 
@@ -44,6 +44,7 @@ function isSmartNote(value: unknown): value is SmartNote {
     NOTE_STATUSES.has(value.status as NoteStatus) &&
     typeof value.pinned === "boolean" &&
     isOptionalBoolean(value.spaceManual) &&
+    isOptionalBoolean(value.dueManual) &&
     isDateString(value.createdAt) &&
     isDateString(value.updatedAt) &&
     isOptionalDateString(value.contentUpdatedAt) &&
@@ -81,7 +82,7 @@ export function downloadNotesBackup(notes: SmartNote[]) {
 
 export function parseNotesBackup(raw: string): SmartNote[] {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
+  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
     throw new Error("Unsupported notes backup");
   }
   if (!parsed.notes.every(isSmartNote)) throw new Error("Invalid notes backup");

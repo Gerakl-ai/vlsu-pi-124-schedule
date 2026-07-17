@@ -23,6 +23,7 @@ interface SmartCalendarSheetProps {
   weekMode: WeekMode;
   onClose: () => void;
   onCreateForDate: (date: Date) => void;
+  onOpenNote: (noteId: string) => void;
 }
 
 interface CalendarEvent {
@@ -33,6 +34,7 @@ interface CalendarEvent {
   end: Date;
   location?: string;
   type: "lesson" | "note";
+  noteId?: string;
 }
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -92,7 +94,8 @@ function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, we
       detail: note.space,
       start,
       end,
-      type: "note" as const
+      type: "note" as const,
+      noteId: note.id
     };
   });
   return [...classEvents, ...noteEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
@@ -193,7 +196,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, onCreateForDate }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, onCreateForDate, onOpenNote }: SmartCalendarSheetProps) {
   const [today, setToday] = useState(() => startOfDay(new Date()));
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
@@ -350,13 +353,23 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
             </button>
           </header>
           <div key={dateKeyFromDate(selectedDate)} className="calendar-event-list calendar-event-list-enter">
-            {selectedEvents.length ? selectedEvents.map((event) => (
-              <article className={`calendar-event ${event.type}`} key={event.id}>
-                <span className="calendar-event-time"><Clock3 size={14} /> {event.start.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</span>
-                <strong>{event.title}</strong>
-                <small>{event.location ? <><MapPin size={13} /> {event.location}</> : event.detail}</small>
-              </article>
-            )) : (
+            {selectedEvents.length ? selectedEvents.map((event) => {
+              const contents = (
+                <>
+                  <span className="calendar-event-time"><Clock3 size={14} /> {event.start.toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}</span>
+                  <strong>{event.title}</strong>
+                  <small>{event.location ? <><MapPin size={13} /> {event.location}</> : event.detail}</small>
+                  {event.noteId && <ChevronRight className="calendar-event-tail" size={18} aria-hidden="true" />}
+                </>
+              );
+              return event.noteId ? (
+                <button className="calendar-event note note-action" type="button" key={event.id} onClick={() => onOpenNote(event.noteId!)} aria-label={`Открыть запись: ${event.title}`}>
+                  {contents}
+                </button>
+              ) : (
+                <article className="calendar-event lesson" key={event.id}>{contents}</article>
+              );
+            }) : (
               <div className="calendar-empty-day"><CalendarDays size={22} /><span>Можно оставить день свободным или добавить запись.</span></div>
             )}
           </div>

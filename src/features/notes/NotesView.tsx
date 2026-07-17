@@ -8,6 +8,7 @@ import {
   Inbox,
   Lightbulb,
   ListTodo,
+  LoaderCircle,
   Mic,
   Music2,
   PanelsTopLeft,
@@ -17,13 +18,47 @@ import {
   SquarePen,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
+import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard } from "./NoteCard";
-import { NoteComposer } from "./NoteComposer";
-import { SmartCalendarSheet } from "./SmartCalendarSheet";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
+
+let noteComposerModule: Promise<typeof import("./NoteComposer")> | undefined;
+let calendarModule: Promise<typeof import("./SmartCalendarSheet")> | undefined;
+
+function loadNoteComposer() {
+  noteComposerModule ??= import("./NoteComposer");
+  return noteComposerModule;
+}
+
+function loadSmartCalendar() {
+  calendarModule ??= import("./SmartCalendarSheet");
+  return calendarModule;
+}
+
+function preloadNoteComposer() {
+  void loadNoteComposer().catch(() => undefined);
+}
+
+function preloadSmartCalendar() {
+  void loadSmartCalendar().catch(() => undefined);
+}
+
+const LazyNoteComposer = lazy(async () => ({ default: (await loadNoteComposer()).NoteComposer }));
+const LazySmartCalendarSheet = lazy(async () => ({ default: (await loadSmartCalendar()).SmartCalendarSheet }));
+
+function SheetModuleFallback({ label }: { label: string }) {
+  const layer = (
+    <div className="sheet-layer sheet-module-layer" aria-live="polite">
+      <div className="sheet-module-loading"><LoaderCircle className="spin" size={22} /><span>{label}</span></div>
+    </div>
+  );
+  const portalHost = document.querySelector(".phone-frame");
+  return portalHost ? createPortal(layer, portalHost) : layer;
+}
 
 interface NotesViewProps {
   visualSrc: string;
@@ -90,6 +125,7 @@ export function NotesView({
   const [editingNote, setEditingNote] = useState<SmartNote | null>(null);
   const [voiceStartToken, setVoiceStartToken] = useState(0);
   const [composerSeed, setComposerSeed] = useState("");
+  const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
   const [revealedNoteId, setRevealedNoteId] = useState<string | null>(null);
 
   const filters = useMemo<SmartFilter[]>(() => {
@@ -132,28 +168,51 @@ export function NotesView({
 
   useEffect(() => {
     if (!calendarRequestToken) return;
+    preloadSmartCalendar();
     setCalendarOpen(true);
     onCalendarRequestHandled();
   }, [calendarRequestToken, onCalendarRequestHandled]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void Promise.allSettled([loadNoteComposer(), loadSmartCalendar()]);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   function closeComposer() {
     setComposerOpen(false);
     setEditingNote(null);
     setVoiceStartToken(0);
     setComposerSeed("");
+    setComposerDueAt(undefined);
   }
 
-  function createBlankNote(seed = "") {
+  function createBlankNote(seed = "", dueAt?: string) {
+    preloadNoteComposer();
     setEditingNote(null);
     setComposerSeed(seed);
+    setComposerDueAt(dueAt);
     setVoiceStartToken(0);
     setComposerOpen(true);
   }
 
   function startDictation() {
+    preloadNoteComposer();
     setEditingNote(null);
     setComposerSeed("");
+    setComposerDueAt(undefined);
     setVoiceStartToken((value) => value + 1 || 1);
+    setComposerOpen(true);
+  }
+
+  function openNote(note: SmartNote) {
+    preloadNoteComposer();
+    setCalendarOpen(false);
+    setEditingNote(note);
+    setComposerSeed("");
+    setComposerDueAt(undefined);
+    setVoiceStartToken(0);
     setComposerOpen(true);
   }
 
@@ -170,10 +229,10 @@ export function NotesView({
           <h2>Записи</h2>
         </div>
         <div className="notes-heading-actions">
-          <button type="button" onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
+          <button type="button" onPointerDown={preloadNoteComposer} onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
             <Mic size={20} />
           </button>
-          <button type="button" onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
+          <button type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
             <CalendarDays size={20} />
           </button>
         </div>
@@ -185,7 +244,7 @@ export function NotesView({
         <div><span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} /></div>
       </section>
 
-      <button className="quick-capture create-entry" type="button" onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
+      <button className="quick-capture create-entry" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
         <span className="quick-capture-icon"><SquarePen size={23} /></span>
         <span>
           <strong>Создать запись</strong>
@@ -194,7 +253,7 @@ export function NotesView({
         <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><ChevronRight size={21} /></span>
       </button>
 
-      <button className="calendar-launch-card" type="button" onClick={() => setCalendarOpen(true)} aria-label="Открыть календарь пар и записей" data-testid="calendar-launch-card">
+      <button className="calendar-launch-card" type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть календарь пар и записей" data-testid="calendar-launch-card">
         <span className="calendar-launch-date" aria-hidden="true">
           <small>{calendarMonth}</small>
           <strong>{calendarDay}</strong>
@@ -241,10 +300,7 @@ export function NotesView({
               note={note}
               revealed={revealedNoteId === note.id}
               onEdit={(value) => {
-                setEditingNote(value);
-                setComposerSeed("");
-                setVoiceStartToken(0);
-                setComposerOpen(true);
+                openNote(value);
               }}
               onDelete={async (noteId) => {
                 await onDelete(noteId);
@@ -278,29 +334,39 @@ export function NotesView({
         </section>
       )}
 
-      <NoteComposer
-        note={editingNote}
-        folders={folders}
-        open={composerOpen}
-        initialSeed={composerSeed}
-        voiceStartToken={voiceStartToken}
-        classifyDraft={classifyDraft}
-        onClose={closeComposer}
-        onDelete={onDelete}
-        onSave={saveNote}
-      />
+      {composerOpen && (
+        <Suspense fallback={<SheetModuleFallback label="Открываем запись" />}>
+          <LazyNoteComposer
+            note={editingNote}
+            folders={folders}
+            open={composerOpen}
+            initialSeed={composerSeed}
+            initialDueAt={composerDueAt}
+            voiceStartToken={voiceStartToken}
+            classifyDraft={classifyDraft}
+            onClose={closeComposer}
+            onDelete={onDelete}
+            onSave={saveNote}
+          />
+        </Suspense>
+      )}
       <FolderSheet folders={folders} open={folderSheetOpen} onClose={() => setFolderSheetOpen(false)} onCreate={onCreateFolder} onDelete={onDeleteFolder} />
-      <SmartCalendarSheet
-        lessons={lessons}
-        notes={notes}
-        open={calendarOpen}
-        weekMode={weekMode}
-        onClose={() => setCalendarOpen(false)}
-        onCreateForDate={(date) => {
-          const dateText = new Intl.DateTimeFormat("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" }).format(date);
-          createBlankNote(`Планы на ${dateText}\n`);
-        }}
-      />
+      {calendarOpen && (
+        <Suspense fallback={<SheetModuleFallback label="Открываем календарь" />}>
+          <LazySmartCalendarSheet
+            lessons={lessons}
+            notes={notes}
+            open={calendarOpen}
+            weekMode={weekMode}
+            onClose={() => setCalendarOpen(false)}
+            onCreateForDate={(date) => createBlankNote("", deadlineForCalendarDate(date))}
+            onOpenNote={(noteId) => {
+              const note = notes.find((item) => item.id === noteId);
+              if (note) openNote(note);
+            }}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

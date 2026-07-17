@@ -15,6 +15,7 @@ export interface NoteDocumentInput {
   contentHtml: string;
   pinned: boolean;
   spaceOverride?: string;
+  dueAtOverride?: string | null;
 }
 
 export interface NoteDraft extends NoteDocumentInput {
@@ -47,6 +48,7 @@ export interface SmartNote extends NoteClassification {
   status: NoteStatus;
   pinned: boolean;
   spaceManual?: boolean;
+  dueManual?: boolean;
   createdAt: string;
   updatedAt: string;
   contentUpdatedAt?: string;

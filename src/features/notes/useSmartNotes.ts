@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
 import { buildSubjectOptions, classifyNote, explicitPersonalSpace, noteTitle } from "./noteClassifier";
 import { requestSmartClassification } from "./noteApi";
+import { formatDueLabel, resolveNoteDeadline } from "./noteDeadline";
 import {
   DEFAULT_NOTE_FOLDERS,
   loadFolders,
@@ -81,6 +82,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
         const next = current.map((item) => {
           if (item.id !== note.id || item.text !== note.text) return item;
           const enrichedSpace = item.spaceManual ? item.space : protectedSpace ?? remote.space ?? item.space;
+          const remoteDueAt = item.dueManual ? item.dueAt : remote.dueAt ?? item.dueAt;
           const nextNote: SmartNote = {
             ...item,
             ...remote,
@@ -88,9 +90,9 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
             spaceManual: item.spaceManual,
             subjectKey: protectedSpace ? undefined : remote.subjectKey ?? item.subjectKey,
             subjectLabel: protectedSpace ? undefined : remote.subjectLabel ?? item.subjectLabel,
-            dueLabel: remote.dueAt
-              ? `До ${new Intl.DateTimeFormat("ru-RU", { weekday: "short", day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }).format(new Date(remote.dueAt))}`
-              : item.dueLabel,
+            dueAt: remoteDueAt,
+            dueLabel: remoteDueAt ? formatDueLabel(remoteDueAt) : undefined,
+            dueManual: item.dueManual,
             classificationSource: "ai",
             classificationPending: false,
             updatedAt: new Date().toISOString()
@@ -108,6 +110,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     const timestamp = new Date().toISOString();
     const classification = classifyNote(input.text, subjects, spaces);
     if (input.spaceOverride) classification.space = input.spaceOverride;
+    const deadline = resolveNoteDeadline(classification, input.dueAtOverride);
     const note: SmartNote = {
       id: createId("note"),
       text: input.text.trim(),
@@ -121,7 +124,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       contentUpdatedAt: timestamp,
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
-      ...classification
+      ...classification,
+      ...deadline
     };
     setNotes((current) => sortNotes([note, ...current]));
     await storeNote(note);
@@ -134,6 +138,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     if (!existing) return;
     const classification = classifyNote(input.text, subjects, spaces);
     if (input.spaceOverride) classification.space = input.spaceOverride;
+    const deadline = resolveNoteDeadline(classification, input.dueAtOverride);
     const timestamp = new Date().toISOString();
     const note: SmartNote = {
       ...existing,
@@ -146,7 +151,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       updatedAt: timestamp,
       contentUpdatedAt: timestamp,
       classificationSource: "local",
-      classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine
+      classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
+      ...deadline
     };
     setNotes((current) => sortNotes(current.map((item) => item.id === noteId ? note : item)));
     await storeNote(note);
