@@ -18,7 +18,7 @@ import {
   SquarePen,
   X
 } from "lucide-react";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
@@ -85,6 +85,7 @@ interface SmartFilter {
   space?: string;
   color?: string;
   icon: typeof Inbox;
+  matches?: (note: SmartNote) => boolean;
 }
 
 function iconForSpace(space: string) {
@@ -127,6 +128,7 @@ export function NotesView({
   const [composerSeed, setComposerSeed] = useState("");
   const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
   const [revealedNoteId, setRevealedNoteId] = useState<string | null>(null);
+  const voiceRequestIdRef = useRef(0);
 
   const filters = useMemo<SmartFilter[]>(() => {
     const folderFilters = folders.map((folder) => ({
@@ -144,19 +146,26 @@ export function NotesView({
     return [{ id: "all", label: "Все", icon: Inbox }, ...folderFilters, ...dynamic];
   }, [folders, notes]);
 
-  const selectedFilter = filters.find((filter) => filter.id === activeFilter) ?? filters[0];
+  const openCount = notes.filter((note) => note.status === "open").length;
+  const studyCount = notes.filter((note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework")).length;
+  const todayDateKey = new Date().toDateString();
+  const todayCount = notes.filter((note) => note.status === "open" && note.dueAt && new Date(note.dueAt).toDateString() === todayDateKey).length;
+  const summaryFilters = useMemo<SmartFilter[]>(() => [
+    { id: "smart:open", label: "Открытые", icon: ListTodo, matches: (note) => note.status === "open" },
+    { id: "smart:study", label: "Учёба", icon: BookOpenCheck, matches: (note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework") },
+    { id: "smart:today", label: "Сегодня", icon: CheckCircle2, matches: (note) => note.status === "open" && Boolean(note.dueAt) && new Date(note.dueAt!).toDateString() === todayDateKey }
+  ], [todayDateKey]);
+  const selectedFilter = [...summaryFilters, ...filters].find((filter) => filter.id === activeFilter) ?? filters[0];
   const visibleNotes = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("ru-RU");
     return notes.filter((note) => {
+      if (selectedFilter.matches && !selectedFilter.matches(note)) return false;
       if (selectedFilter.space && note.space !== selectedFilter.space) return false;
       if (!normalizedQuery) return true;
       return `${note.title} ${note.text} ${note.space} ${note.subjectLabel ?? ""}`.toLocaleLowerCase("ru-RU").includes(normalizedQuery);
     });
   }, [notes, query, selectedFilter]);
 
-  const openCount = notes.filter((note) => note.status === "open").length;
-  const studyCount = notes.filter((note) => note.status === "open" && (note.space === "Учёба" || note.kind === "homework")).length;
-  const todayCount = notes.filter((note) => note.status === "open" && note.dueAt && new Date(note.dueAt).toDateString() === new Date().toDateString()).length;
   const calendarDate = new Date();
   const calendarDay = calendarDate.getDate();
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(calendarDate).replace(".", "");
@@ -202,7 +211,8 @@ export function NotesView({
     setEditingNote(null);
     setComposerSeed("");
     setComposerDueAt(undefined);
-    setVoiceStartToken((value) => value + 1 || 1);
+    voiceRequestIdRef.current += 1;
+    setVoiceStartToken(voiceRequestIdRef.current);
     setComposerOpen(true);
   }
 
@@ -238,10 +248,16 @@ export function NotesView({
         </div>
       </section>
 
-      <section className="notes-pulse" aria-label="Сводка записей">
-        <div><span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} /></div>
-        <div><span>Учёба</span><strong>{studyCount}</strong><BookOpenCheck size={18} /></div>
-        <div><span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} /></div>
+      <section className="notes-pulse" aria-label="Умные фильтры записей">
+        <button type="button" className={activeFilter === "smart:open" ? "active" : ""} onClick={() => { setActiveFilter("smart:open"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:open"}>
+          <span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} />
+        </button>
+        <button type="button" className={activeFilter === "smart:study" ? "active" : ""} onClick={() => { setActiveFilter("smart:study"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:study"}>
+          <span>Учёба</span><strong>{studyCount}</strong><BookOpenCheck size={18} />
+        </button>
+        <button type="button" className={activeFilter === "smart:today" ? "active" : ""} onClick={() => { setActiveFilter("smart:today"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:today"}>
+          <span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} />
+        </button>
       </section>
 
       <button className="quick-capture create-entry" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">

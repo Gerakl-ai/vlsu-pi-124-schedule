@@ -6,13 +6,14 @@ interface AppErrorBoundaryProps {
 
 interface AppErrorBoundaryState {
   failed: boolean;
+  message: string;
 }
 
 export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorBoundaryState> {
-  state: AppErrorBoundaryState = { failed: false };
+  state: AppErrorBoundaryState = { failed: false, message: "" };
 
-  static getDerivedStateFromError(): AppErrorBoundaryState {
-    return { failed: true };
+  static getDerivedStateFromError(error: Error): AppErrorBoundaryState {
+    return { failed: true, message: error.message };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
@@ -23,7 +24,7 @@ export class AppErrorBoundary extends Component<AppErrorBoundaryProps, AppErrorB
     if (!this.state.failed) return this.props.children;
 
     return (
-      <main className="app-error-boundary">
+      <main className="app-error-boundary" data-error={this.state.message}>
         <section className="app-error-boundary__panel" aria-labelledby="app-error-title">
           <span>Лад восстановится</span>
           <h1 id="app-error-title">Экран не загрузился</h1>

@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { noteKindLabel } from "./noteClassifier";
 import { plainTextToHtml } from "./noteContent";
 import { localDateTimeToIso, resolveNoteDeadline, toLocalDateTimeValue } from "./noteDeadline";
-import { loadDraft, readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
+import { readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 const LazyRichNoteEditor = lazy(async () => ({ default: (await import("./RichNoteEditor")).RichNoteEditor }));
@@ -34,7 +34,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [deadlineOpen, setDeadlineOpen] = useState(false);
   const [shareState, setShareState] = useState<ShareState>("idle");
-  const [hydrating, setHydrating] = useState(false);
+  const [hydrating, setHydrating] = useState(true);
   const [saving, setSaving] = useState(false);
   const [draftState, setDraftState] = useState<DraftState>("idle");
   const [editorKey, setEditorKey] = useState(0);
@@ -57,62 +57,31 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
 
   useLayoutEffect(() => {
     if (!open) return;
-    let active = true;
     draftRevisionRef.current += 1;
-    const openingRevision = draftRevisionRef.current;
     const snapshot = readDraftSnapshot(draftId);
-    const canRestoreSnapshot = Boolean(snapshot && (!note || snapshot.updatedAt > noteSavedAt));
-    const immediateHtml = canRestoreSnapshot
-      ? snapshot!.contentHtml
-      : note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
-    setContentHtml(immediateHtml || "<p></p>");
-    setText(canRestoreSnapshot ? snapshot!.text : note?.text ?? initialSeed);
-    setPinned(canRestoreSnapshot ? snapshot!.pinned : note?.pinned ?? false);
-    setSpaceOverride(canRestoreSnapshot ? snapshot!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
-    const snapshotHasDeadline = Boolean(canRestoreSnapshot && Object.prototype.hasOwnProperty.call(snapshot, "dueAtOverride"));
-    const immediateDeadline = snapshotHasDeadline
-      ? snapshot!.dueAtOverride
+    setHydrating(true);
+    const canRestore = Boolean(snapshot && (!note || snapshot.updatedAt > noteSavedAt));
+    const restoredDraft = canRestore ? snapshot : null;
+    const nextHtml = restoredDraft?.contentHtml ?? note?.contentHtml ?? plainTextToHtml(note?.text ?? initialSeed);
+    setContentHtml(nextHtml || "<p></p>");
+    setText(restoredDraft?.text ?? note?.text ?? initialSeed);
+    setPinned(restoredDraft?.pinned ?? note?.pinned ?? false);
+    setSpaceOverride(restoredDraft?.spaceOverride ?? (note?.spaceManual ? note.space : ""));
+    const draftHasDeadline = Boolean(restoredDraft && Object.prototype.hasOwnProperty.call(restoredDraft, "dueAtOverride"));
+    const restoredDeadline = draftHasDeadline
+      ? restoredDraft!.dueAtOverride
       : note?.dueManual
         ? note.dueAt ?? null
         : initialDueAt;
-    setDeadlineTouched(immediateDeadline !== undefined);
-    setDeadlineValue(typeof immediateDeadline === "string" ? toLocalDateTimeValue(immediateDeadline) : note?.dueManual ? "" : toLocalDateTimeValue(note?.dueAt));
-    setDeadlineOpen(Boolean(initialDueAt));
-    setShareState("idle");
+    setDeadlineTouched(restoredDeadline !== undefined);
+    setDeadlineValue(typeof restoredDeadline === "string" ? toLocalDateTimeValue(restoredDeadline) : note?.dueManual ? "" : toLocalDateTimeValue(note?.dueAt));
     setEditorKey((value) => value + 1);
     hydratedDraftRef.current = draftId;
     setHydrating(false);
     setSaving(false);
-    setDraftState(canRestoreSnapshot ? "saved" : "idle");
-
-    void loadDraft(draftId).then((draft) => {
-      if (!active || draftRevisionRef.current !== openingRevision) return;
-      const snapshotUpdatedAt = snapshot?.updatedAt ?? noteSavedAt;
-      if (!draft || draft.updatedAt <= snapshotUpdatedAt) return;
-      const canRestore = Boolean(draft && (!note || draft.updatedAt > noteSavedAt));
-      if (!canRestore) return;
-      const nextHtml = canRestore
-        ? draft!.contentHtml
-        : note?.contentHtml ?? plainTextToHtml(note?.text ?? "");
-      setContentHtml(nextHtml || "<p></p>");
-      setText(canRestore ? draft!.text : note?.text ?? "");
-      setPinned(canRestore ? draft!.pinned : note?.pinned ?? false);
-      setSpaceOverride(canRestore ? draft!.spaceOverride ?? "" : note?.spaceManual ? note.space : "");
-      const draftHasDeadline = Object.prototype.hasOwnProperty.call(draft, "dueAtOverride");
-      const restoredDeadline = draftHasDeadline
-        ? draft!.dueAtOverride
-        : note?.dueManual
-          ? note.dueAt ?? null
-          : initialDueAt;
-      setDeadlineTouched(restoredDeadline !== undefined);
-      setDeadlineValue(typeof restoredDeadline === "string" ? toLocalDateTimeValue(restoredDeadline) : note?.dueManual ? "" : toLocalDateTimeValue(note?.dueAt));
-      setEditorKey((value) => value + 1);
-      hydratedDraftRef.current = draftId;
-      setDraftState("saved");
-    });
-    return () => {
-      active = false;
-    };
+    setShareState("idle");
+    setDeadlineOpen(Boolean(initialDueAt));
+    setDraftState(restoredDraft ? "saved" : "idle");
   }, [draftId, initialDueAt, initialSeed, note, noteSavedAt, open]);
 
   const persistDraft = useCallback(async () => {

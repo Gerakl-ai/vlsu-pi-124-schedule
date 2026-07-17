@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v41";
+const CACHE_NAME = "lad-pi-124-v42";
 const APP_SHELL = [
   "/",
   "/index.html",

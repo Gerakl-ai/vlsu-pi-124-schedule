@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { escapeNoteHtml } from "./noteContent";
+import { VoiceRecognitionSession, type VoiceRecognitionConstructor } from "./voiceRecognitionSession";
 
 const TEXT_COLORS = ["#f4f7fb", "#6bd6ff", "#59dfc1", "#ffc55f", "#ff756f", "#d89cff"];
 const HIGHLIGHT_COLORS = ["#ffe26a66", "#69e3c766", "#6aa9ff66", "#ff716b66", "#d89cff66"];
@@ -41,27 +42,10 @@ interface RichNoteEditorProps {
   onChange: (html: string, text: string) => void;
 }
 
-interface SpeechRecognitionEventLike extends Event {
-  results: ArrayLike<{ 0: { transcript: string }; isFinal: boolean }>;
-}
-
-interface SpeechRecognitionLike {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  start: () => void;
-  stop: () => void;
-}
-
-type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
-
 declare global {
   interface Window {
-    SpeechRecognition?: SpeechRecognitionConstructor;
-    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    SpeechRecognition?: VoiceRecognitionConstructor;
+    webkitSpeechRecognition?: VoiceRecognitionConstructor;
   }
 }
 
@@ -106,7 +90,9 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
   const [listening, setListening] = useState(false);
   const [voiceError, setVoiceError] = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const recognitionSessionRef = useRef<VoiceRecognitionSession | null>(null);
+  recognitionSessionRef.current ??= new VoiceRecognitionSession();
+  const voiceMountedRef = useRef(false);
   const handledVoiceTokenRef = useRef(0);
   const voiceSupported = useMemo(() => Boolean(window.SpeechRecognition || window.webkitSpeechRecognition), []);
 
@@ -137,33 +123,65 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
       onChange(value.getHTML(), value.getText({ blockSeparator: "\n" }));
     }
   });
+  const editorRef = useRef(editor);
+  editorRef.current = editor;
 
   const toolbarState = useEditorState({
     editor,
-    selector: ({ editor: value }) => ({
-      textScale: value?.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.title
-        ? "title" as const
-        : value?.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.paragraph
-          ? "paragraph" as const
-          : value?.isActive("heading", { level: 2 })
-            ? "title" as const
-            : value?.isActive("heading", { level: 3 })
-              ? "paragraph" as const
-              : "body" as const,
-      bold: Boolean(value?.isActive("bold")),
-      italic: Boolean(value?.isActive("italic")),
-      underline: Boolean(value?.isActive("underline")),
-      strike: Boolean(value?.isActive("strike")),
-      bulletList: Boolean(value?.isActive("bulletList")),
-      taskList: Boolean(value?.isActive("taskList")),
-      blockquote: Boolean(value?.isActive("blockquote")),
-      imageSelected: Boolean(value?.isActive("image")),
-      canUndo: Boolean(value?.can().undo()),
-      canRedo: Boolean(value?.can().redo())
-    })
+    selector: ({ editor: value }) => {
+      if (!value || value.isDestroyed) {
+        return {
+          textScale: "body" as const,
+          bold: false,
+          italic: false,
+          underline: false,
+          strike: false,
+          bulletList: false,
+          taskList: false,
+          blockquote: false,
+          imageSelected: false,
+          canUndo: false,
+          canRedo: false
+        };
+      }
+      return {
+        textScale: value.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.title
+          ? "title" as const
+          : value.getAttributes("textStyle").fontSize === TEXT_SCALE_SIZES.paragraph
+            ? "paragraph" as const
+            : value.isActive("heading", { level: 2 })
+              ? "title" as const
+              : value.isActive("heading", { level: 3 })
+                ? "paragraph" as const
+                : "body" as const,
+        bold: value.isActive("bold"),
+        italic: value.isActive("italic"),
+        underline: value.isActive("underline"),
+        strike: value.isActive("strike"),
+        bulletList: value.isActive("bulletList"),
+        taskList: value.isActive("taskList"),
+        blockquote: value.isActive("blockquote"),
+        imageSelected: value.isActive("image"),
+        canUndo: value.can().undo(),
+        canRedo: value.can().redo()
+      };
+    }
   });
 
-  useEffect(() => () => recognitionRef.current?.stop(), []);
+  const stopVoice = useCallback(() => {
+    recognitionSessionRef.current?.stop();
+    setListening(false);
+  }, []);
+
+  useEffect(() => {
+    voiceMountedRef.current = true;
+    return () => {
+      voiceMountedRef.current = false;
+      queueMicrotask(() => {
+        if (!voiceMountedRef.current) recognitionSessionRef.current?.stop();
+      });
+    };
+  }, [stopVoice]);
 
   function toolbarButton(active: boolean, label: string, icon: React.ReactNode, onClick: () => void, disabled = false) {
     return (
@@ -193,53 +211,60 @@ function RichNoteEditorComponent({ initialContent, autoStartVoiceToken = 0, onCh
   }
 
   const startVoice = useCallback(() => {
-    if (!editor) return;
+    if (!editor || editor.isDestroyed) return false;
+    const session = recognitionSessionRef.current;
+    if (!session) return false;
+    if (session.active) return true;
     if (!voiceSupported) {
       setVoiceError("Диктовка недоступна в этом браузере.");
-      return;
+      return false;
     }
     setVoiceError("");
     const Recognition = window.SpeechRecognition ?? window.webkitSpeechRecognition;
-    if (!Recognition) return;
+    if (!Recognition) return false;
     const recognition = new Recognition();
     recognition.lang = "ru-RU";
     recognition.continuous = true;
     recognition.interimResults = false;
-    recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .filter((result) => result.isFinal)
-        .map((result) => result[0]?.transcript ?? "")
-        .join(" ")
-        .trim();
-      if (transcript) editor.chain().focus().insertContent(`${editor.isEmpty ? "" : " "}${escapeNoteHtml(transcript)}`).run();
-    };
-    recognition.onerror = () => {
-      setVoiceError("Не удалось услышать. Проверьте доступ к микрофону.");
-      setListening(false);
-    };
-    recognition.onend = () => setListening(false);
-    recognitionRef.current = recognition;
-    try {
+    const result = session.start(recognition, {
+      onResult: (event) => {
+        const activeEditor = editorRef.current;
+        if (!activeEditor || activeEditor.isDestroyed) return;
+        const transcript = Array.from(event.results)
+          .filter((item) => item.isFinal)
+          .map((item) => item[0]?.transcript ?? "")
+          .join(" ")
+          .trim();
+        if (transcript) activeEditor.chain().focus().insertContent(`${activeEditor.isEmpty ? "" : " "}${escapeNoteHtml(transcript)}`).run();
+      },
+      onError: (event) => {
+        setVoiceError(event.error === "not-allowed"
+          ? "Доступ к микрофону запрещён. Разрешите его для приложения в настройках iPhone."
+          : "Не удалось услышать. Проверьте доступ к микрофону.");
+        setListening(false);
+      },
+      onEnd: () => setListening(false)
+    });
+    if (result !== "failed") {
       setListening(true);
-      recognition.start();
-    } catch {
-      setVoiceError("Микрофон сейчас занят другим приложением.");
-      setListening(false);
+      return true;
     }
+    setVoiceError("Микрофон сейчас занят другим приложением.");
+    setListening(false);
+    return false;
   }, [editor, voiceSupported]);
 
   const toggleVoice = useCallback(() => {
-    if (listening) {
-      recognitionRef.current?.stop();
+    if (listening || recognitionSessionRef.current?.active) {
+      stopVoice();
       return;
     }
     startVoice();
-  }, [listening, startVoice]);
+  }, [listening, startVoice, stopVoice]);
 
   useLayoutEffect(() => {
     if (!autoStartVoiceToken || autoStartVoiceToken === handledVoiceTokenRef.current) return;
-    handledVoiceTokenRef.current = autoStartVoiceToken;
-    startVoice();
+    if (startVoice()) handledVoiceTokenRef.current = autoStartVoiceToken;
   }, [autoStartVoiceToken, startVoice]);
 
   if (!editor || !toolbarState) return <div className="rich-editor-loading" aria-label="Подготовка редактора" />;

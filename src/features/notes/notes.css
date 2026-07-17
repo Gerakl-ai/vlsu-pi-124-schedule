@@ -91,7 +91,7 @@
   border-radius: 8px;
 }
 
-.notes-pulse > div {
+.notes-pulse > button {
   position: relative;
   min-width: 0;
   min-height: 76px;
@@ -100,10 +100,16 @@
   gap: 3px;
   padding: 12px;
   overflow: hidden;
+  color: var(--text);
+  border: 0;
   border-right: 1px solid var(--theme-panel-border);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background .24s ease, box-shadow .24s ease, filter .18s ease;
 }
 
-.notes-pulse > div::after {
+.notes-pulse > button::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -113,16 +119,35 @@
   animation: notes-stat-wave 9s ease-in-out infinite;
 }
 
-.notes-pulse > div:nth-child(2)::after { animation-delay: 3s; }
-.notes-pulse > div:nth-child(3)::after { animation-delay: 6s; }
+.notes-pulse > button:nth-child(2)::after { animation-delay: 3s; }
+.notes-pulse > button:nth-child(3)::after { animation-delay: 6s; }
 
-.notes-pulse > div > * {
+.notes-pulse > button > * {
   position: relative;
   z-index: 1;
 }
 
-.notes-pulse > div:last-child {
+.notes-pulse > button:last-child {
   border-right: 0;
+}
+
+.notes-pulse > button.active {
+  background: linear-gradient(145deg, rgba(var(--accent-rgb), .19), rgba(var(--accent-soft-rgb), .06));
+  box-shadow: inset 0 -2px 0 rgba(var(--accent-soft-rgb), .8);
+}
+
+.notes-pulse > button.active::after {
+  opacity: .7;
+}
+
+.notes-pulse > button:active {
+  filter: brightness(.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .notes-pulse > button:hover {
+    background: rgba(var(--accent-rgb), .09);
+  }
 }
 
 .notes-pulse span {
@@ -2287,6 +2312,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 }
 
 .notes-heading-actions button:focus-visible,
+.notes-pulse button:focus-visible,
 .quick-capture:focus-visible,
 .calendar-launch-card:focus-visible,
 .notes-search input:focus-visible,
@@ -2337,7 +2363,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     padding-left: 4px;
   }
 
-  .notes-pulse > div {
+  .notes-pulse > button {
     padding: 10px 8px;
   }
 
@@ -2391,7 +2417,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     padding: 0 0 3px;
   }
 
-  .notes-pulse > div {
+  .notes-pulse > button {
     min-height: 66px;
     padding: 9px;
   }
