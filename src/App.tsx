@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
-import { normalizeSubjectKey } from "./features/notes/noteClassifier";
+import { lessonSubjectKeys } from "./features/notes/noteClassifier";
 import { readAiEnabled, writeAiEnabled } from "./features/notes/notePreferences";
 import type { SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
@@ -42,7 +42,7 @@ import {
   type CustomTheme,
   type ThemeId
 } from "./features/themes/theme";
-import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule } from "./lib/scheduleApi";
+import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -71,8 +71,9 @@ const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
 const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
-const INITIAL_SCHEDULE = readScheduleCache();
-const MOTION_PARTICLES = Array.from({ length: 14 }, (_, index) => index);
+const CACHED_SCHEDULE = readScheduleCache();
+const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
+const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
 const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
 
@@ -125,8 +126,8 @@ function lessonKeySubject(lesson?: LessonSlot) {
 
 function notesForLesson(lesson: LessonSlot | undefined, notes: SmartNote[]) {
   if (!lesson) return [];
-  const subjectKey = lesson.subjectKey ?? normalizeSubjectKey(lesson.subject);
-  return notes.filter((note) => note.status === "open" && note.subjectKey === subjectKey);
+  const subjectKeys = new Set(lessonSubjectKeys(lesson));
+  return notes.filter((note) => note.status === "open" && Boolean(note.subjectKey) && subjectKeys.has(note.subjectKey!));
 }
 
 function formatLessonCount(count: number) {
@@ -270,6 +271,8 @@ export function App() {
   const contentScrollRef = useRef<HTMLDivElement>(null);
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
+  const scheduleRef = useRef<ScheduleState | null>(schedule);
+  const refreshInFlightRef = useRef(false);
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
@@ -312,14 +315,17 @@ export function App() {
   const studyWindows = buildStudyWindows(todayLessons);
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
-  async function refreshSchedule() {
-    const currentSchedule = schedule;
+  const refreshSchedule = useCallback(async () => {
+    if (refreshInFlightRef.current) return;
+    refreshInFlightRef.current = true;
+    const currentSchedule = scheduleRef.current;
     const hasCache = Boolean(currentSchedule);
     setStatus(hasCache ? "refreshing" : "loading");
 
     try {
       const loaded = await loadSchedule();
       const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(loaded);
+      scheduleRef.current = loaded;
       setSchedule(loaded);
       setStatus(changed && hasCache ? "updated" : "ready");
     } catch {
@@ -329,8 +335,10 @@ export function App() {
       }
 
       setStatus("stale");
+    } finally {
+      refreshInFlightRef.current = false;
     }
-  }
+  }, []);
 
   function showNotice(message: string, lockMs = 0) {
     if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
@@ -340,8 +348,26 @@ export function App() {
   useEffect(() => {
     const timer = window.setTimeout(() => refreshSchedule(), 0);
     return () => window.clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [refreshSchedule]);
+
+  useEffect(() => {
+    const refreshIfNeeded = () => {
+      const cached = scheduleRef.current;
+      const fetchedAt = cached ? Date.parse(cached.fetchedAt) : 0;
+      const cacheIsOld = !Number.isFinite(fetchedAt) || Date.now() - fetchedAt > 5 * 60_000;
+      if (navigator.onLine && cacheIsOld) void refreshSchedule();
+    };
+    const handleVisible = () => {
+      if (document.visibilityState === "visible") refreshIfNeeded();
+    };
+
+    window.addEventListener("online", refreshIfNeeded);
+    document.addEventListener("visibilitychange", handleVisible);
+    return () => {
+      window.removeEventListener("online", refreshIfNeeded);
+      document.removeEventListener("visibilitychange", handleVisible);
+    };
+  }, [refreshSchedule]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1074,8 +1100,18 @@ function LessonRow({
       {isExpanded && (
         <div className="lesson-detail">
           <span>{formatWeekMode(lesson.weekMode)}</span>
-          {lesson.teacher && <span>{lesson.teacher}</span>}
-          <span>{lesson.rawText}</span>
+          {lesson.variants && lesson.variants.length > 1 ? (
+            <div className="lesson-variants" aria-label="Варианты для подгрупп">
+              {lesson.variants.map((variant, variantIndex) => (
+                <div className="lesson-variant" key={`${variant.rawText}-${variantIndex}`}>
+                  <strong>{variant.subject}</strong>
+                  <span>
+                    {[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : lesson.teacher ? <span>{lesson.teacher}</span> : null}
           {linkedNotes.length > 0 && (
             <div className="lesson-linked-notes">
               <strong><BookCheck size={15} /> Связано с предметом</strong>

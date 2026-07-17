@@ -1,6 +1,7 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { applyTheme, readTheme } from "./features/themes/theme";
 import "./styles.css";
 import "./theme.css";
@@ -75,7 +76,9 @@ document.addEventListener("touchmove", (event) => {
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <App />
+    <AppErrorBoundary>
+      <App />
+    </AppErrorBoundary>
   </React.StrictMode>
 );
 

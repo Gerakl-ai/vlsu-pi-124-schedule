@@ -11,6 +11,14 @@ export type ApiStatus =
   | "stale"
   | "error-without-cache";
 
+export interface LessonVariant {
+  subject: string;
+  room?: string;
+  kind?: string;
+  teacher?: string;
+  rawText: string;
+}
+
 export interface LessonSlot {
   id: string;
   dayIndex: number;
@@ -27,6 +35,7 @@ export interface LessonSlot {
   room?: string;
   kind?: string;
   teacher?: string;
+  variants?: LessonVariant[];
   rawText: string;
   weekMode: WeekMode;
   isCurrent?: boolean;

@@ -50,6 +50,17 @@ export function normalizeSubjectKey(subject: string) {
     .slice(0, 96);
 }
 
+export function lessonSubjectKeys(lesson: LessonSlot) {
+  const subjects = lesson.variants?.length
+    ? lesson.variants.map((variant) => variant.subject)
+    : [lesson.subject];
+  return [...new Set(subjects.map(normalizeSubjectKey).filter(Boolean))];
+}
+
+function lessonHasSubjectKey(lesson: LessonSlot, subjectKey: string) {
+  return lessonSubjectKeys(lesson).includes(subjectKey);
+}
+
 function subjectAliases(label: string) {
   const normalized = normalizeNoteText(label);
   const words = normalized.split(" ").filter((word) => word.length > 2 && !SUBJECT_STOP_WORDS.has(word));
@@ -94,7 +105,7 @@ function lessonDateTime(lesson: LessonSlot, date: Date) {
 
 function nextLessonAt(subjectKey: string, lessons: LessonSlot[], weekMode: WeekMode, now: Date) {
   const dated = lessons
-    .filter((lesson) => lesson.date && (lesson.subjectKey ?? normalizeSubjectKey(lesson.subject)) === subjectKey)
+    .filter((lesson) => lesson.date && lessonHasSubjectKey(lesson, subjectKey))
     .map((lesson) => lessonDateTime(lesson, new Date(`${lesson.date}T00:00:00`)))
     .filter((date) => date.getTime() > now.getTime())
     .sort((a, b) => a.getTime() - b.getTime());
@@ -108,7 +119,7 @@ function nextLessonAt(subjectKey: string, lessons: LessonSlot[], weekMode: WeekM
     const candidates = lessons
       .filter((lesson) => !lesson.date)
       .filter((lesson) => lesson.dayIndex === dayIndex)
-      .filter((lesson) => (lesson.subjectKey ?? normalizeSubjectKey(lesson.subject)) === subjectKey)
+      .filter((lesson) => lessonHasSubjectKey(lesson, subjectKey))
       .filter((lesson) => lesson.weekMode === "all" || lesson.weekMode === activeMode)
       .map((lesson) => lessonDateTime(lesson, date))
       .filter((candidate) => candidate.getTime() > now.getTime())
@@ -122,8 +133,13 @@ function nextLessonAt(subjectKey: string, lessons: LessonSlot[], weekMode: WeekM
 export function buildSubjectOptions(lessons: LessonSlot[], weekMode: WeekMode, now = new Date()): SubjectOption[] {
   const subjects = new Map<string, string>();
   lessons.forEach((lesson) => {
-    const key = lesson.subjectKey ?? normalizeSubjectKey(lesson.subject);
-    if (key && !subjects.has(key)) subjects.set(key, lesson.subject);
+    const labels = lesson.variants?.length
+      ? lesson.variants.map((variant) => variant.subject)
+      : [lesson.subject];
+    labels.forEach((label) => {
+      const key = normalizeSubjectKey(label);
+      if (key && !subjects.has(key)) subjects.set(key, label);
+    });
   });
 
   return [...subjects.entries()]

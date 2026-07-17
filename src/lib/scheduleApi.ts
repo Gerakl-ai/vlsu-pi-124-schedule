@@ -1,10 +1,12 @@
-import type { CurrentInfo, LessonSlot, ScheduleState, WeekMode } from "../types";
+import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleState, WeekMode } from "../types";
 import { writeScheduleCache } from "./storage";
 
 const API_BASE = "/vlsu-api";
 const INSTITUTE_NAME = "Институт информационных технологий и электроники";
 const GROUP_NAME = "ПИ-124";
 const FALLBACK_NREC = "7936a2a43b11b20b01d30f5b00c73166";
+const REQUEST_TIMEOUT_MS = 12_000;
+const REQUEST_RETRIES = 1;
 
 const PAIR_TIMES = [
   ["08:30", "10:00"],
@@ -32,14 +34,14 @@ interface GroupsResponse {
   Count?: number;
 }
 
-interface ScheduleDayDto {
+export interface ScheduleDayDto {
   type: string;
   name: string;
   [key: `n${number}`]: string;
   [key: `z${number}`]: string;
 }
 
-interface ExamSessionDto {
+export interface ExamSessionDto {
   type: "ExamSession";
   date: string;
   time: string;
@@ -54,25 +56,103 @@ interface CurrentInfoDto {
   CurrentSemester: number;
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {})
-    }
-  });
+interface ParsedLesson {
+  subject: string;
+  room?: string;
+  kind?: string;
+  teacher?: string;
+  variants: LessonVariant[];
+}
 
-  if (!response.ok) {
-    throw new Error(`VLSU API ${path} failed with ${response.status}`);
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+function isScheduleDay(value: unknown): value is ScheduleDayDto {
+  return isRecord(value) && value.type === "Lessons" && typeof value.name === "string";
+}
+
+function isExamSession(value: unknown): value is ExamSessionDto {
+  return isRecord(value)
+    && value.type === "ExamSession"
+    && typeof value.date === "string"
+    && typeof value.time === "string"
+    && typeof value.name === "string"
+    && typeof value.isConsultation === "boolean";
+}
+
+class ApiResponseError extends Error {
+  constructor(path: string, readonly status: number) {
+    super(`VLSU API ${path} failed with ${status}`);
+  }
+}
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, milliseconds));
+}
+
+function isRetryableStatus(status: number) {
+  return status === 408 || status === 429 || status >= 500;
+}
+
+export function decodeApiPayload(payload: unknown) {
+  if (typeof payload !== "string") return payload;
+  const trimmed = payload.trim();
+  if (!trimmed.startsWith("[") && !trimmed.startsWith("{")) return payload;
+  try {
+    return JSON.parse(trimmed) as unknown;
+  } catch {
+    return payload;
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
+    const controller = new AbortController();
+    const abortFromParent = () => controller.abort(init?.signal?.reason);
+    init?.signal?.addEventListener("abort", abortFromParent, { once: true });
+    const timeout = globalThis.setTimeout(() => controller.abort("timeout"), REQUEST_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`${API_BASE}${path}`, {
+        ...init,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...(init?.headers ?? {})
+        }
+      });
+
+      if (!response.ok) throw new ApiResponseError(path, response.status);
+      return decodeApiPayload(await response.json()) as T;
+    } catch (error) {
+      lastError = error;
+      if (init?.signal?.aborted) throw error;
+      if (error instanceof ApiResponseError && !isRetryableStatus(error.status)) throw error;
+      if (attempt === REQUEST_RETRIES) throw error;
+      await wait(300 * (attempt + 1));
+    } finally {
+      globalThis.clearTimeout(timeout);
+      init?.signal?.removeEventListener("abort", abortFromParent);
+    }
   }
 
-  return response.json() as Promise<T>;
+  throw lastError;
+}
+
+function unwrapArrayPayload<T>(payload: unknown, label: string): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && typeof payload === "object" && "value" in payload && Array.isArray(payload.value)) {
+    return payload.value as T[];
+  }
+  throw new Error(`VLSU API returned an invalid ${label} payload`);
 }
 
 async function resolveGroupNrec() {
   try {
-    const institutes = await request<InstituteDto[]>("/catalogs/GetInstitutes");
+    const institutes = unwrapArrayPayload<InstituteDto>(await request<unknown>("/catalogs/GetInstitutes"), "institutes");
     const institute = institutes.find((item) => item.Text === INSTITUTE_NAME);
     if (!institute) return FALLBACK_NREC;
 
@@ -89,10 +169,18 @@ async function resolveGroupNrec() {
 }
 
 async function fetchCurrentInfo(nrec: string): Promise<CurrentInfo> {
-  const dto = await request<CurrentInfoDto>("/student/GetGroupCurrentInfo", {
+  const payload = await request<unknown>("/student/GetGroupCurrentInfo", {
     method: "POST",
     body: JSON.stringify(nrec)
   });
+  if (!isRecord(payload)
+    || typeof payload.CurrentLesson !== "string"
+    || (payload.CurrentWeekType !== 1 && payload.CurrentWeekType !== 2)
+    || typeof payload.Name !== "string"
+    || typeof payload.CurrentSemester !== "number") {
+    throw new Error("VLSU API returned invalid current group information");
+  }
+  const dto = payload as unknown as CurrentInfoDto;
 
   return {
     currentLesson: dto.CurrentLesson,
@@ -106,26 +194,58 @@ function normalizeWeekMode(mode: "n" | "z"): WeekMode {
   return mode === "n" ? "numerator" : "denominator";
 }
 
-function parseLessonText(rawText: string) {
-  const parts = rawText.split(",").map((part) => part.trim()).filter(Boolean);
+function parseLessonVariant(rawText: string): LessonVariant {
+  const normalized = rawText.replace(/\s+/g, " ").trim();
+  const parts = normalized.split(",").map((part) => part.trim());
+
   if (parts.length >= 4) {
+    const subject = parts.slice(3).filter(Boolean).join(", ");
     return {
-      room: parts[0],
-      kind: parts[1],
-      teacher: parts[2],
-      subject: parts.slice(3).join(", ")
+      room: parts[0] || undefined,
+      kind: parts[1] || undefined,
+      teacher: parts[2] || undefined,
+      subject: subject || normalized,
+      rawText: normalized
     };
   }
 
   if (parts.length === 3) {
     return {
-      room: parts[0],
-      kind: parts[1],
-      subject: parts[2]
+      room: parts[0] || undefined,
+      kind: parts[1] || undefined,
+      subject: parts[2] || normalized,
+      rawText: normalized
     };
   }
 
-  return { subject: rawText.trim() };
+  return { subject: normalized, rawText: normalized };
+}
+
+function uniqueValues(values: Array<string | undefined>) {
+  return [...new Set(values.filter((value): value is string => Boolean(value)))];
+}
+
+export function parseLessonText(rawText: string): ParsedLesson {
+  const variants = rawText
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map(parseLessonVariant);
+
+  if (!variants.length) return { subject: "Занятие", variants: [] };
+
+  const subjects = uniqueValues(variants.map((variant) => variant.subject));
+  const rooms = uniqueValues(variants.map((variant) => variant.room));
+  const kinds = uniqueValues(variants.map((variant) => variant.kind));
+  const teachers = uniqueValues(variants.map((variant) => variant.teacher));
+
+  return {
+    subject: subjects.join(" / "),
+    room: rooms.length ? rooms.join(" / ") : undefined,
+    kind: kinds.length ? kinds.join(" / ") : undefined,
+    teacher: teachers.length ? teachers.join(" / ") : undefined,
+    variants
+  };
 }
 
 function parseRuDate(value: string) {
@@ -209,7 +329,7 @@ function isExamSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): days is E
   return days.some((item) => item.type === "ExamSession");
 }
 
-function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): LessonSlot[] {
+export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): LessonSlot[] {
   if (isExamSchedule(days)) return normalizeExamSchedule(days);
 
   const classDays = days as ScheduleDayDto[];
@@ -236,11 +356,25 @@ function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): Lesson
   return lessons;
 }
 
+export function normalizeCachedSchedule(state: ScheduleState): ScheduleState {
+  return {
+    ...state,
+    allLessons: state.allLessons.map((lesson) => ({
+      ...lesson,
+      ...parseLessonText(lesson.rawText)
+    }))
+  };
+}
+
 async function fetchSchedule(nrec: string) {
-  const days = await request<Array<ScheduleDayDto | ExamSessionDto>>("/student/GetGroupSchedule", {
+  const payload = await request<unknown>("/student/GetGroupSchedule", {
     method: "POST",
     body: JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
   });
+  const days = unwrapArrayPayload<ScheduleDayDto | ExamSessionDto>(payload, "schedule");
+  if (days.some((day) => !isScheduleDay(day) && !isExamSession(day))) {
+    throw new Error("VLSU API returned an invalid schedule item");
+  }
 
   return normalizeSchedule(days);
 }

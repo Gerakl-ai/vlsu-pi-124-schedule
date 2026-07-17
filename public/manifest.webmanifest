@@ -9,6 +9,23 @@
   "theme_color": "#090a0c",
   "orientation": "any",
   "lang": "ru",
+  "categories": ["education", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Сегодня",
+      "short_name": "Сегодня",
+      "description": "Открыть расписание на сегодня",
+      "url": "/?tab=today",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Новая запись",
+      "short_name": "Записать",
+      "description": "Быстро создать умную запись",
+      "url": "/?tab=notes&compose=1",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
