@@ -9,7 +9,11 @@
     "preview": "vite preview --host 127.0.0.1",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "check": "pnpm run typecheck && pnpm run test && pnpm run build"
+    "check": "pnpm run typecheck && pnpm run test && pnpm run build",
+    "cloudflare:worker:check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "cloudflare:pages:check": "wrangler pages functions build functions --outdir .wrangler/pages --compatibility-date 2026-05-28",
+    "cloudflare:check": "pnpm run cloudflare:worker:check && pnpm run cloudflare:pages:check",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "@tiptap/extension-highlight": "^3.27.4",
@@ -32,6 +36,7 @@
   "devDependencies": {
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
-    "vitest": "3.2.4"
+    "vitest": "3.2.4",
+    "wrangler": "4.112.0"
   }
 }

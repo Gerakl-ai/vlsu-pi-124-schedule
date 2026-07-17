@@ -30,6 +30,7 @@ pnpm dev
 pnpm typecheck
 pnpm test
 pnpm build
+pnpm cloudflare:check
 ```
 
 Команда `pnpm check` запускает весь набор. Те же проверки выполняются в GitHub Actions для `main` и pull request.
@@ -40,10 +41,20 @@ pnpm build
 
 ```bash
 pnpm build
-npx wrangler deploy
+pnpm deploy
 ```
 
-`wrangler.jsonc` публикует `dist`, направляет `/vlsu-api/*` и `/app-api/*` через `src/worker.ts`, а также подключает binding `AI`.
+`wrangler.jsonc` публикует `dist`, направляет `/vlsu-api/*` и `/app-api/*` через `src/worker.ts`, а также подключает bindings `AI` и `CF_VERSION_METADATA`. Версия Wrangler зафиксирована в `package.json`, поэтому локальный и Git-деплой используют один инструмент.
+
+Для Cloudflare Workers Builds с GitHub:
+
+```text
+Production branch: main
+Build command: pnpm build
+Deploy command: pnpm exec wrangler deploy
+```
+
+Каждый push в `main` запускает сборку. Активную ревизию можно проверить запросом `GET /app-api/health`: endpoint возвращает release channel, Worker version ID и время создания версии.
 
 ## Cloudflare Pages
 
