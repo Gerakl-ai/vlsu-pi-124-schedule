@@ -1,5 +1,6 @@
 import {
   BookOpenCheck,
+  BriefcaseBusiness,
   CalendarDays,
   CheckCircle2,
   ChevronRight,
@@ -24,6 +25,7 @@ import type { LessonSlot, WeekMode } from "../../types";
 import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard } from "./NoteCard";
+import type { NoteDropPlacement } from "./noteOrdering";
 import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 let noteComposerModule: Promise<typeof import("./NoteComposer")> | undefined;
@@ -73,6 +75,7 @@ interface NotesViewProps {
   onCreateFolder: (name: string) => Promise<NoteFolder | null>;
   onDelete: (noteId: string) => Promise<void>;
   onDeleteFolder: (folderId: string) => Promise<void>;
+  onReorder: (sourceId: string, targetId: string, placement: NoteDropPlacement) => void;
   onToggle: (noteId: string) => void;
   onTogglePinned: (noteId: string) => void;
   onUpdate: (noteId: string, input: NoteDocumentInput) => Promise<SmartNote | undefined>;
@@ -88,9 +91,17 @@ interface SmartFilter {
   matches?: (note: SmartNote) => boolean;
 }
 
+interface NoteReorderState {
+  sourceId: string;
+  targetId?: string;
+  placement?: NoteDropPlacement;
+  moved: boolean;
+}
+
 function iconForSpace(space: string) {
   const value = space.toLocaleLowerCase("ru-RU");
   if (value.includes("учёб") || value.includes("учеб")) return BookOpenCheck;
+  if (value.includes("работ")) return BriefcaseBusiness;
   if (value.includes("танц")) return Music2;
   if (value.includes("радио")) return Radio;
   if (value.includes("проект")) return PanelsTopLeft;
@@ -113,6 +124,7 @@ export function NotesView({
   onCreateFolder,
   onDelete,
   onDeleteFolder,
+  onReorder,
   onToggle,
   onTogglePinned,
   onUpdate,
@@ -128,7 +140,11 @@ export function NotesView({
   const [composerSeed, setComposerSeed] = useState("");
   const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
   const [revealedNoteId, setRevealedNoteId] = useState<string | null>(null);
+  const [reorderState, setReorderState] = useState<NoteReorderState | null>(null);
+  const [reorderAnnouncement, setReorderAnnouncement] = useState("");
   const voiceRequestIdRef = useRef(0);
+  const reorderStateRef = useRef<NoteReorderState | null>(null);
+  const reorderOriginRef = useRef({ x: 0, y: 0 });
 
   const filters = useMemo<SmartFilter[]>(() => {
     const folderFilters = folders.map((folder) => ({
@@ -171,9 +187,140 @@ export function NotesView({
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(calendarDate).replace(".", "");
   const deadlineCount = notes.filter((note) => note.status === "open" && note.dueAt).length;
 
+  function updateReorderState(next: NoteReorderState | null) {
+    reorderStateRef.current = next;
+    setReorderState(next);
+  }
+
+  function startReorder(noteId: string, clientX: number, clientY: number) {
+    const note = notes.find((item) => item.id === noteId);
+    if (!note || note.status !== "open") return;
+    setRevealedNoteId(null);
+    reorderOriginRef.current = { x: clientX, y: clientY };
+    updateReorderState({ sourceId: noteId, moved: false });
+  }
+
+  function moveReorder(noteId: string, clientX: number, clientY: number) {
+    const current = reorderStateRef.current;
+    if (!current || current.sourceId !== noteId) return;
+    const distance = Math.hypot(clientX - reorderOriginRef.current.x, clientY - reorderOriginRef.current.y);
+    if (!current.moved && distance < 7) return;
+
+    const scrollHost = document.querySelector<HTMLElement>(".content-scroll");
+    if (scrollHost) {
+      const scrollRect = scrollHost.getBoundingClientRect();
+      const edgeSize = Math.min(64, scrollRect.height * 0.16);
+      if (clientY < scrollRect.top + edgeSize) scrollHost.scrollTop -= 12;
+      else if (clientY > scrollRect.bottom - edgeSize) scrollHost.scrollTop += 12;
+    }
+
+    const targetElement = document.elementFromPoint(clientX, clientY)?.closest<HTMLElement>("[data-note-id]");
+    const targetId = targetElement?.dataset.noteId;
+    const source = notes.find((note) => note.id === current.sourceId);
+    const target = notes.find((note) => note.id === targetId);
+    if (!targetId) {
+      if (!current.moved) updateReorderState({ ...current, moved: true });
+      return;
+    }
+    if (!source || !target || source.id === target.id || target.status !== "open" || source.pinned !== target.pinned) {
+      if (!current.moved || current.targetId) updateReorderState({ sourceId: current.sourceId, moved: true });
+      return;
+    }
+
+    const targetRect = targetElement!.getBoundingClientRect();
+    const placement: NoteDropPlacement = clientY < targetRect.top + targetRect.height / 2 ? "before" : "after";
+    if (current.moved && current.targetId === target.id && current.placement === placement) return;
+    updateReorderState({ sourceId: current.sourceId, targetId: target.id, placement, moved: true });
+  }
+
+  function finishReorder(noteId: string) {
+    const current = reorderStateRef.current;
+    if (!current || current.sourceId !== noteId) return;
+    if (current.moved && current.targetId && current.placement) {
+      const source = notes.find((note) => note.id === current.sourceId);
+      const target = notes.find((note) => note.id === current.targetId);
+      onReorder(current.sourceId, current.targetId, current.placement);
+      if (source && target) {
+        setReorderAnnouncement(
+          `Запись «${source.title}» перемещена ${current.placement === "before" ? "перед" : "после"} «${target.title}»`
+        );
+      }
+    }
+    updateReorderState(null);
+  }
+
+  function moveNoteWithKeyboard(noteId: string, direction: "up" | "down") {
+    const source = visibleNotes.find((note) => note.id === noteId);
+    if (!source || source.status !== "open") return;
+    const group = visibleNotes.filter((note) => note.status === "open" && note.pinned === source.pinned);
+    const sourceIndex = group.findIndex((note) => note.id === noteId);
+    const targetIndex = sourceIndex + (direction === "up" ? -1 : 1);
+    const target = group[targetIndex];
+    if (!target) {
+      setReorderAnnouncement(direction === "up" ? "Запись уже первая" : "Запись уже последняя");
+      return;
+    }
+    onReorder(noteId, target.id, direction === "up" ? "before" : "after");
+    setReorderAnnouncement(`Запись «${source.title}» перемещена ${direction === "up" ? "выше" : "ниже"}`);
+  }
+
   useEffect(() => {
     if (revealedNoteId && !notes.some((note) => note.id === revealedNoteId)) setRevealedNoteId(null);
   }, [notes, revealedNoteId]);
+
+  useEffect(() => {
+    if (!reorderState) return;
+    const moveFromWindow = (event: PointerEvent | MouseEvent) => {
+      const current = reorderStateRef.current;
+      if (current) moveReorder(current.sourceId, event.clientX, event.clientY);
+    };
+    const moveTouchFromWindow = (event: TouchEvent) => {
+      const current = reorderStateRef.current;
+      const touch = event.touches[0];
+      if (current && touch) moveReorder(current.sourceId, touch.clientX, touch.clientY);
+    };
+    const finishFromWindow = () => {
+      const current = reorderStateRef.current;
+      if (current) {
+        const activeElement = document.activeElement;
+        if (
+          activeElement instanceof HTMLElement &&
+          activeElement.closest<HTMLElement>("[data-note-id]")?.dataset.noteId === current.sourceId
+        ) {
+          activeElement.blur();
+        }
+        finishReorder(current.sourceId);
+      }
+    };
+    const cancelFromWindow = () => updateReorderState(null);
+    const supportsPointerEvents = "PointerEvent" in window;
+    if (supportsPointerEvents) {
+      window.addEventListener("pointermove", moveFromWindow, true);
+      window.addEventListener("pointerup", finishFromWindow, true);
+      window.addEventListener("pointercancel", cancelFromWindow, true);
+    } else {
+      window.addEventListener("mousemove", moveFromWindow, true);
+      window.addEventListener("touchmove", moveTouchFromWindow, true);
+      window.addEventListener("mouseup", finishFromWindow, true);
+      window.addEventListener("touchend", finishFromWindow, true);
+      window.addEventListener("touchcancel", cancelFromWindow, true);
+    }
+    window.addEventListener("blur", cancelFromWindow);
+    return () => {
+      if (supportsPointerEvents) {
+        window.removeEventListener("pointermove", moveFromWindow, true);
+        window.removeEventListener("pointerup", finishFromWindow, true);
+        window.removeEventListener("pointercancel", cancelFromWindow, true);
+      } else {
+        window.removeEventListener("mousemove", moveFromWindow, true);
+        window.removeEventListener("touchmove", moveTouchFromWindow, true);
+        window.removeEventListener("mouseup", finishFromWindow, true);
+        window.removeEventListener("touchend", finishFromWindow, true);
+        window.removeEventListener("touchcancel", cancelFromWindow, true);
+      }
+      window.removeEventListener("blur", cancelFromWindow);
+    };
+  }, [reorderState]);
 
   useEffect(() => {
     if (!calendarRequestToken) return;
@@ -233,88 +380,93 @@ export function NotesView({
 
   return (
     <div className="view-stack notes-view">
-      <section className="notes-heading">
-        <div>
-          <span>Личное пространство</span>
-          <h2>Записи</h2>
-        </div>
-        <div className="notes-heading-actions">
-          <button type="button" onPointerDown={preloadNoteComposer} onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
-            <Mic size={20} />
-          </button>
-          <button type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
-            <CalendarDays size={20} />
-          </button>
-        </div>
-      </section>
-
-      <section className="notes-pulse" aria-label="Умные фильтры записей">
-        <button type="button" className={activeFilter === "smart:open" ? "active" : ""} onClick={() => { setActiveFilter("smart:open"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:open"}>
-          <span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} />
-        </button>
-        <button type="button" className={activeFilter === "smart:study" ? "active" : ""} onClick={() => { setActiveFilter("smart:study"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:study"}>
-          <span>Учёба</span><strong>{studyCount}</strong><BookOpenCheck size={18} />
-        </button>
-        <button type="button" className={activeFilter === "smart:today" ? "active" : ""} onClick={() => { setActiveFilter("smart:today"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:today"}>
-          <span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} />
-        </button>
-      </section>
-
-      <button className="quick-capture create-entry" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
-        <span className="quick-capture-icon"><SquarePen size={23} /></span>
-        <span>
-          <strong>Создать запись</strong>
-          <small>Текст, чек-лист, фото или идея в свободной форме</small>
-        </span>
-        <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><ChevronRight size={21} /></span>
-      </button>
-
-      <button className="calendar-launch-card" type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть календарь пар и записей" data-testid="calendar-launch-card">
-        <span className="calendar-launch-date" aria-hidden="true">
-          <small>{calendarMonth}</small>
-          <strong>{calendarDay}</strong>
-        </span>
-        <span className="calendar-launch-copy">
-          <small>Пары + личные планы</small>
-          <strong>Календарь</strong>
-          <em>{deadlineCount ? `Сроков в записях: ${deadlineCount}` : "Все даты в одном ритме"}</em>
-        </span>
-        <span className="calendar-launch-tail" aria-hidden="true"><CalendarDays size={18} /><ChevronRight size={21} /></span>
-      </button>
-
-      <label className="notes-search">
-        <Search size={18} />
-        <input value={query} onChange={(event) => { setQuery(event.target.value); setRevealedNoteId(null); }} placeholder="Поиск по записям" aria-label="Поиск по записям" />
-        {query && <button type="button" onClick={() => setQuery("")} aria-label="Очистить поиск" title="Очистить"><X size={16} /></button>}
-      </label>
-
-      <div className="space-rail" aria-label="Папки записей">
-        {filters.map(({ id, label, space, color, icon: Icon }) => {
-          const count = notes.filter((note) => !space || note.space === space).length;
-          return (
-            <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
-              {color ? <i className="folder-color" style={{ background: color }} aria-hidden="true" /> : <Icon size={16} />}
-              <span>{label}</span>
-              <small>{count}</small>
+      <div className="notes-dashboard">
+        <section className="notes-heading">
+          <div>
+            <span>Личное пространство</span>
+            <h2>Записи</h2>
+          </div>
+          <div className="notes-heading-actions">
+            <button type="button" onPointerDown={preloadNoteComposer} onClick={startDictation} aria-label="Начать умную диктовку" title="Умная диктовка" data-testid="start-smart-dictation">
+              <Mic size={20} />
             </button>
-          );
-        })}
-        <button className="folder-manage-button" type="button" onClick={() => setFolderSheetOpen(true)} aria-label="Добавить или изменить папки" title="Папки">
-          <FolderPlus size={16} />
-          <span>Папки</span>
+            <button type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть умный календарь" title="Календарь" data-testid="open-smart-calendar">
+              <CalendarDays size={20} />
+            </button>
+          </div>
+        </section>
+
+        <section className="notes-pulse" aria-label="Умные фильтры записей">
+          <button type="button" className={activeFilter === "smart:open" ? "active" : ""} onClick={() => { setActiveFilter("smart:open"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:open"}>
+            <span>Открыто</span><strong>{openCount}</strong><ListTodo size={18} />
+          </button>
+          <button type="button" className={activeFilter === "smart:study" ? "active" : ""} onClick={() => { setActiveFilter("smart:study"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:study"}>
+            <span>Учёба</span><strong>{studyCount}</strong><BookOpenCheck size={18} />
+          </button>
+          <button type="button" className={activeFilter === "smart:today" ? "active" : ""} onClick={() => { setActiveFilter("smart:today"); setRevealedNoteId(null); }} aria-pressed={activeFilter === "smart:today"}>
+            <span>Сегодня</span><strong>{todayCount}</strong><CheckCircle2 size={18} />
+          </button>
+        </section>
+
+        <button className="quick-capture create-entry" type="button" onPointerDown={preloadNoteComposer} onClick={() => createBlankNote()} aria-label="Создать запись" data-testid="open-note-composer">
+          <span className="quick-capture-icon"><SquarePen size={23} /></span>
+          <span>
+            <strong>Создать запись</strong>
+            <small>Текст, чек-лист, фото или идея в свободной форме</small>
+          </span>
+          <span className="quick-capture-tail" aria-hidden="true"><Sparkles size={14} /><ChevronRight size={21} /></span>
         </button>
+
+        <button className="calendar-launch-card" type="button" onPointerDown={preloadSmartCalendar} onClick={() => setCalendarOpen(true)} aria-label="Открыть календарь пар и записей" data-testid="calendar-launch-card">
+          <span className="calendar-launch-date" aria-hidden="true">
+            <small>{calendarMonth}</small>
+            <strong>{calendarDay}</strong>
+          </span>
+          <span className="calendar-launch-copy">
+            <small>Пары + личные планы</small>
+            <strong>Календарь</strong>
+            <em>{deadlineCount ? `Сроков в записях: ${deadlineCount}` : "Все даты в одном ритме"}</em>
+          </span>
+          <span className="calendar-launch-tail" aria-hidden="true"><CalendarDays size={18} /><ChevronRight size={21} /></span>
+        </button>
+
+        <label className="notes-search">
+          <Search size={18} />
+          <input value={query} onChange={(event) => { setQuery(event.target.value); setRevealedNoteId(null); }} placeholder="Поиск по записям" aria-label="Поиск по записям" />
+          {query && <button type="button" onClick={() => setQuery("")} aria-label="Очистить поиск" title="Очистить"><X size={16} /></button>}
+        </label>
+
+        <div className="space-rail" aria-label="Папки записей">
+          {filters.map(({ id, label, space, color, icon: Icon }) => {
+            const count = notes.filter((note) => !space || note.space === space).length;
+            return (
+              <button key={id} className={selectedFilter.id === id ? "active" : ""} type="button" onClick={() => { setActiveFilter(id); setRevealedNoteId(null); }} aria-pressed={selectedFilter.id === id}>
+                {color ? <i className="folder-color" style={{ background: color }} aria-hidden="true" /> : <Icon size={16} />}
+                <span>{label}</span>
+                <small>{count}</small>
+              </button>
+            );
+          })}
+          <button className="folder-manage-button" type="button" onClick={() => setFolderSheetOpen(true)} aria-label="Добавить или изменить папки" title="Папки">
+            <FolderPlus size={16} />
+            <span>Папки</span>
+          </button>
+        </div>
       </div>
 
       {!ready ? (
         <section className="notes-loading" aria-label="Загрузка записей"><span /><span /><span /></section>
       ) : visibleNotes.length ? (
-        <section className="notes-list" aria-label={`Записи: ${selectedFilter.label}`}>
+        <section className={`notes-list ${reorderState ? "is-reordering" : ""}`} aria-label={`Записи: ${selectedFilter.label}`}>
           <header><span>{selectedFilter.label}</span><strong>{visibleNotes.length}</strong></header>
+          <p className="visually-hidden" aria-live="polite">{reorderAnnouncement}</p>
           {visibleNotes.map((note) => (
             <NoteCard
               key={note.id}
               note={note}
               revealed={revealedNoteId === note.id}
+              reordering={reorderState?.sourceId === note.id}
+              dropPlacement={reorderState?.targetId === note.id ? reorderState.placement : undefined}
               onEdit={(value) => {
                 openNote(value);
               }}
@@ -324,6 +476,10 @@ export function NotesView({
               }}
               onReveal={() => setRevealedNoteId(note.id)}
               onCloseReveal={() => setRevealedNoteId(null)}
+              onMove={moveNoteWithKeyboard}
+              onReorderStart={startReorder}
+              onReorderEnd={finishReorder}
+              onReorderCancel={() => updateReorderState(null)}
               onToggle={onToggle}
               onTogglePinned={onTogglePinned}
             />

@@ -1,4 +1,5 @@
 import type { NoteClassification, NoteKind, SubjectOption } from "./noteTypes";
+import { hasExplicitStudyContext, hasExplicitSubjectReference } from "./noteClassifier";
 
 interface RemoteClassification {
   kind?: NoteKind;
@@ -34,13 +35,20 @@ export async function requestSmartClassification(
 
     const value = await response.json() as RemoteClassification;
     const result: Partial<NoteClassification> = {};
+    const explicitStudyContext = hasExplicitStudyContext(text, subjects);
     if (value.kind && NOTE_KINDS.has(value.kind)) result.kind = value.kind;
-    if (typeof value.space === "string" && value.space.trim()) result.space = value.space.trim().slice(0, 32);
+    if (typeof value.space === "string" && value.space.trim()) {
+      const space = value.space.trim().slice(0, 32);
+      if (explicitStudyContext) result.space = "Учёба";
+      else if (space !== "Учёба") result.space = space;
+    }
     if (typeof value.confidence === "number") result.confidence = Math.max(0, Math.min(1, value.confidence));
     if (value.subjectKey && subjects.some((subject) => subject.key === value.subjectKey)) {
       const subject = subjects.find((item) => item.key === value.subjectKey);
-      result.subjectKey = value.subjectKey;
-      result.subjectLabel = subject?.label;
+      if (subject && hasExplicitSubjectReference(text, subject)) {
+        result.subjectKey = value.subjectKey;
+        result.subjectLabel = subject.label;
+      }
     }
     if (value.dueAt && !Number.isNaN(new Date(value.dueAt).getTime())) result.dueAt = new Date(value.dueAt).toISOString();
     return Object.keys(result).length ? result : null;

@@ -23,6 +23,10 @@ function isOptionalBoolean(value: unknown) {
   return value === undefined || typeof value === "boolean";
 }
 
+function isOptionalFiniteNumber(value: unknown) {
+  return value === undefined || (typeof value === "number" && Number.isFinite(value));
+}
+
 function isDateString(value: unknown) {
   return typeof value === "string" && !Number.isNaN(new Date(value).getTime());
 }
@@ -43,6 +47,7 @@ function isSmartNote(value: unknown): value is SmartNote {
     NOTE_KINDS.has(value.kind as NoteKind) &&
     NOTE_STATUSES.has(value.status as NoteStatus) &&
     typeof value.pinned === "boolean" &&
+    isOptionalFiniteNumber(value.manualOrder) &&
     isOptionalBoolean(value.spaceManual) &&
     isOptionalBoolean(value.dueManual) &&
     isDateString(value.createdAt) &&

@@ -6,5 +6,6 @@ dist/
 .tools/
 *.log
 qa-*.png
+qa/
 .wrangler/
 .dev.vars

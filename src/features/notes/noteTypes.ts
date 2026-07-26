@@ -47,6 +47,7 @@ export interface SmartNote extends NoteClassification {
   title: string;
   status: NoteStatus;
   pinned: boolean;
+  manualOrder?: number;
   spaceManual?: boolean;
   dueManual?: boolean;
   createdAt: string;

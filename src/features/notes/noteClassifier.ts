@@ -27,6 +27,9 @@ const KIND_LABELS: Record<NoteKind, string> = {
 };
 
 const SUBJECT_STOP_WORDS = new Set(["и", "в", "по", "для", "основы", "теория", "практика", "общий", "специальный"]);
+const STRONG_STUDY_CONTEXT = /(^|\s)(дз|домашк[а-я]*|лаборатор[а-я]*|лаба|лабу|курсов[а-я]*|реферат[а-я]*|семинар[а-я]*|контрольн[а-я]*|экзамен[а-я]*|зачет[а-я]*|учеб[а-я]*|универ[а-я]*|влгу|пар(?:а|е|у|ы|ой|ах)?|препод[а-я]*|дисциплин[а-я]*|предмет[а-я]*)(?=\s|$)/;
+const WORK_CONTEXT = /(работ|клиент|заказчик|заказ|интервью|съемк|монтаж|монтир|ролик|контент|бриф|правк|коммерческ|ваканси|резюме|портфолио|созвон)/;
+const SUBJECT_REFERENCE_PREFIXES = ["по", "по предмету", "по дисциплине", "для пары по"];
 
 export function noteKindLabel(kind: NoteKind) {
   return KIND_LABELS[kind];
@@ -71,9 +74,11 @@ function subjectAliases(label: string) {
   });
   if (words.length > 1) aliases.add(words.map((word) => word[0]).join(""));
 
-  if (/баз.*данн|данн.*баз/.test(normalized)) ["бд", "базы", "база данных"].forEach((alias) => aliases.add(alias));
+  if (/баз.*данн|данн.*баз/.test(normalized)) ["бд", "базы", "базам", "база данных", "базам данных"].forEach((alias) => aliases.add(alias));
   if (/иностран.*язык|англ/.test(normalized)) ["англ", "английский", "иностранный"].forEach((alias) => aliases.add(alias));
-  if (/алгоритм|программирован/.test(normalized)) ["алгоритмы", "ап", "программирование"].forEach((alias) => aliases.add(alias));
+  if (/алгоритм|программирован/.test(normalized)) {
+    ["алгоритмы", "алгоритмизация", "ап", "прога", "проге", "программирование", "программированию"].forEach((alias) => aliases.add(alias));
+  }
   if (/правовед/.test(normalized)) ["право", "правоведение"].forEach((alias) => aliases.add(alias));
   if (/физическ.*культур/.test(normalized)) ["физра", "физкультура"].forEach((alias) => aliases.add(alias));
   if (/теория.*систем|системн.*анализ/.test(normalized)) ["тса", "теория систем", "системный анализ"].forEach((alias) => aliases.add(alias));
@@ -152,18 +157,40 @@ function matchesAlias(text: string, alias: string) {
   return text.includes(alias);
 }
 
-function matchSubject(text: string, subjects: SubjectOption[]) {
+function subjectCandidates(subjects: SubjectOption[]) {
   return subjects
     .flatMap((subject) => subject.aliases.map((alias) => ({ subject, alias })))
-    .sort((a, b) => b.alias.length - a.alias.length)
-    .find(({ alias }) => matchesAlias(text, alias))?.subject;
+    .sort((a, b) => b.alias.length - a.alias.length);
+}
+
+function hasPrefixedAlias(text: string, alias: string) {
+  const paddedText = ` ${text} `;
+  return SUBJECT_REFERENCE_PREFIXES.some((prefix) => paddedText.includes(` ${prefix} ${alias} `));
+}
+
+export function hasExplicitSubjectReference(text: string, subject: SubjectOption) {
+  const normalized = normalizeNoteText(text);
+  const strongStudyContext = STRONG_STUDY_CONTEXT.test(normalized);
+  return subject.aliases.some((alias) => hasPrefixedAlias(normalized, alias) || (strongStudyContext && matchesAlias(normalized, alias)));
+}
+
+function matchExplicitSubject(text: string, subjects: SubjectOption[]) {
+  const strongStudyContext = STRONG_STUDY_CONTEXT.test(text);
+  return subjectCandidates(subjects)
+    .find(({ alias }) => hasPrefixedAlias(text, alias) || (strongStudyContext && matchesAlias(text, alias)))
+    ?.subject;
+}
+
+export function hasExplicitStudyContext(text: string, subjects: SubjectOption[] = []) {
+  const normalized = normalizeNoteText(text);
+  return STRONG_STUDY_CONTEXT.test(normalized) || Boolean(matchExplicitSubject(normalized, subjects));
 }
 
 function inferKind(text: string): NoteKind {
   if (/(^|\s)(дз|домашк|лаборатор|лаба|лабу|курсов|реферат|задани|семинар|контрольн)/.test(text) || /к следующей паре/.test(text)) return "homework";
   if (/(^|\s)(хочу|мечта|когда нибудь|было бы круто|присмотреть)/.test(text)) return "wish";
   if (/(^|\s)(идея|придумал|концепт|можно сделать|предлагаю)/.test(text)) return "idea";
-  if (/(^|\s)(сделать|купить|позвонить|написать|спросить|записаться|не забыть|надо|нужно|забрать|отправить)/.test(text)) return "task";
+  if (/(^|\s)(сделать|доделать|подготовить|смонтировать|обработать|проверить|провести|созвониться|внести|купить|позвонить|написать|спросить|записаться|не забыть|надо|нужно|забрать|отправить)/.test(text)) return "task";
   return "note";
 }
 
@@ -171,6 +198,7 @@ export function explicitPersonalSpace(text: string) {
   const normalized = normalizeNoteText(text);
   if (/(танц|хореограф|репетиц|связк|постановк)/.test(normalized)) return "Танцы";
   if (/(радио|эфир|джингл|трек|плейлист|подкаст|студийн.*микрофон)/.test(normalized)) return "Радио";
+  if (WORK_CONTEXT.test(normalized)) return "Работа";
   return undefined;
 }
 
@@ -178,7 +206,7 @@ function capitalize(value: string) {
   return value ? value[0].toLocaleUpperCase("ru-RU") + value.slice(1) : value;
 }
 
-function inferSpace(text: string, kind: NoteKind, hasSubject: boolean, spaces: string[]) {
+function inferSpace(text: string, kind: NoteKind, hasStudyContext: boolean, spaces: string[]) {
   const explicitTag = text.match(/(?:^|\s)#([a-zа-я][a-zа-я0-9_-]{1,28})/i)?.[1];
   if (explicitTag) return capitalize(explicitTag.replace(/[_-]/g, " "));
   const personalSpace = explicitPersonalSpace(text);
@@ -189,7 +217,7 @@ function inferSpace(text: string, kind: NoteKind, hasSubject: boolean, spaces: s
     .sort((a, b) => b.normalized.length - a.normalized.length)
     .find(({ normalized }) => ` ${text} `.includes(` ${normalized} `));
   if (mentionedSpace) return mentionedSpace.space;
-  if (hasSubject || /(учеб|универ|влгу|пара|препод|экзамен|зачет)/.test(text)) return "Учёба";
+  if (hasStudyContext) return "Учёба";
   if (/(проект|репозитор|релиз|дизайн|разработ|приложени|фича|бэклог)/.test(text)) return "Проект";
   if (/(купить|заказать|магазин|доставка)/.test(text)) return "Покупки";
   if (kind === "wish") return "Хотелки";
@@ -250,10 +278,10 @@ export function noteTitle(text: string) {
 export function classifyNote(text: string, subjects: SubjectOption[], spaces: string[] = []): NoteClassification {
   const normalized = normalizeNoteText(text);
   const dueText = text.toLocaleLowerCase("ru-RU").replace(/ё/g, "е").replace(/\s+/g, " ").trim();
-  const personalSpace = explicitPersonalSpace(normalized);
-  const subject = personalSpace ? undefined : matchSubject(normalized, subjects);
+  const subject = matchExplicitSubject(normalized, subjects);
+  const personalSpace = subject ? undefined : explicitPersonalSpace(normalized);
   const kind = inferKind(normalized);
-  const space = personalSpace ?? inferSpace(normalized, kind, Boolean(subject), spaces);
+  const space = personalSpace ?? inferSpace(normalized, kind, hasExplicitStudyContext(normalized, subjects), spaces);
   const due = parseDue(dueText, subject);
   const signals = [subject, kind !== "note", space !== "Входящие", due.dueAt].filter(Boolean).length;
 

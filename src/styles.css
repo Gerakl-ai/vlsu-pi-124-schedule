@@ -636,6 +636,14 @@ select,
   gap: 12px;
 }
 
+.week-overview {
+  display: contents;
+}
+
+.settings-panels {
+  display: contents;
+}
+
 .today-date-launch {
   position: relative;
   min-width: 0;
@@ -3636,7 +3644,7 @@ select,
 
 @media (orientation: landscape) and (max-height: 560px) {
   :root {
-    --landscape-rail: 168px;
+    --landscape-rail: calc(168px + var(--safe-left));
   }
 
   .app-shell {
@@ -3655,6 +3663,10 @@ select,
     border-radius: 0;
   }
 
+  .tab-motion-veil {
+    display: none;
+  }
+
   .topbar {
     grid-column: 1;
     grid-row: 1;
@@ -3664,6 +3676,7 @@ select,
     padding: calc(10px + var(--safe-top)) 10px 8px calc(10px + var(--safe-left));
     border-right: 1px solid var(--theme-panel-border);
     background: color-mix(in srgb, var(--theme-panel-solid) 72%, transparent);
+    contain: layout paint;
   }
 
   .brand {
@@ -3702,7 +3715,7 @@ select,
   }
 
   .week-chip span {
-    font-size: 9.5px;
+    font-size: 8.5px;
   }
 
   .header-icon-button {
@@ -3727,6 +3740,7 @@ select,
     grid-column: 2;
     grid-row: 1 / -1;
     padding: calc(10px + var(--safe-top)) calc(14px + var(--safe-right)) calc(12px + var(--safe-bottom)) 14px;
+    scroll-padding-top: calc(10px + var(--safe-top));
   }
 
   .bottom-nav {
@@ -3743,6 +3757,7 @@ select,
     padding: 6px 9px calc(7px + var(--safe-bottom)) calc(9px + var(--safe-left));
     border-right: 1px solid var(--theme-panel-border);
     box-shadow: inset 0 1px 0 var(--theme-panel-border);
+    contain: layout paint;
   }
 
   .bottom-nav::before {
@@ -3807,45 +3822,47 @@ select,
   }
 
   .view-stack {
-    gap: 10px;
+    gap: 9px;
+    animation: landscape-view-in .28s cubic-bezier(.2,.82,.2,1) both;
   }
 
   .today-view {
-    grid-template-columns: minmax(300px, 1.08fr) minmax(276px, .92fr);
+    grid-template-columns: minmax(300px, 1.08fr) minmax(280px, .92fr);
     align-items: start;
   }
 
   .today-view > .today-date-launch {
-    grid-column: 1 / -1;
+    grid-column: 1;
     grid-row: 1;
     min-height: 48px;
   }
 
   .today-view > .day-motion-rail {
-    grid-column: 1 / -1;
-    grid-row: 2;
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 48px;
   }
 
   .today-view > .hero-card {
     grid-column: 1;
-    grid-row: 3 / span 2;
+    grid-row: 2 / span 2;
     min-height: 252px;
   }
 
   .today-view > .command-strip {
     grid-column: 2;
-    grid-row: 3;
+    grid-row: 2;
   }
 
   .today-view > .focus-note-card,
   .today-view > .next-card {
     grid-column: 2;
-    grid-row: 4;
+    grid-row: 3;
   }
 
   .today-view > .timeline-card {
     grid-column: 1 / -1;
-    grid-row: 5;
+    grid-row: 4;
   }
 
   .hero-card h2 {
@@ -3872,26 +3889,136 @@ select,
   }
 
   .command-item strong { font-size: 12px; }
-  .command-item small { font-size: 8.5px; }
+  .command-item small {
+    overflow: visible;
+    font-size: 8.5px;
+    line-height: 1.15;
+    text-overflow: clip;
+    white-space: normal;
+  }
 
   .week-view {
-    grid-template-columns: 258px minmax(0,1fr);
+    grid-template-columns: minmax(228px, .76fr) minmax(360px, 1.24fr);
     align-items: start;
   }
 
-  .week-view > .week-toolbar,
-  .week-view > .week-map,
-  .week-view > .mode-switch {
+  .week-view > .week-overview {
     grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    align-self: start;
+    gap: 9px;
   }
 
   .week-view > .week-list {
     grid-column: 2;
-    grid-row: 1 / span 3;
+    grid-row: 1;
   }
 
-  .session-view > .week-list {
-    grid-row: 1 / span 2;
+  .week-overview .week-toolbar {
+    min-height: 94px;
+    gap: 10px;
+    padding: 11px 12px;
+  }
+
+  .week-overview .week-toolbar h2 {
+    font-size: 21px;
+  }
+
+  .week-overview .week-toolbar-copy > span {
+    font-size: 10px;
+  }
+
+  .week-overview .week-toolbar-copy p {
+    max-width: 150px;
+    margin-top: 5px;
+    font-size: 9.5px;
+  }
+
+  .week-overview .week-index-visual {
+    width: 60px;
+    min-width: 60px;
+    height: 66px;
+    padding: 6px;
+  }
+
+  .week-overview .week-index-visual strong {
+    font-size: 23px;
+  }
+
+  .week-overview .week-map {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .week-overview .week-map-head span {
+    font-size: 10.5px;
+  }
+
+  .week-overview .week-map-head small {
+    display: none;
+  }
+
+  .week-overview .week-map-head strong {
+    font-size: 11px;
+  }
+
+  .week-overview .week-map-insights > div {
+    gap: 1px;
+    padding: 6px 5px;
+  }
+
+  .week-overview .week-map-insights small {
+    font-size: 7.5px;
+  }
+
+  .week-overview .week-map-insights strong {
+    font-size: 9.5px;
+  }
+
+  .week-overview .week-map-grid {
+    min-height: 82px;
+    gap: 4px;
+  }
+
+  .week-overview .week-map-day {
+    grid-template-rows: minmax(38px, 1fr) auto auto;
+    gap: 3px;
+    padding: 5px 3px 6px;
+  }
+
+  .week-overview .week-map-day strong {
+    font-size: 10px;
+  }
+
+  .week-overview .week-map-day small {
+    font-size: 8px;
+  }
+
+  .week-overview .mode-switch button {
+    min-height: 38px;
+    padding-inline: 3px;
+    font-size: 9.5px;
+  }
+
+  .week-overview .session-map-grid {
+    grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 5px;
+  }
+
+  .week-overview .session-date-card {
+    min-height: 68px;
+    gap: 3px;
+    padding: 6px 4px;
+  }
+
+  .week-overview .session-date-card strong {
+    font-size: 10px;
+  }
+
+  .week-overview .session-date-card span,
+  .week-overview .session-date-card small {
+    font-size: 9px;
   }
 
   .settings-view {
@@ -3901,11 +4028,15 @@ select,
 
   .settings-view > .settings-hero {
     grid-column: 1;
+    min-height: calc(var(--app-viewport-height) - var(--safe-top) - var(--safe-bottom) - 22px);
   }
 
-  .settings-view > .settings-panel {
+  .settings-view > .settings-panels {
     grid-column: 2;
     grid-row: 1;
+    display: grid;
+    align-content: start;
+    gap: 10px;
   }
 
   .skeleton-hero {
@@ -3918,6 +4049,17 @@ select,
   .brand-mark { width: 34px; height: 34px; }
   .bottom-nav { grid-template-rows: repeat(4, minmax(42px,1fr)); }
   .bottom-nav button { font-size: 10.5px; }
+}
+
+@keyframes landscape-view-in {
+  from {
+    opacity: .42;
+    transform: translate3d(10px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -16,6 +16,7 @@ const manualDeadlineNote: SmartNote = {
   dueManual: true,
   createdAt: "2026-07-17T10:00:00.000Z",
   updatedAt: "2026-07-17T10:00:00.000Z",
+  manualOrder: 42,
   classificationSource: "local"
 };
 

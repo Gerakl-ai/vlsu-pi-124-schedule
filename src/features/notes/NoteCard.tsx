@@ -1,8 +1,9 @@
-import { BookCheck, CalendarClock, Check, ChevronRight, Circle, LoaderCircle, Pin, Trash2 } from "lucide-react";
+import { BookCheck, CalendarClock, Check, ChevronRight, Circle, GripVertical, LoaderCircle, Pin, Trash2 } from "lucide-react";
 import DOMPurify from "dompurify";
 import { useRef, useState } from "react";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { noteKindLabel } from "./noteClassifier";
+import type { NoteDropPlacement } from "./noteOrdering";
 import type { SmartNote } from "./noteTypes";
 
 interface NoteCardProps {
@@ -13,6 +14,12 @@ interface NoteCardProps {
   onTogglePinned: (noteId: string) => void;
   onReveal: () => void;
   onCloseReveal: () => void;
+  onMove: (noteId: string, direction: "up" | "down") => void;
+  onReorderCancel: () => void;
+  onReorderEnd: (noteId: string) => void;
+  onReorderStart: (noteId: string, clientX: number, clientY: number) => void;
+  dropPlacement?: NoteDropPlacement;
+  reordering: boolean;
   revealed: boolean;
 }
 
@@ -44,7 +51,22 @@ function formatFullNoteDate(value: string) {
   return new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" }).format(new Date(value));
 }
 
-export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onReveal, onCloseReveal, revealed }: NoteCardProps) {
+export function NoteCard({
+  note,
+  onEdit,
+  onDelete,
+  onToggle,
+  onTogglePinned,
+  onReveal,
+  onCloseReveal,
+  onMove,
+  onReorderCancel,
+  onReorderEnd,
+  onReorderStart,
+  dropPlacement,
+  reordering,
+  revealed
+}: NoteCardProps) {
   const body = noteBody(note);
   const previewHtml = notePreviewHtml(note);
   const overdue = Boolean(note.dueAt && note.status === "open" && new Date(note.dueAt).getTime() < Date.now());
@@ -53,6 +75,7 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
   const [deleting, setDeleting] = useState(false);
   const savedAt = note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt;
   const suppressClick = useRef(false);
+  const reorderPointerId = useRef<number | null>(null);
   const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0, deltaX: 0 });
   const offset = dragOffset ?? (revealed ? -DELETE_REVEAL : 0);
 
@@ -121,8 +144,38 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
     }
   }
 
+  function startReorder(event: ReactPointerEvent<HTMLButtonElement>) {
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.preventDefault();
+    event.stopPropagation();
+    reorderPointerId.current = event.pointerId;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+    onReorderStart(note.id, event.clientX, event.clientY);
+  }
+
+  function finishReorder(event: ReactPointerEvent<HTMLButtonElement>, cancelled: boolean) {
+    if (reorderPointerId.current !== event.pointerId) return;
+    event.preventDefault();
+    event.stopPropagation();
+    reorderPointerId.current = null;
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
+    if (cancelled) onReorderCancel();
+    else onReorderEnd(note.id);
+  }
+
   return (
-    <div className={`note-swipe-shell ${revealed ? "revealed" : ""} ${deleting ? "deleting" : ""}`}>
+    <div
+      className={[
+        "note-swipe-shell",
+        revealed ? "revealed" : "",
+        deleting ? "deleting" : "",
+        reordering ? "reordering" : "",
+        dropPlacement ? `drop-${dropPlacement}` : ""
+      ].filter(Boolean).join(" ")}
+      data-note-id={note.id}
+    >
       <button
         className="note-delete-action"
         type="button"
@@ -187,7 +240,34 @@ export function NoteCard({ note, onEdit, onDelete, onToggle, onTogglePinned, onR
         >
           <Pin size={15} fill={note.pinned ? "currentColor" : "none"} />
         </button>
-        <ChevronRight size={18} aria-hidden="true" />
+        {note.status === "open" ? (
+          <button
+            className="note-drag-handle"
+            type="button"
+            aria-label={`Переместить запись «${note.title}». Стрелки вверх и вниз меняют порядок`}
+            title="Изменить порядок"
+            onPointerDown={startReorder}
+            onPointerUp={(event) => finishReorder(event, false)}
+            onPointerCancel={(event) => finishReorder(event, true)}
+            onLostPointerCapture={() => {
+              if (reorderPointerId.current === null) return;
+              reorderPointerId.current = null;
+              onReorderEnd(note.id);
+            }}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+              event.preventDefault();
+              event.stopPropagation();
+              onMove(note.id, event.key === "ArrowUp" ? "up" : "down");
+            }}
+          >
+            <GripVertical size={17} />
+          </button>
+        ) : <ChevronRight size={18} aria-hidden="true" />}
       </div>
       </article>
     </div>

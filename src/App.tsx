@@ -605,6 +605,7 @@ export function App() {
                 onCreateFolder={smartNotes.createFolder}
                 onDelete={smartNotes.deleteNote}
                 onDeleteFolder={smartNotes.deleteFolder}
+                onReorder={smartNotes.reorderNotes}
                 onToggle={smartNotes.toggleNote}
                 onTogglePinned={smartNotes.togglePinned}
                 onUpdate={smartNotes.updateNote}
@@ -1182,36 +1183,38 @@ function WeekView({
 
   return (
     <div className="view-stack week-view">
-      <section className="week-toolbar">
-        <div className="week-toolbar-copy">
-          <span><Activity size={13} /> Учебный ритм</span>
-          <h2>{formatWeekMode(weekMode)}</h2>
-          <p>{formatLessonCount(totalLessons)} · пик {busiestDay.count ? `${busiestDay.short}, ${busiestDay.count}` : "не задан"}</p>
-        </div>
-        <div className="week-index-visual" aria-label={`Сегодня ${todayShort}, ${todayDate.getDate()} число`}>
-          <span>{todayShort}</span>
-          <strong>{String(todayDate.getDate()).padStart(2, "0")}</strong>
-          <small>сегодня</small>
-        </div>
-      </section>
+      <div className="week-overview">
+        <section className="week-toolbar">
+          <div className="week-toolbar-copy">
+            <span><Activity size={13} /> Учебный ритм</span>
+            <h2>{formatWeekMode(weekMode)}</h2>
+            <p>{formatLessonCount(totalLessons)} · пик {busiestDay.count ? `${busiestDay.short}, ${busiestDay.count}` : "не задан"}</p>
+          </div>
+          <div className="week-index-visual" aria-label={`Сегодня ${todayShort}, ${todayDate.getDate()} число`}>
+            <span>{todayShort}</span>
+            <strong>{String(todayDate.getDate()).padStart(2, "0")}</strong>
+            <small>сегодня</small>
+          </div>
+        </section>
 
-      <WeekMap dayLoads={dayLoads} weekMode={weekMode} />
+        <WeekMap dayLoads={dayLoads} weekMode={weekMode} />
 
-      <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
-        {[
-          ["current", "Текущая"],
-          ["numerator", "Числитель"],
-          ["denominator", "Знаменатель"]
-        ].map(([mode, label]) => (
-          <button
-            key={mode}
-            className={weekOverride === mode ? "active" : ""}
-            type="button"
-            onClick={() => setWeekOverride(mode as WeekMode | "current")}
-          >
-            {label}
-          </button>
-        ))}
+        <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
+          {[
+            ["current", "Текущая"],
+            ["numerator", "Числитель"],
+            ["denominator", "Знаменатель"]
+          ].map(([mode, label]) => (
+            <button
+              key={mode}
+              className={weekOverride === mode ? "active" : ""}
+              type="button"
+              onClick={() => setWeekOverride(mode as WeekMode | "current")}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <section className="week-list">
@@ -1269,34 +1272,36 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
 
   return (
     <div className="view-stack week-view session-view">
-      <section className="week-toolbar">
-        <div className="week-toolbar-copy">
-          <span><Activity size={13} /> Расписание</span>
-          <h2>Сессия</h2>
-          <p>{formatLessonCount(visibleLessons.length)} в ближайшем плане</p>
-        </div>
-        <div className="week-index-visual" aria-label={`${groups.length} дат в расписании`}>
-          <ShieldCheck size={18} />
-          <strong>{groups.length}</strong>
-          <small>дат</small>
-        </div>
-      </section>
+      <div className="week-overview">
+        <section className="week-toolbar">
+          <div className="week-toolbar-copy">
+            <span><Activity size={13} /> Расписание</span>
+            <h2>Сессия</h2>
+            <p>{formatLessonCount(visibleLessons.length)} в ближайшем плане</p>
+          </div>
+          <div className="week-index-visual" aria-label={`${groups.length} дат в расписании`}>
+            <ShieldCheck size={18} />
+            <strong>{groups.length}</strong>
+            <small>дат</small>
+          </div>
+        </section>
 
-      <section className="week-map session-map" aria-label="Карта сессии">
-        <div className="week-map-head">
-          <span>Ближайшие даты</span>
-          <strong>{formatLessonCount(visibleLessons.length)}</strong>
-        </div>
-        <div className="session-map-grid">
-          {groups.slice(0, 6).map((group) => (
-            <div className="session-date-card" key={group.key}>
-              <strong>{group.title}</strong>
-              <span>{formatLessonCount(group.lessons.length)}</span>
-              <small>{group.lessons[0]?.start}</small>
-            </div>
-          ))}
-        </div>
-      </section>
+        <section className="week-map session-map" aria-label="Карта сессии">
+          <div className="week-map-head">
+            <span>Ближайшие даты</span>
+            <strong>{formatLessonCount(visibleLessons.length)}</strong>
+          </div>
+          <div className="session-map-grid">
+            {groups.slice(0, 6).map((group) => (
+              <div className="session-date-card" key={group.key}>
+                <strong>{group.title}</strong>
+                <span>{formatLessonCount(group.lessons.length)}</span>
+                <small>{group.lessons[0]?.start}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
 
       <section className="week-list">
         {groups.map((group) => (
@@ -1427,119 +1432,121 @@ function SettingsView({
         </div>
       </section>
 
-      <section className="settings-panel">
-        <div className="setting-row appearance-row">
-          <div>
-            <span>Оформление</span>
-            <strong>{activeThemeName}</strong>
-          </div>
-          <button type="button" className="theme-settings-button" onClick={onThemeOpen}>
-            <Palette size={18} />
-            Сменить
-          </button>
-        </div>
-
-        <div className={`capability-card ${capability.status}`}>
-          <div>
-            {capability.status === "available" ? <CheckCircle2 size={24} /> : capability.status === "denied" ? <ShieldAlert size={24} /> : <Info size={24} />}
-          </div>
-          <div>
-            <span>Статус уведомлений</span>
-            <strong>{capability.title}</strong>
-            <p>{capability.detail}</p>
-          </div>
-        </div>
-
-        <div className="setting-row">
-          <div>
-            <span>Напоминать за</span>
-            <strong>{settings.minutesBefore} минут</strong>
-          </div>
-          <button type="button" onClick={onEnable} disabled={!capability.canRequestPermission && capability.status !== "available"} className="primary-action">
-            <Bell size={18} />
-            Включить
-          </button>
-        </div>
-
-        <div className="reminder-options" aria-label="За сколько минут напоминать">
-          {REMINDER_OPTIONS.map((minutes) => (
-            <button
-              key={minutes}
-              className={settings.minutesBefore === minutes ? "active" : ""}
-              type="button"
-              onClick={() => onMinutes(minutes)}
-            >
-              {minutes} мин
+      <div className="settings-panels">
+        <section className="settings-panel">
+          <div className="setting-row appearance-row">
+            <div>
+              <span>Оформление</span>
+              <strong>{activeThemeName}</strong>
+            </div>
+            <button type="button" className="theme-settings-button" onClick={onThemeOpen}>
+              <Palette size={18} />
+              Сменить
             </button>
-          ))}
-        </div>
-
-        <button type="button" className="test-action" onClick={onTest} disabled={busy || capability.status === "install-required" || capability.status === "unsupported" || capability.status === "denied"}>
-          <Send size={18} />
-          {busy ? "Отправляем..." : "Проверить уведомление"}
-        </button>
-
-        <div className="setting-row subtle">
-          <div>
-            <span>Offline-кэш</span>
-            <strong>{schedule ? `Есть данные от ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока пусто"}</strong>
           </div>
-          {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
-        </div>
 
-        <div className="tech-list" aria-label="Техническая готовность уведомлений">
-          <span>{capability.isStandalone ? "PWA-режим" : "Обычный браузер"}</span>
-          <span>{capability.hasServiceWorker ? "Service Worker" : "Без Service Worker"}</span>
-          <span>{capability.hasPushManager ? "Push API есть" : "Push API нет"}</span>
-        </div>
-
-        {notice && <p className="notice">{notice}</p>}
-      </section>
-
-      <section className="settings-panel personal-data-panel">
-        <header className="personal-data-head">
-          <span className="personal-data-icon"><HardDrive size={21} /></span>
-          <div>
-            <span>Личное пространство</span>
-            <strong>{formatNoteCount(notes.length)}</strong>
+          <div className={`capability-card ${capability.status}`}>
+            <div>
+              {capability.status === "available" ? <CheckCircle2 size={24} /> : capability.status === "denied" ? <ShieldAlert size={24} /> : <Info size={24} />}
+            </div>
+            <div>
+              <span>Статус уведомлений</span>
+              <strong>{capability.title}</strong>
+              <p>{capability.detail}</p>
+            </div>
           </div>
-        </header>
-        <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
-        <div className="ai-setting">
-          <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
-          <div>
-            <strong>Облачное уточнение</strong>
-            <small>Новые сложные записи уточняет Cloudflare AI. Локальная сортировка работает всегда.</small>
+
+          <div className="setting-row">
+            <div>
+              <span>Напоминать за</span>
+              <strong>{settings.minutesBefore} минут</strong>
+            </div>
+            <button type="button" onClick={onEnable} disabled={!capability.canRequestPermission && capability.status !== "available"} className="primary-action">
+              <Bell size={18} />
+              Включить
+            </button>
           </div>
-          <button
-            className={`setting-switch ${aiEnabled ? "active" : ""}`}
-            type="button"
-            role="switch"
-            aria-checked={aiEnabled}
-            aria-label="Облачное уточнение записей"
-            onClick={() => onAiEnabled(!aiEnabled)}
-          >
-            <span />
+
+          <div className="reminder-options" aria-label="За сколько минут напоминать">
+            {REMINDER_OPTIONS.map((minutes) => (
+              <button
+                key={minutes}
+                className={settings.minutesBefore === minutes ? "active" : ""}
+                type="button"
+                onClick={() => onMinutes(minutes)}
+              >
+                {minutes} мин
+              </button>
+            ))}
+          </div>
+
+          <button type="button" className="test-action" onClick={onTest} disabled={busy || capability.status === "install-required" || capability.status === "unsupported" || capability.status === "denied"}>
+            <Send size={18} />
+            {busy ? "Отправляем..." : "Проверить уведомление"}
           </button>
-        </div>
-        <div className="backup-actions">
-          <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>
-            <Download size={17} /> Экспорт
-          </button>
-          <button type="button" onClick={() => importInputRef.current?.click()}>
-            <Upload size={17} /> Импорт
-          </button>
-        </div>
-        <input
-          ref={importInputRef}
-          className="visually-hidden"
-          type="file"
-          accept="application/json,.json"
-          onChange={(event) => void importBackup(event.target.files?.[0])}
-          aria-label="Импортировать резервную копию записей"
-        />
-        {backupNotice && <p className="backup-notice" role="status">{backupNotice}</p>}
-      </section>
+
+          <div className="setting-row subtle">
+            <div>
+              <span>Offline-кэш</span>
+              <strong>{schedule ? `Есть данные от ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока пусто"}</strong>
+            </div>
+            {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
+          </div>
+
+          <div className="tech-list" aria-label="Техническая готовность уведомлений">
+            <span>{capability.isStandalone ? "PWA-режим" : "Обычный браузер"}</span>
+            <span>{capability.hasServiceWorker ? "Service Worker" : "Без Service Worker"}</span>
+            <span>{capability.hasPushManager ? "Push API есть" : "Push API нет"}</span>
+          </div>
+
+          {notice && <p className="notice">{notice}</p>}
+        </section>
+
+        <section className="settings-panel personal-data-panel">
+          <header className="personal-data-head">
+            <span className="personal-data-icon"><HardDrive size={21} /></span>
+            <div>
+              <span>Личное пространство</span>
+              <strong>{formatNoteCount(notes.length)}</strong>
+            </div>
+          </header>
+          <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
+          <div className="ai-setting">
+            <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
+            <div>
+              <strong>Облачное уточнение</strong>
+              <small>Новые сложные записи уточняет Cloudflare AI. Локальная сортировка работает всегда.</small>
+            </div>
+            <button
+              className={`setting-switch ${aiEnabled ? "active" : ""}`}
+              type="button"
+              role="switch"
+              aria-checked={aiEnabled}
+              aria-label="Облачное уточнение записей"
+              onClick={() => onAiEnabled(!aiEnabled)}
+            >
+              <span />
+            </button>
+          </div>
+          <div className="backup-actions">
+            <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>
+              <Download size={17} /> Экспорт
+            </button>
+            <button type="button" onClick={() => importInputRef.current?.click()}>
+              <Upload size={17} /> Импорт
+            </button>
+          </div>
+          <input
+            ref={importInputRef}
+            className="visually-hidden"
+            type="file"
+            accept="application/json,.json"
+            onChange={(event) => void importBackup(event.target.files?.[0])}
+            aria-label="Импортировать резервную копию записей"
+          />
+          {backupNotice && <p className="backup-notice" role="status">{backupNotice}</p>}
+        </section>
+      </div>
     </div>
   );
 }

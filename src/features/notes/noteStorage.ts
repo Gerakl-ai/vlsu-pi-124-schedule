@@ -13,6 +13,7 @@ const DEFAULT_DATE = "2026-01-01T00:00:00.000Z";
 export const DEFAULT_NOTE_FOLDERS: NoteFolder[] = [
   { id: "inbox", name: "Входящие", color: "#9ca8ba", system: true, createdAt: DEFAULT_DATE },
   { id: "study", name: "Учёба", color: "#76a8ff", system: true, createdAt: DEFAULT_DATE },
+  { id: "work", name: "Работа", color: "#eea56c", system: true, createdAt: DEFAULT_DATE },
   { id: "tasks", name: "Дела", color: "#59dfc1", system: true, createdAt: DEFAULT_DATE },
   { id: "wishes", name: "Хотелки", color: "#ff8a7f", system: true, createdAt: DEFAULT_DATE },
   { id: "dance", name: "Танцы", color: "#d89cff", system: true, createdAt: DEFAULT_DATE },

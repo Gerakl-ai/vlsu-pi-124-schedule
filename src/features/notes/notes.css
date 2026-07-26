@@ -2,6 +2,10 @@
   padding-bottom: 4px;
 }
 
+.notes-dashboard {
+  display: contents;
+}
+
 .notes-heading {
   display: flex;
   align-items: center;
@@ -528,6 +532,52 @@
   border-bottom: 0;
 }
 
+.note-swipe-shell::before,
+.note-swipe-shell::after {
+  content: "";
+  position: absolute;
+  z-index: 7;
+  right: 10px;
+  left: 10px;
+  height: 2px;
+  pointer-events: none;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan) 12%, var(--ice) 50%, var(--cyan) 88%, transparent);
+  box-shadow: 0 0 7px rgba(var(--accent-rgb), .72), 0 0 18px rgba(var(--accent-soft-rgb), .36);
+  opacity: 0;
+  transform: scaleX(.34);
+  transition: opacity .16s ease, transform .24s cubic-bezier(.2,.9,.24,1);
+}
+
+.note-swipe-shell::before {
+  top: -1px;
+}
+
+.note-swipe-shell::after {
+  bottom: -1px;
+}
+
+.note-swipe-shell.drop-before::before,
+.note-swipe-shell.drop-after::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.notes-list.is-reordering {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.note-swipe-shell.reordering {
+  z-index: 4;
+}
+
+.note-swipe-shell.reordering .note-card {
+  opacity: .7;
+  filter: saturate(.72) brightness(1.05);
+  box-shadow: inset 3px 0 0 rgba(var(--accent-rgb), .62);
+}
+
 .note-delete-action {
   position: absolute;
   z-index: 0;
@@ -801,6 +851,36 @@
 
 .note-card-actions button.active {
   color: var(--cyan);
+}
+
+.note-card-actions .note-drag-handle {
+  position: relative;
+  color: color-mix(in srgb, var(--muted) 82%, var(--cyan));
+  cursor: grab;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  transition: color .18s ease, border-color .18s ease, background .18s ease, box-shadow .2s ease, transform .18s ease;
+}
+
+.note-card-actions .note-drag-handle::before {
+  content: "";
+  position: absolute;
+  inset: -5px;
+}
+
+.note-card-actions .note-drag-handle:hover,
+.note-card-actions .note-drag-handle:focus-visible {
+  color: var(--cyan);
+  border-color: rgba(var(--accent-rgb), .58);
+  background: var(--theme-control-active);
+  box-shadow: 0 0 14px rgba(var(--accent-rgb), .16);
+}
+
+.note-card-actions .note-drag-handle:active {
+  color: var(--ice);
+  cursor: grabbing;
+  transform: scale(.92);
 }
 
 .notes-empty {
@@ -2392,24 +2472,25 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 @media (orientation: landscape) and (max-height: 560px) {
   .notes-view {
-    grid-template-columns: minmax(248px, .78fr) minmax(330px, 1.22fr);
+    grid-template-columns: minmax(236px, .74fr) minmax(350px, 1.26fr);
     align-items: start;
   }
 
-  .notes-heading,
-  .notes-pulse,
-  .quick-capture,
-  .calendar-launch-card,
-  .notes-search,
-  .space-rail {
+  .notes-dashboard {
     grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    gap: 8px;
   }
 
   .notes-list,
   .notes-loading,
   .notes-empty {
     grid-column: 2;
-    grid-row: 1 / span 6;
+    grid-row: 1;
+    min-width: 0;
   }
 
   .space-rail {
@@ -2417,24 +2498,117 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     padding: 0 0 3px;
   }
 
+  .notes-heading {
+    min-height: 48px;
+    padding: 0 2px;
+  }
+
+  .notes-heading h2 {
+    font-size: 25px;
+  }
+
+  .notes-heading-actions button {
+    width: 36px;
+    height: 36px;
+  }
+
   .notes-pulse > button {
-    min-height: 66px;
-    padding: 9px;
+    min-height: 56px;
+    padding: 7px;
   }
 
   .notes-pulse strong {
-    font-size: 19px;
+    font-size: 17px;
+  }
+
+  .notes-pulse span {
+    font-size: 8.5px;
+  }
+
+  .notes-pulse svg {
+    top: 8px;
+    right: 7px;
+    width: 15px;
   }
 
   .quick-capture {
-    min-height: 60px;
-    grid-template-columns: 38px minmax(0,1fr) auto;
-    gap: 9px;
+    min-height: 54px;
+    grid-template-columns: 34px minmax(0,1fr) auto;
+    gap: 8px;
+    padding: 7px 10px;
   }
 
   .quick-capture-icon {
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
+  }
+
+  .quick-capture strong {
+    font-size: 13px;
+  }
+
+  .quick-capture small {
+    font-size: 8.5px;
+    line-height: 1.25;
+  }
+
+  .calendar-launch-card {
+    min-height: 54px;
+    grid-template-columns: 42px minmax(0,1fr) auto;
+    gap: 8px;
+    padding: 6px 9px;
+  }
+
+  .calendar-launch-date {
+    width: 42px;
+    height: 42px;
+  }
+
+  .calendar-launch-copy strong {
+    font-size: 14px;
+  }
+
+  .calendar-launch-copy small,
+  .calendar-launch-copy em {
+    font-size: 8px;
+  }
+
+  .notes-search {
+    min-height: 40px;
+    padding-inline: 10px;
+  }
+
+  .notes-search input {
+    font-size: 14px;
+  }
+
+  .space-rail button {
+    height: 34px;
+    padding-inline: 8px;
+    font-size: 10px;
+  }
+
+  .notes-empty {
+    min-height: calc(var(--app-viewport-height) - var(--safe-top) - var(--safe-bottom) - 22px);
+  }
+
+  .notes-empty > div {
+    min-height: inherit;
+    padding: 24px;
+  }
+
+  .notes-empty h3 {
+    font-size: 24px;
+  }
+
+  .notes-empty p {
+    max-width: 260px;
+    font-size: 12px;
+  }
+
+  .notes-empty-create {
+    width: min(100%, 228px);
+    min-height: 42px;
   }
 
   .composer-layer {
@@ -2447,7 +2621,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     min-height: 0;
     max-height: 100%;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 216px;
+    grid-template-columns: minmax(0, 1fr) clamp(204px, 26vw, 232px);
     grid-template-rows: auto auto minmax(0,1fr) auto;
     gap: 8px 12px;
     padding: 8px 10px;

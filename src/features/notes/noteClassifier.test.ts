@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { LessonSlot } from "../../types";
-import { buildSubjectOptions, lessonSubjectKeys, normalizeSubjectKey } from "./noteClassifier";
+import {
+  buildSubjectOptions,
+  classifyNote,
+  hasExplicitStudyContext,
+  lessonSubjectKeys,
+  normalizeSubjectKey
+} from "./noteClassifier";
 
 const subgroupLesson: LessonSlot = {
   id: "friday-1",
@@ -21,6 +27,21 @@ const subgroupLesson: LessonSlot = {
   ]
 };
 
+const databaseLesson: LessonSlot = {
+  id: "tuesday-3",
+  dayIndex: 2,
+  dayName: "Вторник",
+  pairIndex: 3,
+  start: "12:10",
+  end: "13:40",
+  subject: "Базы данных",
+  room: "407-2",
+  kind: "лб",
+  teacher: "Преподаватель",
+  rawText: "database",
+  weekMode: "all"
+};
+
 describe("subgroup subject context", () => {
   it("exposes every subgroup subject as an independent key", () => {
     expect(lessonSubjectKeys(subgroupLesson)).toEqual([
@@ -35,5 +56,56 @@ describe("subgroup subject context", () => {
       "Алгоритмизация и программирование",
       "Основы frontend разработки"
     ]);
+  });
+});
+
+describe("smart note activity and subject classification", () => {
+  const subjects = buildSubjectOptions(
+    [subgroupLesson, databaseLesson],
+    "numerator",
+    new Date("2026-07-13T07:00:00")
+  );
+  const spaces = ["Входящие", "Учёба", "Дела", "Работа", "Танцы", "Радио", "Проект"];
+
+  it.each([
+    "Смонтировать интервью для клиента к пятнице",
+    "Подготовить монтаж интервью про алгоритмизацию и программирование",
+    "Внести правки в ролик для заказчика"
+  ])("keeps a work note detached from university subjects: %s", (text) => {
+    expect(classifyNote(text, subjects, spaces)).toMatchObject({
+      kind: "task",
+      space: "Работа",
+      subjectKey: undefined,
+      subjectLabel: undefined
+    });
+  });
+
+  it.each([
+    ["По проге сделать практическое задание", "Алгоритмизация и программирование"],
+    ["Сделать лабораторную по БД", "Базы данных"],
+    ["По базам данных закончить задание", "Базы данных"]
+  ])("attaches a subject only to an explicit study reference: %s", (text, subjectLabel) => {
+    expect(classifyNote(text, subjects, spaces)).toMatchObject({
+      space: "Учёба",
+      subjectLabel
+    });
+  });
+
+  it("recognizes general study context without inventing a subject", () => {
+    const result = classifyNote("Подготовиться к экзамену", subjects, spaces);
+    expect(result.space).toBe("Учёба");
+    expect(result.subjectKey).toBeUndefined();
+  });
+
+  it("leaves an unrelated short note in the inbox", () => {
+    expect(classifyNote("Баня", subjects, spaces)).toMatchObject({
+      kind: "note",
+      space: "Входящие",
+      subjectKey: undefined
+    });
+  });
+
+  it("does not treat a professional topic as study context", () => {
+    expect(hasExplicitStudyContext("Интервью про программирование", subjects)).toBe(false);
   });
 });
