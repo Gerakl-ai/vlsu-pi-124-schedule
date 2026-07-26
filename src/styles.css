@@ -974,6 +974,10 @@ select,
   animation: visual-drift 14s ease-in-out infinite alternate;
 }
 
+.hero-visual-fit {
+  display: none;
+}
+
 .completed-day .hero-visual {
   opacity: 0.64;
   filter: saturate(0.86) contrast(1.08) brightness(0.78);
@@ -3892,8 +3896,73 @@ select,
     min-height: 48px;
   }
 
+  .today-detail-scroll .timeline-card {
+    --timeline-left: 76px;
+    padding-inline: 12px;
+  }
+
+  .today-detail-scroll .timeline-summary {
+    gap: 10px;
+  }
+
+  .today-detail-scroll .timeline-summary div {
+    min-width: 70px;
+  }
+
+  .today-detail-scroll .lesson-row-button {
+    grid-template-columns: 48px 16px minmax(0, 1fr) 20px;
+    gap: 6px 8px;
+    min-height: 78px;
+    padding: 12px 0 11px;
+  }
+
+  .today-detail-scroll .lesson-time strong,
+  .today-detail-scroll .lesson-time span {
+    font-size: 13.5px;
+  }
+
+  .today-detail-scroll .route-dot {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
+    box-shadow: 0 0 0 6px rgba(5, 8, 14, 0.98);
+  }
+
+  .today-detail-scroll .lesson-title {
+    overflow-wrap: break-word;
+    word-break: normal;
+    font-size: 14px;
+    line-height: 1.22;
+  }
+
+  .today-detail-scroll .lesson-place {
+    font-size: 11.5px;
+  }
+
+  .today-detail-scroll .row-chevron {
+    width: 18px;
+    height: 18px;
+  }
+
   .today-primary > .hero-card {
     padding: 14px 15px 13px;
+  }
+
+  .today-primary .hero-visual-backdrop {
+    object-fit: cover;
+    object-position: center right;
+    transform: scale(1.06);
+    animation: landscape-backdrop-breathe 10s ease-in-out infinite alternate;
+  }
+
+  .today-primary .hero-visual-fit {
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    transform: scale(.985);
+    transform-origin: center;
+    mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+    animation: landscape-visual-breathe 8s ease-in-out infinite alternate;
   }
 
   .today-primary .hero-sigil {
@@ -4000,6 +4069,13 @@ select,
 
   .week-view > .week-list > * {
     flex: 0 0 auto;
+  }
+
+  .week-view > .week-list .lesson-title,
+  .week-view > .week-list .lesson-subject,
+  .week-view > .week-list .lesson-room {
+    overflow-wrap: break-word;
+    word-break: normal;
   }
 
   .week-view > .week-list::-webkit-scrollbar {
@@ -4180,6 +4256,16 @@ select,
     opacity: 1;
     transform: translate3d(0, 0, 0);
   }
+}
+
+@keyframes landscape-visual-breathe {
+  from { transform: scale(.975); }
+  to { transform: scale(1); }
+}
+
+@keyframes landscape-backdrop-breathe {
+  from { transform: scale(1.045); }
+  to { transform: scale(1.075); }
 }
 
 @media (prefers-reduced-motion: reduce) {

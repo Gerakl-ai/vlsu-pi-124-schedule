@@ -949,6 +949,26 @@ body {
 }
 
 @media (orientation: landscape) and (max-height: 560px) {
+  .hero-card .hero-visual-backdrop {
+    opacity: calc(var(--theme-image-opacity) * .42);
+    filter: var(--theme-image-filter) blur(5px) saturate(.88);
+  }
+
+  .hero-card .hero-visual-fit {
+    opacity: var(--theme-image-opacity);
+    filter: var(--theme-image-filter);
+  }
+
+  :root[data-theme-mode="light"] .hero-card .hero-visual-backdrop {
+    opacity: .34;
+    filter: saturate(.86) contrast(1.01) brightness(1.04) blur(5px);
+  }
+
+  :root[data-theme-mode="light"] .hero-card .hero-visual-fit {
+    opacity: .88;
+    filter: saturate(.92) contrast(1.01) brightness(1.035);
+  }
+
   .theme-sheet {
     width: min(720px, calc(100% - var(--safe-left)));
     height: 100%;

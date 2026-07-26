@@ -76,32 +76,42 @@ export function NoteCard({
   const savedAt = note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt;
   const suppressClick = useRef(false);
   const reorderPointerId = useRef<number | null>(null);
-  const gesture = useRef({ active: false, horizontal: false, startX: 0, startY: 0, base: 0, offset: 0, deltaX: 0 });
+  const gesture = useRef({
+    active: false,
+    horizontal: false,
+    pointerId: -1,
+    startX: 0,
+    startY: 0,
+    base: 0,
+    offset: 0,
+    deltaX: 0
+  });
   const offset = dragOffset ?? (revealed ? -DELETE_REVEAL : 0);
 
   function handlePointerDown(event: ReactPointerEvent<HTMLElement>) {
-    if (deleting || (event.pointerType === "mouse" && event.button !== 0)) return;
+    if (deleting || !event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
     const base = revealed ? -DELETE_REVEAL : 0;
     gesture.current = {
       active: true,
       horizontal: false,
+      pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       base,
       offset: base,
       deltaX: 0
     };
-    setDragOffset(base);
   }
 
   function handlePointerMove(event: ReactPointerEvent<HTMLElement>) {
     const value = gesture.current;
-    if (!value.active) return;
+    if (!value.active || value.pointerId !== event.pointerId) return;
     const deltaX = event.clientX - value.startX;
     const deltaY = event.clientY - value.startY;
     if (!value.horizontal) {
-      if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 7) return;
-      if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+      const distance = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+      if (distance < 9) return;
+      if (Math.abs(deltaY) >= Math.abs(deltaX) * 0.9) {
         value.active = false;
         setDragOffset(null);
         return;
@@ -110,6 +120,7 @@ export function NoteCard({
       setDragging(true);
       event.currentTarget.setPointerCapture?.(event.pointerId);
     }
+    event.preventDefault();
     value.deltaX = deltaX;
     value.offset = Math.max(-DELETE_REVEAL, Math.min(0, value.base + deltaX));
     setDragOffset(value.offset);
@@ -117,7 +128,7 @@ export function NoteCard({
 
   function finishGesture(event: ReactPointerEvent<HTMLElement>) {
     const value = gesture.current;
-    if (!value.active) return;
+    if (!value.active || value.pointerId !== event.pointerId) return;
     value.active = false;
     if (!value.horizontal) {
       setDragOffset(null);
@@ -129,8 +140,24 @@ export function NoteCard({
     setDragOffset(null);
     if (shouldReveal) onReveal();
     else onCloseReveal();
+    const focusedElement = document.activeElement;
+    if (focusedElement instanceof HTMLElement && event.currentTarget.contains(focusedElement)) {
+      focusedElement.blur();
+    }
     suppressClick.current = true;
     window.setTimeout(() => { suppressClick.current = false; }, 0);
+  }
+
+  function cancelGesture(event: ReactPointerEvent<HTMLElement>) {
+    const value = gesture.current;
+    if (value.pointerId !== event.pointerId) return;
+    value.active = false;
+    value.horizontal = false;
+    setDragging(false);
+    setDragOffset(null);
+    if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   }
 
   async function deleteNote() {
@@ -195,7 +222,7 @@ export function NoteCard({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishGesture}
-        onPointerCancel={finishGesture}
+        onPointerCancel={cancelGesture}
         onClickCapture={(event) => {
           if (!suppressClick.current && !revealed) return;
           event.preventDefault();

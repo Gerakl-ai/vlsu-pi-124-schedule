@@ -487,7 +487,8 @@ export function NotesView({
         </section>
       ) : (
         <section className="notes-empty">
-          <img src={visualSrc} alt="Блокнот с расписанием и зарисовкой главного корпуса ВлГУ" />
+          <img className="notes-empty-backdrop" src={visualSrc} alt="" aria-hidden="true" />
+          <img className="notes-empty-visual" src={visualSrc} alt="Блокнот с расписанием и зарисовкой главного корпуса ВлГУ" />
           <div>
             <Sparkles size={23} />
             <h3>{query ? "Ничего не найдено" : "Здесь пока тихо"}</h3>

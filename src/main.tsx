@@ -71,38 +71,6 @@ for (const eventName of ["gesturestart", "gesturechange", "gestureend"]) {
   document.addEventListener(eventName, (event) => event.preventDefault(), { passive: false });
 }
 
-let touchStartX = 0;
-let touchStartY = 0;
-
-document.addEventListener("touchstart", (event) => {
-  if (event.touches.length !== 1) return;
-  touchStartX = event.touches[0].clientX;
-  touchStartY = event.touches[0].clientY;
-}, { passive: true });
-
-document.addEventListener("touchmove", (event) => {
-  if (event.touches.length !== 1) return;
-  const currentX = event.touches[0].clientX;
-  const currentY = event.touches[0].clientY;
-  const deltaX = currentX - touchStartX;
-  const deltaY = currentY - touchStartY;
-  if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
-  touchStartX = currentX;
-  touchStartY = currentY;
-  const target = event.target;
-  if (!(target instanceof Element)) return;
-  const scrollable = target.closest<HTMLElement>(
-    ".today-detail-scroll, .week-list, .notes-list, .settings-hero, .settings-panels, .content-scroll, .rich-editor-content, .theme-sheet, .folder-sheet"
-  );
-  if (!scrollable) {
-    event.preventDefault();
-    return;
-  }
-  const atTop = scrollable.scrollTop <= 0;
-  const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1;
-  if ((deltaY > 0 && atTop) || (deltaY < 0 && atBottom)) event.preventDefault();
-}, { passive: false });
-
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AppErrorBoundary>

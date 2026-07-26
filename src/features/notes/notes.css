@@ -486,6 +486,7 @@
 .notes-list {
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
   border: 1px solid var(--theme-panel-border);
   border-radius: 8px;
 }
@@ -523,6 +524,7 @@
 .note-swipe-shell {
   position: relative;
   overflow: hidden;
+  touch-action: pan-y;
   border-bottom: 1px solid var(--theme-panel-border);
   background: var(--theme-panel-solid);
   isolation: isolate;
@@ -915,6 +917,10 @@
   object-fit: cover;
   object-position: 70% center;
   filter: var(--theme-image-filter);
+}
+
+.notes-empty-backdrop {
+  display: none;
 }
 
 :root[data-theme-mode="light"] .notes-empty::after {
@@ -2618,6 +2624,39 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
   .notes-empty {
     min-height: 0;
+    background:
+      radial-gradient(280px 190px at 86% 52%, rgba(var(--accent-rgb), .12), transparent 72%),
+      var(--theme-panel-solid);
+  }
+
+  .notes-empty img {
+    object-position: right center;
+  }
+
+  .notes-empty .notes-empty-backdrop {
+    display: block;
+    object-fit: cover;
+    opacity: .32;
+    transform: scale(1.06);
+    filter: var(--theme-image-filter) blur(5px) saturate(.88);
+  }
+
+  .notes-empty .notes-empty-visual {
+    object-fit: contain;
+    opacity: .92;
+    transform: scale(.985);
+    transform-origin: right center;
+    mask-image: linear-gradient(180deg, transparent 0, #000 14%, #000 86%, transparent 100%);
+  }
+
+  :root[data-theme-mode="light"] .notes-empty .notes-empty-backdrop {
+    opacity: .26;
+    filter: saturate(.86) contrast(1.01) brightness(1.04) blur(5px);
+  }
+
+  :root[data-theme-mode="light"] .notes-empty .notes-empty-visual {
+    opacity: .9;
+    filter: saturate(.92) contrast(1.01) brightness(1.035);
   }
 
   .notes-empty > div {
@@ -2637,6 +2676,16 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   .notes-empty-create {
     width: min(100%, 228px);
     min-height: 42px;
+  }
+
+  .note-card-main > strong,
+  .note-excerpt {
+    overflow-wrap: break-word;
+    word-break: normal;
+  }
+
+  .note-rich-preview img {
+    object-fit: contain;
   }
 
   .composer-layer {

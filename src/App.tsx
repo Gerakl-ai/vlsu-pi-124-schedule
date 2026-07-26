@@ -823,7 +823,8 @@ function TodayView({
         </button>
 
         <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
-          <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
+          <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
+          <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
           <div className="hero-sigil" aria-hidden="true">
             <span>{sigilLabel}</span>
             <strong>{sigilValue}</strong>
