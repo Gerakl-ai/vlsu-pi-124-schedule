@@ -2487,7 +2487,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 @media (orientation: landscape) and (max-height: 560px) {
   .notes-view {
-    grid-template-columns: minmax(0, .74fr) minmax(0, 1.26fr);
+    grid-template-columns: minmax(0, .68fr) minmax(0, 1.32fr);
     align-items: stretch;
   }
 

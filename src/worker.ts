@@ -41,12 +41,17 @@ function isSameOriginRequest(request: Request) {
   return !origin || origin === new URL(request.url).origin;
 }
 
-function responseWithPlatformHeaders(response: Response, env: Env) {
+function responseWithPlatformHeaders(response: Response, env: Env, request: Request) {
   const headers = new Headers(response.headers);
+  const url = new URL(request.url);
+  const contentType = headers.get("Content-Type") ?? "";
   headers.set("X-Content-Type-Options", "nosniff");
   headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
   headers.set("X-Frame-Options", "DENY");
   headers.set("X-Lad-Release", RELEASE_CHANNEL);
+  if (url.pathname === "/sw.js" || contentType.includes("text/html")) {
+    headers.set("Cache-Control", "no-cache, no-store, must-revalidate");
+  }
   if (env.CF_VERSION_METADATA?.id) {
     headers.set("X-Lad-Worker-Version", env.CF_VERSION_METADATA.id);
   }
@@ -283,7 +288,7 @@ const worker = {
       response = await env.ASSETS.fetch(request);
     }
 
-    return responseWithPlatformHeaders(response, env);
+    return responseWithPlatformHeaders(response, env, request);
   }
 };
 

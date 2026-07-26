@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { applyTheme, readTheme } from "./features/themes/theme";
+import { RELEASE_CHANNEL } from "./release";
 import "./styles.css";
 import "./theme.css";
 import "./features/notes/notes.css";
@@ -90,9 +91,12 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
         window.location.reload();
       });
     }
-    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {
-      // PWA registration is progressive enhancement; the app still works online.
-    });
+    const workerUrl = `/sw.js?release=${encodeURIComponent(RELEASE_CHANNEL)}`;
+    navigator.serviceWorker.register(workerUrl, { updateViaCache: "none" })
+      .then((registration) => registration.update())
+      .catch(() => {
+        // PWA registration is progressive enhancement; the app still works online.
+      });
   });
 }
 
