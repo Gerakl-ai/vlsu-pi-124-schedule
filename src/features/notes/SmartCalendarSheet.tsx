@@ -91,7 +91,7 @@ function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, we
     return {
       id: `note-${note.id}`,
       title: note.title,
-      detail: note.space,
+      detail: note.topic ?? note.space,
       start,
       end,
       type: "note" as const,

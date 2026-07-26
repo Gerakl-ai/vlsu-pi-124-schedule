@@ -644,6 +644,11 @@ select,
   display: contents;
 }
 
+.today-primary,
+.today-detail-scroll {
+  display: contents;
+}
+
 .today-date-launch {
   position: relative;
   min-width: 0;
@@ -3739,8 +3744,9 @@ select,
   .content-scroll {
     grid-column: 2;
     grid-row: 1 / -1;
+    overflow: hidden;
     padding: calc(10px + var(--safe-top)) calc(14px + var(--safe-right)) calc(12px + var(--safe-bottom)) 14px;
-    scroll-padding-top: calc(10px + var(--safe-top));
+    -webkit-overflow-scrolling: auto;
   }
 
   .bottom-nav {
@@ -3822,65 +3828,127 @@ select,
   }
 
   .view-stack {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
     gap: 9px;
     animation: landscape-view-in .28s cubic-bezier(.2,.82,.2,1) both;
   }
 
   .today-view {
     grid-template-columns: minmax(300px, 1.08fr) minmax(280px, .92fr);
-    align-items: start;
+    align-items: stretch;
   }
 
-  .today-view > .today-date-launch {
+  .today-primary {
     grid-column: 1;
     grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 9px;
+    overflow: hidden;
+  }
+
+  .today-primary > .today-date-launch {
     min-height: 48px;
   }
 
-  .today-view > .day-motion-rail {
+  .today-primary > .hero-card {
+    min-height: 0;
+    height: 100%;
+  }
+
+  .today-detail-scroll {
     grid-column: 2;
     grid-row: 1;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 9px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 2px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .today-detail-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .today-detail-scroll > * {
+    flex: 0 0 auto;
+  }
+
+  .today-detail-scroll > .day-motion-rail {
     min-height: 48px;
   }
 
-  .today-view > .hero-card {
-    grid-column: 1;
-    grid-row: 2 / span 2;
-    min-height: 252px;
+  .today-primary > .hero-card {
+    padding: 14px 15px 13px;
   }
 
-  .today-view > .command-strip {
-    grid-column: 2;
-    grid-row: 2;
+  .today-primary .hero-sigil {
+    top: 13px;
+    right: 13px;
+    width: 66px;
+    height: 66px;
   }
 
-  .today-view > .focus-note-card,
-  .today-view > .next-card {
-    grid-column: 2;
-    grid-row: 3;
+  .today-primary .hero-sigil strong {
+    font-size: 20px;
   }
 
-  .today-view > .timeline-card {
-    grid-column: 1 / -1;
-    grid-row: 4;
+  .today-primary .hero-card.mode-next .hero-sigil strong {
+    font-size: 14px;
+  }
+
+  .today-primary .status-pill {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 
   .hero-card h2 {
-    margin-top: 18px;
-    font-size: 30px;
+    max-width: calc(100% - 72px);
+    margin-top: 14px;
+    font-size: 28px;
   }
 
-  .hero-card.compact-title h2 { font-size: 24px; }
-  .hero-card.dense-title h2 { font-size: 21px; }
+  .hero-card.compact-title h2 { max-width: 90%; font-size: 22px; }
+  .hero-card.dense-title h2 { max-width: 94%; font-size: 19px; }
 
   .hero-meta {
-    margin-top: 13px;
-    gap: 6px;
-    font-size: 17px;
+    max-width: calc(100% - 78px);
+    margin-top: 9px;
+    gap: 4px;
+    font-size: 15px;
+  }
+
+  .hero-meta svg {
+    width: 17px;
+    height: 17px;
   }
 
   .progress-row {
-    margin-top: 14px;
+    margin-top: 9px;
+  }
+
+  .progress-copy {
+    gap: 9px;
+    margin-top: 7px;
+  }
+
+  .progress-copy strong,
+  .progress-copy span {
+    font-size: 11px;
   }
 
   .command-item {
@@ -3899,20 +3967,43 @@ select,
 
   .week-view {
     grid-template-columns: minmax(228px, .76fr) minmax(360px, 1.24fr);
-    align-items: start;
+    align-items: stretch;
   }
 
   .week-view > .week-overview {
     grid-column: 1;
     grid-row: 1;
     display: grid;
-    align-self: start;
+    min-height: 0;
+    align-self: stretch;
+    align-content: start;
     gap: 9px;
+    overflow: hidden;
   }
 
   .week-view > .week-list {
     grid-column: 2;
     grid-row: 1;
+    min-height: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 2px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .week-view > .week-list > * {
+    flex: 0 0 auto;
+  }
+
+  .week-view > .week-list::-webkit-scrollbar {
+    display: none;
   }
 
   .week-overview .week-toolbar {
@@ -4023,20 +4114,49 @@ select,
 
   .settings-view {
     grid-template-columns: minmax(240px, .76fr) minmax(360px, 1.24fr);
-    align-items: start;
+    align-items: stretch;
   }
 
   .settings-view > .settings-hero {
     grid-column: 1;
-    min-height: calc(var(--app-viewport-height) - var(--safe-top) - var(--safe-bottom) - 22px);
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .settings-view > .settings-hero::-webkit-scrollbar {
+    display: none;
   }
 
   .settings-view > .settings-panels {
     grid-column: 2;
     grid-row: 1;
-    display: grid;
-    align-content: start;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
+    min-height: 0;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding-right: 2px;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .settings-view > .settings-panels > * {
+    flex: 0 0 auto;
+  }
+
+  .settings-view > .settings-panels::-webkit-scrollbar {
+    display: none;
   }
 
   .skeleton-hero {

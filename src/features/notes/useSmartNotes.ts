@@ -51,21 +51,31 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
   }, []);
 
   useEffect(() => {
-    if (!ready || !subjects.length) return;
+    if (!ready) return;
     setNotes((current) => {
       const changed: SmartNote[] = [];
       const next = current.map((note) => {
-        if (!note.subjectKey) return note;
         const classification = classifyNote(note.text, subjects, folderSpaces);
-        if (classification.subjectKey === note.subjectKey) return note;
+        const canValidateSubject = subjects.length > 0;
+        const subjectChanged = Boolean(canValidateSubject && note.subjectKey && classification.subjectKey !== note.subjectKey);
+        const canRefreshLocalSpace = !note.spaceManual && (
+          note.classificationSource === "local" ||
+          note.space === "Входящие" ||
+          note.space === "Учёба"
+        ) && (!note.subjectKey || canValidateSubject);
+        const nextSpace = canRefreshLocalSpace ? classification.space : note.space;
+        const nextTopic = note.classificationSource === "ai" && note.topic
+          ? note.topic
+          : note.subjectLabel ?? classification.topic;
+        if (!subjectChanged && nextSpace === note.space && nextTopic === note.topic) return note;
         const migrated: SmartNote = {
           ...note,
-          kind: classification.kind,
-          space: note.spaceManual ? note.space : classification.space,
-          subjectKey: classification.subjectKey,
-          subjectLabel: classification.subjectLabel,
+          kind: note.classificationSource === "local" ? classification.kind : note.kind,
+          space: nextSpace,
+          topic: nextTopic,
+          subjectKey: subjectChanged ? classification.subjectKey : note.subjectKey,
+          subjectLabel: subjectChanged ? classification.subjectLabel : note.subjectLabel,
           confidence: classification.confidence,
-          classificationSource: "local",
           classificationPending: false
         };
         changed.push(migrated);
@@ -107,6 +117,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
             ...item,
             ...remote,
             space: enrichedSpace,
+            topic: item.subjectLabel ?? remote.topic ?? item.topic,
             spaceManual: item.spaceManual,
             subjectKey: personalSpace ? undefined : remote.subjectKey ?? item.subjectKey,
             subjectLabel: personalSpace ? undefined : remote.subjectLabel ?? item.subjectLabel,

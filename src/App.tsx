@@ -251,6 +251,18 @@ function refreshIosThemeChrome(activeTab: AppTab) {
   window.setTimeout(() => window.location.reload(), 220);
 }
 
+const LANDSCAPE_TAB_SCROLLER: Record<AppTab, string> = {
+  today: ".today-detail-scroll",
+  week: ".week-list",
+  notes: ".notes-list",
+  settings: ".settings-panels"
+};
+
+function tabScrollContainer(tab: AppTab, outer: HTMLElement | null) {
+  if (!outer || !window.matchMedia("(orientation: landscape) and (max-height: 560px)").matches) return outer;
+  return outer.querySelector<HTMLElement>(LANDSCAPE_TAB_SCROLLER[tab]) ?? outer;
+}
+
 export function App() {
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
@@ -491,13 +503,14 @@ export function App() {
   const navigateToTab = useCallback((nextTab: AppTab) => {
     pendingTabRef.current = nextTab;
     const container = contentScrollRef.current;
+    const activeScroller = tabScrollContainer(activeTab, container);
     if (nextTab === activeTab) {
       const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
-      container?.scrollTo({ top: 0, behavior });
+      activeScroller?.scrollTo({ top: 0, behavior });
       tabScrollPositionsRef.current[nextTab] = 0;
       return;
     }
-    if (container) tabScrollPositionsRef.current[activeTab] = container.scrollTop;
+    if (activeScroller) tabScrollPositionsRef.current[activeTab] = activeScroller.scrollTop;
     const direction = TAB_ORDER.indexOf(nextTab) > TAB_ORDER.indexOf(activeTab) ? "forward" : "backward";
     const commitTab = () => {
       setTabMotion((current) => ({ id: current.id + 1, direction }));
@@ -515,7 +528,8 @@ export function App() {
 
   useLayoutEffect(() => {
     const container = contentScrollRef.current;
-    if (container) container.scrollTop = tabScrollPositionsRef.current[activeTab];
+    const activeScroller = tabScrollContainer(activeTab, container);
+    if (activeScroller) activeScroller.scrollTop = tabScrollPositionsRef.current[activeTab];
   }, [activeTab]);
 
   const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
@@ -789,94 +803,98 @@ function TodayView({
 
   return (
     <div className="view-stack today-view">
-      <button
-        className="today-date-launch"
-        type="button"
-        onClick={onOpenCalendar}
-        aria-label={`Открыть календарь: сегодня, ${calendarLabel}`}
-        data-testid="today-calendar-launch"
-      >
-        <span className="today-date-tile" aria-hidden="true">
-          <small>{calendarMonth}</small>
-          <strong>{calendarDay}</strong>
-        </span>
-        <span className="today-date-copy">
-          <small><CalendarDays size={14} /> Сегодня</small>
-          <strong>{calendarLabel}</strong>
-        </span>
-        <ChevronRight size={20} aria-hidden="true" />
-      </button>
-
-      <DayMotionRail
-        weekMode={weekMode}
-        lessons={lessons}
-        dayProgress={dayProgress}
-        remaining={remaining}
-        current={current}
-        next={next}
-        nextStudyDay={nextStudyDay}
-      />
-
-      <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
-        <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
-        <div className="hero-sigil" aria-hidden="true">
-          <span>{sigilLabel}</span>
-          <strong>{sigilValue}</strong>
-        </div>
-        <div className="status-pill">
-          <span className={current ? "live-dot" : "idle-dot"} />
-          {statusCopy}
-        </div>
-        <h2>{heroSubject}</h2>
-        <div className="hero-meta">
-          <span><MapPin size={21} /> {heroRoom}</span>
-          <span><Clock3 size={21} /> {heroTime}</span>
-        </div>
-
-        <div className="progress-row" aria-label="Прогресс пары">
-          <div className="progress-track">
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          <div className="progress-copy">
-            <strong>{progressTitle}</strong>
-            <span>{progressCaption}</span>
-          </div>
-        </div>
-      </section>
-
-      <DayCommandStrip
-        completedCount={completedCount}
-        dayProgress={dayProgress}
-        lessons={lessons}
-        nextStudyDay={nextStudyDay}
-        studyWindows={studyWindows}
-      />
-
-      {focusNote && (
-        <button className="focus-note-card" type="button" onClick={onOpenNotes}>
-          <span className="focus-note-icon"><BookCheck size={22} /></span>
-          <span>
-            <small>{focusNote.subjectLabel ? "К ближайшей паре" : focusNote.space}</small>
-            <strong>{focusNote.title}</strong>
-            <i>{[focusNote.subjectLabel, focusNote.dueLabel].filter(Boolean).join(" · ") || "Открыть запись"}</i>
+      <div className="today-primary">
+        <button
+          className="today-date-launch"
+          type="button"
+          onClick={onOpenCalendar}
+          aria-label={`Открыть календарь: сегодня, ${calendarLabel}`}
+          data-testid="today-calendar-launch"
+        >
+          <span className="today-date-tile" aria-hidden="true">
+            <small>{calendarMonth}</small>
+            <strong>{calendarDay}</strong>
           </span>
-          <ChevronRight size={20} />
+          <span className="today-date-copy">
+            <small><CalendarDays size={14} /> Сегодня</small>
+            <strong>{calendarLabel}</strong>
+          </span>
+          <ChevronRight size={20} aria-hidden="true" />
         </button>
-      )}
 
-      {current && (
-        <section className="next-card">
-          <div className="next-icon"><Waves size={28} /></div>
-          <div>
-            <span>Следующая пара</span>
-            <strong>{lessonKeySubject(next) || nextLabel}</strong>
-            {next?.room && <small><MapPin size={14} /> {next.room}</small>}
+        <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
+          <img className="hero-visual" src={heroVisual} alt="" aria-hidden="true" />
+          <div className="hero-sigil" aria-hidden="true">
+            <span>{sigilLabel}</span>
+            <strong>{sigilValue}</strong>
           </div>
-          <ChevronRight size={23} />
-        </section>
-      )}
+          <div className="status-pill">
+            <span className={current ? "live-dot" : "idle-dot"} />
+            {statusCopy}
+          </div>
+          <h2>{heroSubject}</h2>
+          <div className="hero-meta">
+            <span><MapPin size={21} /> {heroRoom}</span>
+            <span><Clock3 size={21} /> {heroTime}</span>
+          </div>
 
-      <Timeline lessons={lessons} current={current} next={next} now={now} notes={notes} onToggleNote={onToggleNote} />
+          <div className="progress-row" aria-label="Прогресс пары">
+            <div className="progress-track">
+              <span style={{ width: `${progress}%` }} />
+            </div>
+            <div className="progress-copy">
+              <strong>{progressTitle}</strong>
+              <span>{progressCaption}</span>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <div className="today-detail-scroll">
+        <DayMotionRail
+          weekMode={weekMode}
+          lessons={lessons}
+          dayProgress={dayProgress}
+          remaining={remaining}
+          current={current}
+          next={next}
+          nextStudyDay={nextStudyDay}
+        />
+
+        <DayCommandStrip
+          completedCount={completedCount}
+          dayProgress={dayProgress}
+          lessons={lessons}
+          nextStudyDay={nextStudyDay}
+          studyWindows={studyWindows}
+        />
+
+        {focusNote && (
+          <button className="focus-note-card" type="button" onClick={onOpenNotes}>
+            <span className="focus-note-icon"><BookCheck size={22} /></span>
+            <span>
+              <small>{focusNote.subjectLabel ? "К ближайшей паре" : focusNote.topic ?? focusNote.space}</small>
+              <strong>{focusNote.title}</strong>
+              <i>{[focusNote.subjectLabel, focusNote.dueLabel].filter(Boolean).join(" · ") || "Открыть запись"}</i>
+            </span>
+            <ChevronRight size={20} />
+          </button>
+        )}
+
+        {current && (
+          <section className="next-card">
+            <div className="next-icon"><Waves size={28} /></div>
+            <div>
+              <span>Следующая пара</span>
+              <strong>{lessonKeySubject(next) || nextLabel}</strong>
+              {next?.room && <small><MapPin size={14} /> {next.room}</small>}
+            </div>
+            <ChevronRight size={23} />
+          </section>
+        )}
+
+        <Timeline lessons={lessons} current={current} next={next} now={now} notes={notes} onToggleNote={onToggleNote} />
+      </div>
     </div>
   );
 }

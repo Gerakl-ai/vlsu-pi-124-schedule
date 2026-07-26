@@ -30,6 +30,18 @@ const SUBJECT_STOP_WORDS = new Set(["и", "в", "по", "для", "основы"
 const STRONG_STUDY_CONTEXT = /(^|\s)(дз|домашк[а-я]*|лаборатор[а-я]*|лаба|лабу|курсов[а-я]*|реферат[а-я]*|семинар[а-я]*|контрольн[а-я]*|экзамен[а-я]*|зачет[а-я]*|учеб[а-я]*|универ[а-я]*|влгу|пар(?:а|е|у|ы|ой|ах)?|препод[а-я]*|дисциплин[а-я]*|предмет[а-я]*)(?=\s|$)/;
 const WORK_CONTEXT = /(работ|клиент|заказчик|заказ|интервью|съемк|монтаж|монтир|ролик|контент|бриф|правк|коммерческ|ваканси|резюме|портфолио|созвон)/;
 const SUBJECT_REFERENCE_PREFIXES = ["по", "по предмету", "по дисциплине", "для пары по"];
+const TOPIC_STOP_WORDS = new Set([
+  "а", "без", "бы", "в", "во", "для", "до", "же", "за", "и", "из", "к", "как", "ко", "ли", "мне",
+  "на", "над", "надо", "не", "но", "о", "об", "от", "по", "под", "после", "перед", "при", "про",
+  "с", "со", "у", "через", "что", "это", "нужно", "сегодня", "завтра", "послезавтра", "вечером",
+  "утром", "днем", "ночью", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота",
+  "воскресенье"
+]);
+const TOPIC_ACTION_WORDS = new Set([
+  "внести", "доделать", "закончить", "записать", "записаться", "забрать", "купить", "написать",
+  "начать", "обработать", "обсудить", "отправить", "подготовить", "позвонить", "проверить",
+  "провести", "сделать", "смонтажировать", "смонтировать", "созвониться", "составить", "сходить"
+]);
 
 export function noteKindLabel(kind: NoteKind) {
   return KIND_LABELS[kind];
@@ -196,7 +208,7 @@ function inferKind(text: string): NoteKind {
 
 export function explicitPersonalSpace(text: string) {
   const normalized = normalizeNoteText(text);
-  if (/(танц|хореограф|репетиц|связк|постановк)/.test(normalized)) return "Танцы";
+  if (/(танц|хореограф|репетиц|связк|постановк|дуэт)/.test(normalized)) return "Танцы";
   if (/(радио|эфир|джингл|трек|плейлист|подкаст|студийн.*микрофон)/.test(normalized)) return "Радио";
   if (WORK_CONTEXT.test(normalized)) return "Работа";
   return undefined;
@@ -204,6 +216,41 @@ export function explicitPersonalSpace(text: string) {
 
 function capitalize(value: string) {
   return value ? value[0].toLocaleUpperCase("ru-RU") + value.slice(1) : value;
+}
+
+export function inferNoteTopic(text: string, subject?: SubjectOption, fallback = "Запись") {
+  if (subject) return subject.label;
+  const normalized = normalizeNoteText(text);
+  if (!normalized) return fallback;
+
+  const namedTopics: Array<[RegExp, string]> = [
+    [/(^|\s)(баня|баню|бане|бани|баней|сауна|сауну|сауне|парная|парную)(\s|$)/, "Баня"],
+    [/(?=.*(^|\s)сайт[а-яa-z0-9]*(\s|$))(?=.*(^|\s)портфолио(\s|$))/, "Сайт портфолио"],
+    [/(?=.*(^|\s)(монтаж[а-яa-z0-9]*|с?монтир[а-яa-z0-9]*)(\s|$))(?=.*(^|\s)интервью(\s|$))/, "Монтаж интервью"],
+    [/(^|\s)дуэт[а-яa-z0-9]*(\s|$)/, "Дуэт"],
+    [/(^|\s)портфолио(\s|$)/, "Портфолио"],
+    [/(^|\s)интервью(\s|$)/, "Интервью"],
+    [/(^|\s)(монтаж[а-яa-z0-9]*|с?монтир[а-яa-z0-9]*)(\s|$)/, "Монтаж"],
+    [/(^|\s)(радио|эфир|подкаст)(\s|$)/, "Радио"],
+    [/(^|\s)(танц[а-яa-z0-9]*|хореограф[а-яa-z0-9]*|репетиц[а-яa-z0-9]*)(\s|$)/, "Танцы"]
+  ];
+  const named = namedTopics.find(([pattern]) => pattern.test(normalized));
+  if (named) return named[1];
+
+  const explicitTag = normalized.match(/(?:^|\s)#([a-zа-я][a-zа-я0-9_-]{1,28})/i)?.[1];
+  if (explicitTag) return capitalize(explicitTag.replace(/[_-]/g, " "));
+
+  const words = normalized
+    .replace(/#\S+/g, " ")
+    .split(" ")
+    .filter(Boolean)
+    .filter((word) => !TOPIC_STOP_WORDS.has(word))
+    .filter((word, index) => index > 0 || !TOPIC_ACTION_WORDS.has(word))
+    .filter((word) => !/^\d{1,4}$/.test(word))
+    .slice(0, 4);
+
+  const topic = words.join(" ").trim();
+  return capitalize((topic || fallback).slice(0, 48));
 }
 
 function inferSpace(text: string, kind: NoteKind, hasStudyContext: boolean, spaces: string[]) {
@@ -282,12 +329,14 @@ export function classifyNote(text: string, subjects: SubjectOption[], spaces: st
   const personalSpace = subject ? undefined : explicitPersonalSpace(normalized);
   const kind = inferKind(normalized);
   const space = personalSpace ?? inferSpace(normalized, kind, hasExplicitStudyContext(normalized, subjects), spaces);
+  const topic = inferNoteTopic(text, subject, space);
   const due = parseDue(dueText, subject);
-  const signals = [subject, kind !== "note", space !== "Входящие", due.dueAt].filter(Boolean).length;
+  const signals = [subject, kind !== "note", space !== "Входящие", topic !== space, due.dueAt].filter(Boolean).length;
 
   return {
     kind,
     space,
+    topic,
     confidence: Math.min(0.96, 0.46 + signals * 0.12),
     subjectKey: subject?.key,
     subjectLabel: subject?.label,

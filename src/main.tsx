@@ -7,38 +7,65 @@ import "./styles.css";
 import "./theme.css";
 import "./features/notes/notes.css";
 
-let stableViewportHeight = 0;
+type ViewportOrientation = "portrait" | "landscape";
 
-function syncAppViewportHeight() {
+const stableViewportHeights: Record<ViewportOrientation, number> = { portrait: 0, landscape: 0 };
+let keyboardOpen = false;
+let viewportFrame = 0;
+let appliedVisualHeight = 0;
+let appliedVisualOffset = -1;
+
+function viewportOrientation(): ViewportOrientation {
+  return window.matchMedia("(orientation: landscape)").matches ? "landscape" : "portrait";
+}
+
+function commitAppViewportHeight() {
   const visualViewport = window.visualViewport;
-  const visualHeight = visualViewport?.height ?? 0;
-  const innerHeight = window.innerHeight || 0;
-  const currentHeight = Math.ceil(innerHeight || visualHeight);
+  const visualHeight = Math.round(visualViewport?.height || window.innerHeight || document.documentElement.clientHeight);
+  const layoutHeight = Math.round(window.innerHeight || document.documentElement.clientHeight || visualHeight);
+  const orientation = viewportOrientation();
+  const stableHeight = stableViewportHeights[orientation];
   const activeElement = document.activeElement;
   const editing = activeElement instanceof HTMLElement && (
     activeElement.isContentEditable || activeElement.matches("input, textarea, select, [role='textbox']")
   );
-  const keyboardOpen = Boolean(
-    editing && visualViewport && (
-      visualHeight + 110 < innerHeight ||
-      (stableViewportHeight > 0 && visualHeight + 110 < stableViewportHeight)
-    )
+  const viewportLoss = Math.max(
+    0,
+    layoutHeight - visualHeight,
+    stableHeight > 0 ? stableHeight - visualHeight : 0
   );
+  const threshold = keyboardOpen ? 64 : 104;
+  const nextKeyboardOpen = Boolean(visualViewport && viewportLoss > threshold && (editing || keyboardOpen));
 
-  if (!keyboardOpen && currentHeight > 0) stableViewportHeight = currentHeight;
+  keyboardOpen = nextKeyboardOpen;
+  if (!keyboardOpen && layoutHeight > 0) stableViewportHeights[orientation] = layoutHeight;
   // CSS 100dvh owns the app shell; standalone WebKit may report an innerHeight with safe areas already removed.
   document.documentElement.style.removeProperty("--app-viewport-height");
-  document.documentElement.style.setProperty("--visual-viewport-height", `${Math.ceil(visualHeight || innerHeight)}px`);
-  document.documentElement.style.setProperty("--visual-viewport-offset-top", `${Math.max(0, Math.floor(visualViewport?.offsetTop ?? 0))}px`);
+  if (Math.abs(visualHeight - appliedVisualHeight) > 1) {
+    appliedVisualHeight = visualHeight;
+    document.documentElement.style.setProperty("--visual-viewport-height", `${visualHeight}px`);
+  }
+  const visualOffset = Math.max(0, Math.round(visualViewport?.offsetTop ?? 0));
+  if (Math.abs(visualOffset - appliedVisualOffset) > 1) {
+    appliedVisualOffset = visualOffset;
+    document.documentElement.style.setProperty("--visual-viewport-offset-top", `${visualOffset}px`);
+  }
   document.documentElement.dataset.keyboard = keyboardOpen ? "open" : "closed";
 }
 
-syncAppViewportHeight();
+function syncAppViewportHeight() {
+  window.cancelAnimationFrame(viewportFrame);
+  viewportFrame = window.requestAnimationFrame(commitAppViewportHeight);
+}
+
+commitAppViewportHeight();
 applyTheme(readTheme());
 window.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("scroll", syncAppViewportHeight);
 window.addEventListener("orientationchange", syncAppViewportHeight);
+document.addEventListener("focusin", syncAppViewportHeight);
+document.addEventListener("focusout", syncAppViewportHeight);
 
 for (const eventName of ["gesturestart", "gesturechange", "gestureend"]) {
   document.addEventListener(eventName, (event) => event.preventDefault(), { passive: false });
@@ -64,7 +91,9 @@ document.addEventListener("touchmove", (event) => {
   touchStartY = currentY;
   const target = event.target;
   if (!(target instanceof Element)) return;
-  const scrollable = target.closest<HTMLElement>(".content-scroll, .rich-editor-content, .theme-sheet, .folder-sheet");
+  const scrollable = target.closest<HTMLElement>(
+    ".today-detail-scroll, .week-list, .notes-list, .settings-hero, .settings-panels, .content-scroll, .rich-editor-content, .theme-sheet, .folder-sheet"
+  );
   if (!scrollable) {
     event.preventDefault();
     return;

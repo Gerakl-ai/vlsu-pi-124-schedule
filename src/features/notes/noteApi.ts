@@ -4,6 +4,7 @@ import { hasExplicitStudyContext, hasExplicitSubjectReference } from "./noteClas
 interface RemoteClassification {
   kind?: NoteKind;
   space?: string;
+  topic?: string;
   confidence?: number;
   subjectKey?: string;
   dueAt?: string;
@@ -41,6 +42,9 @@ export async function requestSmartClassification(
       const space = value.space.trim().slice(0, 32);
       if (explicitStudyContext) result.space = "Учёба";
       else if (space !== "Учёба") result.space = space;
+    }
+    if (typeof value.topic === "string" && value.topic.trim()) {
+      result.topic = value.topic.trim().replace(/\s+/g, " ").slice(0, 48);
     }
     if (typeof value.confidence === "number") result.confidence = Math.max(0, Math.min(1, value.confidence));
     if (value.subjectKey && subjects.some((subject) => subject.key === value.subjectKey)) {

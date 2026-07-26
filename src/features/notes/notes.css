@@ -838,6 +838,15 @@
   white-space: nowrap;
 }
 
+.note-metadata > .note-topic {
+  color: var(--text);
+  border-color: rgba(var(--accent-rgb), .42);
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), .18), rgba(var(--accent-soft-rgb), .07)),
+    var(--theme-control);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 0 14px rgba(var(--accent-rgb), .08);
+}
+
 .note-metadata .is-overdue {
   color: var(--coral);
 }
@@ -2473,16 +2482,19 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 @media (orientation: landscape) and (max-height: 560px) {
   .notes-view {
     grid-template-columns: minmax(236px, .74fr) minmax(350px, 1.26fr);
-    align-items: start;
+    align-items: stretch;
   }
 
   .notes-dashboard {
     grid-column: 1;
     grid-row: 1;
     min-width: 0;
+    min-height: 0;
+    height: 100%;
     display: grid;
     align-content: start;
     gap: 8px;
+    overflow: hidden;
   }
 
   .notes-list,
@@ -2491,6 +2503,22 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     grid-column: 2;
     grid-row: 1;
     min-width: 0;
+    min-height: 0;
+    height: 100%;
+  }
+
+  .notes-list {
+    align-content: start;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    touch-action: pan-y;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .notes-list::-webkit-scrollbar {
+    display: none;
   }
 
   .space-rail {
@@ -2589,7 +2617,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   }
 
   .notes-empty {
-    min-height: calc(var(--app-viewport-height) - var(--safe-top) - var(--safe-bottom) - 22px);
+    min-height: 0;
   }
 
   .notes-empty > div {
@@ -2740,6 +2768,9 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 :root[data-keyboard="open"] .composer-layer {
   padding: 4px 6px;
+  background: rgba(2, 5, 9, .76);
+  backdrop-filter: none;
+  animation: none;
 }
 
 :root[data-keyboard="open"] .note-composer {
@@ -2747,6 +2778,9 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   height: 100%;
   min-height: 0;
   max-height: 100%;
+  contain: none;
+  animation: none;
+  transition: none;
 }
 
 :root[data-keyboard="open"] .note-composer > .sheet-handle {
@@ -2758,10 +2792,7 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 }
 
 :root[data-keyboard="open"] .voice-command {
-  min-height: 44px;
-  grid-template-columns: 34px minmax(0, 1fr);
-  margin: 4px 4px 0;
-  padding: 4px 7px;
+  display: none;
 }
 
 :root[data-keyboard="open"] .voice-command-icon {
@@ -2803,9 +2834,52 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   flex: 0 0 36px;
 }
 
+:root[data-keyboard="open"] .composer-paper,
+:root[data-keyboard="open"] .rich-note-editor,
+:root[data-keyboard="open"] .rich-editor-content {
+  contain: none;
+  transition: none;
+}
+
+:root[data-keyboard="open"] .rich-editor-content {
+  scrollbar-gutter: auto;
+}
+
 :root[data-keyboard="open"] .composer-context,
 :root[data-keyboard="open"] .composer-deadline-panel,
 :root[data-keyboard="open"] .classification-preview,
 :root[data-keyboard="open"] .composer-toolbar {
   display: none;
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+  :root[data-keyboard="open"] .note-composer {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 4px;
+    padding: 4px 6px;
+  }
+
+  :root[data-keyboard="open"] .composer-header {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  :root[data-keyboard="open"] .composer-paper {
+    grid-column: 1;
+    grid-row: 2;
+    width: 100%;
+  }
+
+  :root[data-keyboard="open"] .rich-block-styles button {
+    min-height: 30px;
+  }
+
+  :root[data-keyboard="open"] .rich-toolbar button {
+    height: 30px;
+  }
+
+  :root[data-keyboard="open"] .rich-note-surface {
+    padding: 12px 14px 34px;
+  }
 }

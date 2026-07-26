@@ -4,6 +4,7 @@ import {
   buildSubjectOptions,
   classifyNote,
   hasExplicitStudyContext,
+  inferNoteTopic,
   lessonSubjectKeys,
   normalizeSubjectKey
 } from "./noteClassifier";
@@ -101,7 +102,33 @@ describe("smart note activity and subject classification", () => {
     expect(classifyNote("Баня", subjects, spaces)).toMatchObject({
       kind: "note",
       space: "Входящие",
+      topic: "Баня",
       subjectKey: undefined
+    });
+  });
+
+  it.each([
+    ["Сходить вечером в баню", "Баня"],
+    ["Доделать сайт портфолио до пятницы", "Сайт портфолио"],
+    ["Смонтировать интервью для клиента", "Монтаж интервью"],
+    ["По дуэту: начало Ксюша с пола", "Дуэт"]
+  ])("infers a concise contextual topic: %s", (text, topic) => {
+    expect(inferNoteTopic(text)).toBe(topic);
+  });
+
+  it("routes a duet to dance while keeping its precise topic", () => {
+    expect(classifyNote("По дуэту: начало Ксюша с пола", subjects, spaces)).toMatchObject({
+      space: "Танцы",
+      topic: "Дуэт",
+      subjectKey: undefined
+    });
+  });
+
+  it("uses the explicit university subject as the exact topic", () => {
+    expect(classifyNote("По БД сделать лабораторную", subjects, spaces)).toMatchObject({
+      space: "Учёба",
+      topic: "Базы данных",
+      subjectLabel: "Базы данных"
     });
   });
 

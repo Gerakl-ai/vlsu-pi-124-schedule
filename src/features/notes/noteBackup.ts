@@ -43,6 +43,7 @@ function isSmartNote(value: unknown): value is SmartNote {
     isOptionalString(value.contentHtml) &&
     typeof value.title === "string" &&
     typeof value.space === "string" &&
+    isOptionalString(value.topic) &&
     typeof value.confidence === "number" && Number.isFinite(value.confidence) && value.confidence >= 0 && value.confidence <= 1 &&
     NOTE_KINDS.has(value.kind as NoteKind) &&
     NOTE_STATUSES.has(value.status as NoteStatus) &&

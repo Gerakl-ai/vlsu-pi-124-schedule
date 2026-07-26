@@ -33,6 +33,7 @@ export interface SubjectOption {
 export interface NoteClassification {
   kind: NoteKind;
   space: string;
+  topic?: string;
   confidence: number;
   subjectKey?: string;
   subjectLabel?: string;

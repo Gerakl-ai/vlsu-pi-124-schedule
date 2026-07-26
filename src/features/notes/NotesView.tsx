@@ -178,7 +178,7 @@ export function NotesView({
       if (selectedFilter.matches && !selectedFilter.matches(note)) return false;
       if (selectedFilter.space && note.space !== selectedFilter.space) return false;
       if (!normalizedQuery) return true;
-      return `${note.title} ${note.text} ${note.space} ${note.subjectLabel ?? ""}`.toLocaleLowerCase("ru-RU").includes(normalizedQuery);
+      return `${note.title} ${note.text} ${note.space} ${note.topic ?? ""} ${note.subjectLabel ?? ""}`.toLocaleLowerCase("ru-RU").includes(normalizedQuery);
     });
   }, [notes, query, selectedFilter]);
 

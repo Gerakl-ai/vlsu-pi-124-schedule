@@ -285,10 +285,11 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
         <div className={`classification-preview ${preview ? "ready" : "empty"}`} aria-live="polite">
           {preview ? (
             <>
-              <span>Лад</span>
-              <strong>{preview.space}</strong>
+              <span>Тема</span>
+              <strong>{preview.topic ?? preview.space}</strong>
+              {preview.space !== "Входящие" && preview.space !== preview.topic && <i>{preview.space}</i>}
               <i>{noteKindLabel(preview.kind)}</i>
-              {preview.subjectLabel && <i>{preview.subjectLabel}</i>}
+              {preview.subjectLabel && preview.subjectLabel !== preview.topic && <i>{preview.subjectLabel}</i>}
               {preview.dueLabel && <i>{preview.dueLabel}</i>}
             </>
           ) : (

@@ -223,8 +223,9 @@ export function NoteCard({
           ? <span className="note-rich-preview" dangerouslySetInnerHTML={{ __html: previewHtml }} />
           : body && <span className="note-excerpt">{body}</span>}
         <span className="note-metadata">
-          <span>{note.space}</span>
-          {note.subjectLabel && <span>{note.subjectLabel}</span>}
+          <span className="note-topic">{note.topic ?? note.space}</span>
+          {note.space !== "Входящие" && note.space !== note.topic && <span>{note.space}</span>}
+          {note.subjectLabel && note.subjectLabel !== note.topic && <span>{note.subjectLabel}</span>}
           {note.dueLabel && <span className={overdue ? "is-overdue" : ""}><CalendarClock size={12} /> {note.dueLabel}</span>}
           {note.classificationPending && <span><LoaderCircle className="spin" size={12} /> Уточняем</span>}
         </span>
