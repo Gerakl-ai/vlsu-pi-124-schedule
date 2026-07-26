@@ -3748,6 +3748,8 @@ select,
   .content-scroll {
     grid-column: 2;
     grid-row: 1 / -1;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
     padding: calc(10px + var(--safe-top)) calc(14px + var(--safe-right)) calc(12px + var(--safe-bottom)) 14px;
     -webkit-overflow-scrolling: auto;
@@ -3833,6 +3835,8 @@ select,
 
   .view-stack {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -3840,14 +3844,21 @@ select,
     animation: landscape-view-in .28s cubic-bezier(.2,.82,.2,1) both;
   }
 
+  .view-stack > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
   .today-view {
-    grid-template-columns: minmax(300px, 1.08fr) minmax(280px, .92fr);
+    grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr);
     align-items: stretch;
   }
 
   .today-primary {
     grid-column: 1;
     grid-row: 1;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     min-height: 0;
     display: grid;
@@ -3868,6 +3879,8 @@ select,
   .today-detail-scroll {
     grid-column: 2;
     grid-row: 1;
+    width: 100%;
+    max-width: 100%;
     min-width: 0;
     min-height: 0;
     height: 100%;
@@ -4035,13 +4048,16 @@ select,
   }
 
   .week-view {
-    grid-template-columns: minmax(228px, .76fr) minmax(360px, 1.24fr);
+    grid-template-columns: minmax(0, .76fr) minmax(0, 1.24fr);
     align-items: stretch;
   }
 
   .week-view > .week-overview {
     grid-column: 1;
     grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     display: grid;
     min-height: 0;
     align-self: stretch;
@@ -4053,6 +4069,9 @@ select,
   .week-view > .week-list {
     grid-column: 2;
     grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 0;
     height: 100%;
     display: flex;
@@ -4189,12 +4208,15 @@ select,
   }
 
   .settings-view {
-    grid-template-columns: minmax(240px, .76fr) minmax(360px, 1.24fr);
+    grid-template-columns: minmax(0, .76fr) minmax(0, 1.24fr);
     align-items: stretch;
   }
 
   .settings-view > .settings-hero {
     grid-column: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     min-height: 0;
     height: 100%;
     overflow-x: hidden;
@@ -4212,6 +4234,9 @@ select,
   .settings-view > .settings-panels {
     grid-column: 2;
     grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
