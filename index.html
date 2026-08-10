@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta name="theme-color" content="#090a0c" />
+    <meta name="theme-color" content="#f5eee5" />
     <meta name="description" content="Лад: расписание и умные записи ПИ-124, ИИТЭ, ВлГУ" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Лад" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" />
@@ -17,8 +17,8 @@
       (() => {
         const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
         document.documentElement.dataset.standalone = standalone ? "true" : "false";
-        const allowed = new Set(["obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
-        let theme = "signal";
+        const allowed = new Set(["ember", "obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
+        let theme = "ember";
         try {
           const stored = localStorage.getItem("lad.theme");
           if (allowed.has(stored)) theme = stored;
@@ -28,10 +28,11 @@
         if (theme === "custom") {
           try { custom = JSON.parse(localStorage.getItem("lad.custom-theme") || "null"); } catch {}
         }
-        const lightMode = custom?.mode === "light" || theme === "porcelain" || theme === "glacier" || theme === "atelier";
+        const lightMode = custom?.mode === "light" || theme === "ember" || theme === "porcelain" || theme === "glacier" || theme === "atelier";
         document.documentElement.dataset.themeMode = lightMode ? "light" : "dark";
         document.documentElement.style.colorScheme = custom?.mode || (lightMode ? "light" : "dark");
         const colors = {
+          ember: "#f5eee5",
           obsidian: "#05070a",
           porcelain: "#eef2f7",
           signal: "#090a0c",
@@ -44,6 +45,8 @@
         };
         const chromeColor = colors[theme];
         document.documentElement.style.backgroundColor = chromeColor;
+        document.documentElement.style.setProperty("--launch-status", chromeColor);
+        document.documentElement.style.setProperty("--status-bar-bg", chromeColor);
         if (custom) {
           const root = document.documentElement.style;
           root.setProperty("--launch-bg", custom.background);
@@ -60,11 +63,12 @@
         heroPreload.href = lightMode ? "/images/hero-porcelain-campus.jpg" : "/images/hero-obsidian-campus.jpg";
         document.head.appendChild(heroPreload);
         document.querySelector('meta[name="theme-color"]').setAttribute("content", chromeColor);
+        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", lightMode ? "default" : "black-translucent");
       })();
     </script>
     <style>
       :root {
-        color-scheme: dark;
+        color-scheme: light;
         --safe-top: env(safe-area-inset-top, 0px);
         --safe-bottom: env(safe-area-inset-bottom, 0px);
         --safe-left: env(safe-area-inset-left, 0px);
@@ -72,14 +76,14 @@
         --app-viewport-height: 100dvh;
         --visual-viewport-height: 100dvh;
         --visual-viewport-offset-top: 0px;
-        --launch-bg: #05070a;
-        --launch-panel: rgba(10, 16, 26, 0.84);
-        --launch-line: rgba(183, 215, 255, 0.16);
-        --launch-text: #f7fbff;
-        --launch-muted: #8e9bad;
-        --launch-accent: #8fb8ff;
-        --launch-signal: #ff6b5f;
-        --launch-status: #05070a;
+        --launch-bg: #f5eee5;
+        --launch-panel: rgba(255, 250, 244, 0.9);
+        --launch-line: rgba(83, 54, 37, 0.15);
+        --launch-text: #211b17;
+        --launch-muted: #71655c;
+        --launch-accent: #c9602d;
+        --launch-signal: #2f7d78;
+        --launch-status: var(--launch-bg);
       }
 
       @media (display-mode: standalone) {
@@ -92,6 +96,16 @@
         --app-viewport-height: 100vh;
       }
 
+      :root[data-theme="ember"] {
+        --launch-bg: #f5eee5;
+        --launch-panel: rgba(255, 250, 244, 0.9);
+        --launch-line: rgba(83, 54, 37, 0.15);
+        --launch-text: #211b17;
+        --launch-muted: #71655c;
+        --launch-accent: #c9602d;
+        --launch-signal: #2f7d78;
+      }
+
       :root[data-theme="porcelain"] {
         --launch-bg: #eef2f7;
         --launch-panel: rgba(255, 255, 255, 0.82);
@@ -100,7 +114,6 @@
         --launch-muted: #5b6678;
         --launch-accent: #2457d6;
         --launch-signal: #e4473e;
-        --launch-status: #101827;
       }
 
       :root[data-theme="signal"] {
@@ -151,7 +164,6 @@
         --launch-muted: #5b7180;
         --launch-accent: #087f9c;
         --launch-signal: #e75564;
-        --launch-status: #102333;
       }
 
       :root[data-theme="atelier"] {
@@ -162,7 +174,6 @@
         --launch-muted: #716a7f;
         --launch-accent: #4c5bd4;
         --launch-signal: #c53f68;
-        --launch-status: #201b2c;
       }
 
       html,
@@ -211,7 +222,7 @@
         z-index: 2;
         inset: 0 0 auto;
         height: var(--safe-top);
-        background: var(--launch-status);
+        background: var(--launch-bg);
         pointer-events: none;
       }
 

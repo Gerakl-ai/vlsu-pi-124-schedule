@@ -1,4 +1,5 @@
 export type ThemeId =
+  | "ember"
   | "obsidian"
   | "porcelain"
   | "signal"
@@ -33,6 +34,7 @@ export interface CustomTheme {
 
 export const THEME_STORAGE_KEY = "lad.theme";
 export const CUSTOM_THEME_STORAGE_KEY = "lad.custom-theme";
+export const DEFAULT_THEME_ID: ThemeId = "ember";
 
 export const DEFAULT_CUSTOM_THEME: CustomTheme = {
   name: "Мой свет",
@@ -47,6 +49,14 @@ export const DEFAULT_CUSTOM_THEME: CustomTheme = {
 };
 
 export const THEMES: ThemeDefinition[] = [
+  {
+    id: "ember",
+    name: "Ember Atelier",
+    caption: "Тёплый фарфор, жжёный апельсин и глубокая бирюза",
+    themeColor: "#f5eee5",
+    colors: ["#f5eee5", "#211b17", "#c9602d", "#2f7d78"],
+    isLight: true
+  },
   {
     id: "obsidian",
     name: "Obsidian",
@@ -121,7 +131,8 @@ const CUSTOM_PROPERTIES = [
   "--cyan", "--blue", "--coral", "--green", "--warning", "--ruby", "--ice", "--accent-rgb",
   "--accent-soft-rgb", "--signal-rgb", "--signal-deep-rgb", "--success-rgb", "--theme-body", "--theme-frame",
   "--theme-panel", "--theme-panel-solid", "--theme-panel-border", "--theme-control", "--theme-control-active",
-  "--theme-nav", "--theme-nav-text", "--theme-grid-rgb", "--theme-image-filter", "--theme-image-opacity", "--shadow"
+  "--theme-nav", "--theme-nav-text", "--theme-grid-rgb", "--theme-image-filter", "--theme-image-opacity", "--shadow",
+  "--status-bar-bg"
 ];
 
 function isHex(value: unknown): value is string {
@@ -163,7 +174,7 @@ export function readTheme(): ThemeId {
   } catch {
     // Storage can be unavailable in private browsing; the default remains usable.
   }
-  return "signal";
+  return DEFAULT_THEME_ID;
 }
 
 export function readCustomTheme(): CustomTheme {
@@ -246,7 +257,13 @@ export function applyTheme(themeId: ThemeId, customTheme = readCustomTheme()) {
   document.documentElement.dataset.themeMode = mode;
   document.documentElement.style.colorScheme = mode;
   document.documentElement.style.backgroundColor = chromeColor;
+  document.documentElement.style.setProperty("--status-bar-bg", chromeColor);
+  document.body.style.backgroundColor = chromeColor;
   document.querySelector<HTMLMetaElement>('meta[name="theme-color"]')?.setAttribute("content", chromeColor);
+  document.querySelector<HTMLMetaElement>('meta[name="apple-mobile-web-app-status-bar-style"]')?.setAttribute(
+    "content",
+    mode === "light" ? "default" : "black-translucent"
+  );
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme.id);
   } catch {

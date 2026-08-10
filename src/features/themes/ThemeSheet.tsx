@@ -53,7 +53,17 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
   }
 
   function setCustomMode(mode: CustomTheme["mode"]) {
-    onCustomChange(mode === "light" ? LIGHT_CUSTOM_THEME : { ...DEFAULT_CUSTOM_THEME, name: customTheme.name || DEFAULT_CUSTOM_THEME.name });
+    if (mode === customTheme.mode) return;
+    const surfaces = mode === "light" ? LIGHT_CUSTOM_THEME : DEFAULT_CUSTOM_THEME;
+    onCustomChange({
+      ...customTheme,
+      mode,
+      name: customTheme.name || surfaces.name,
+      background: surfaces.background,
+      surface: surfaces.surface,
+      text: surfaces.text,
+      muted: surfaces.muted
+    });
   }
 
   return (
