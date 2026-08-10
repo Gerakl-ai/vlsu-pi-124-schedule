@@ -34,6 +34,8 @@ export interface CustomTheme {
 
 export const THEME_STORAGE_KEY = "lad.theme";
 export const CUSTOM_THEME_STORAGE_KEY = "lad.custom-theme";
+export const THEME_SCHEMA_VERSION_KEY = "lad.theme-schema";
+export const THEME_SCHEMA_VERSION = "2026-08-ember";
 export const DEFAULT_THEME_ID: ThemeId = "ember";
 
 export const DEFAULT_CUSTOM_THEME: CustomTheme = {
@@ -169,6 +171,11 @@ export function isThemeId(value: string | null): value is ThemeId {
 
 export function readTheme(): ThemeId {
   try {
+    if (localStorage.getItem(THEME_SCHEMA_VERSION_KEY) !== THEME_SCHEMA_VERSION) {
+      localStorage.setItem(THEME_SCHEMA_VERSION_KEY, THEME_SCHEMA_VERSION);
+      localStorage.setItem(THEME_STORAGE_KEY, DEFAULT_THEME_ID);
+      return DEFAULT_THEME_ID;
+    }
     const stored = localStorage.getItem(THEME_STORAGE_KEY);
     if (isThemeId(stored)) return stored;
   } catch {
@@ -266,6 +273,7 @@ export function applyTheme(themeId: ThemeId, customTheme = readCustomTheme()) {
   );
   try {
     localStorage.setItem(THEME_STORAGE_KEY, theme.id);
+    localStorage.setItem(THEME_SCHEMA_VERSION_KEY, THEME_SCHEMA_VERSION);
   } catch {
     // Theme still applies for the current session.
   }

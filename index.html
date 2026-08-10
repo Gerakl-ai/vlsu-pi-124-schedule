@@ -18,10 +18,16 @@
         const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
         document.documentElement.dataset.standalone = standalone ? "true" : "false";
         const allowed = new Set(["ember", "obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
+        const themeSchema = "2026-08-ember";
         let theme = "ember";
         try {
-          const stored = localStorage.getItem("lad.theme");
-          if (allowed.has(stored)) theme = stored;
+          if (localStorage.getItem("lad.theme-schema") !== themeSchema) {
+            localStorage.setItem("lad.theme-schema", themeSchema);
+            localStorage.setItem("lad.theme", theme);
+          } else {
+            const stored = localStorage.getItem("lad.theme");
+            if (allowed.has(stored)) theme = stored;
+          }
         } catch {}
         document.documentElement.dataset.theme = theme;
         let custom = null;
