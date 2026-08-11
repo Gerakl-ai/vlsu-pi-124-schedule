@@ -59,7 +59,12 @@ function syncAppViewportHeight() {
   viewportFrame = window.requestAnimationFrame(commitAppViewportHeight);
 }
 
+function syncDocumentVisibility() {
+  document.documentElement.dataset.appVisibility = document.hidden ? "hidden" : "visible";
+}
+
 commitAppViewportHeight();
+syncDocumentVisibility();
 applyTheme(readTheme());
 window.addEventListener("resize", syncAppViewportHeight);
 window.visualViewport?.addEventListener("resize", syncAppViewportHeight);
@@ -67,6 +72,7 @@ window.visualViewport?.addEventListener("scroll", syncAppViewportHeight);
 window.addEventListener("orientationchange", syncAppViewportHeight);
 document.addEventListener("focusin", syncAppViewportHeight);
 document.addEventListener("focusout", syncAppViewportHeight);
+document.addEventListener("visibilitychange", syncDocumentVisibility);
 
 for (const eventName of ["gesturestart", "gesturechange", "gestureend"]) {
   document.addEventListener(eventName, (event) => event.preventDefault(), { passive: false });

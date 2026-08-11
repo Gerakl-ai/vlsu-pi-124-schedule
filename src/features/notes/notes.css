@@ -2836,6 +2836,18 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   transition: none;
 }
 
+@media (max-width: 560px), (orientation: landscape) and (max-height: 560px) {
+  .notes-action,
+  .notes-pulse::before,
+  .quick-capture::before,
+  .quick-capture::after,
+  .voice-capture-card::before,
+  .note-card::after {
+    animation: none;
+  }
+
+}
+
 :root[data-keyboard="open"] .note-composer > .sheet-handle {
   display: none;
 }

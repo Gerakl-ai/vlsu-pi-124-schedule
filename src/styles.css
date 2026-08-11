@@ -4386,6 +4386,108 @@ select,
   to { transform: scale(1.075); }
 }
 
+/* Keep the iPhone composition alive without continuously repainting the whole viewport. */
+@media (max-width: 560px), (orientation: landscape) and (max-height: 560px) {
+  .phone-frame::before,
+  .ambient-grid,
+  .ambient-grid::before,
+  .light-sweep,
+  .light-sweep::after {
+    animation: none;
+  }
+
+  .ambient-grid::after,
+  .data-route-b,
+  .data-route-c,
+  .data-gate,
+  .motion-particles i:nth-child(n + 4) {
+    display: none;
+  }
+
+  .light-sweep::before {
+    animation-duration: 34s;
+  }
+
+  .data-route-a {
+    animation-duration: 38s;
+  }
+
+  .data-route::after {
+    animation: none;
+  }
+
+  .motion-particles i:nth-child(-n + 3) {
+    --particle-duration: 44s;
+    box-shadow: 0 0 5px rgba(var(--accent-rgb), .34);
+  }
+
+  .brand-mark,
+  .hero-visual,
+  .hero-sigil,
+  .status-pill,
+  .section-icon,
+  .settings-hero-icon,
+  .empty-state svg {
+    animation: none;
+    will-change: auto;
+  }
+
+  .hero-card::before {
+    animation-duration: 24s;
+  }
+
+  .day-motion-rail::after {
+    animation-duration: 20s;
+  }
+
+  .day-motion-track {
+    animation-duration: 44s;
+    will-change: auto;
+  }
+
+  .progress-track span,
+  .command-strip::before,
+  .command-item::before,
+  .timeline-route::after,
+  .week-view::before,
+  .week-map::before,
+  .week-map-day.active::before,
+  .week-map-day.active .week-map-bar span,
+  .settings-view::before,
+  .settings-panel::before,
+  .empty-state::before,
+  .empty-state::after,
+  .bottom-nav::after,
+  .nav-selection,
+  .bottom-nav button.active::after,
+  .bottom-nav button.active .nav-icon {
+    animation: none;
+  }
+
+  .week-chip,
+  .banner,
+  .hero-sigil,
+  .status-pill,
+  .bottom-nav {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .nav-selection,
+  .bottom-nav button.active .nav-icon,
+  .light-sweep::before,
+  .data-route,
+  .motion-particles i {
+    will-change: auto;
+  }
+}
+
+:root[data-app-visibility="hidden"] *,
+:root[data-app-visibility="hidden"] *::before,
+:root[data-app-visibility="hidden"] *::after {
+  animation-play-state: paused !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

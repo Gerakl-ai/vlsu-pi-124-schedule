@@ -71,6 +71,41 @@
   --shadow: 0 30px 90px rgba(87, 58, 39, .2);
 }
 
+:root[data-theme="ember"] .route-dot {
+  color: #2f7d78;
+  border-color: rgba(var(--accent-rgb), .66);
+  background: linear-gradient(145deg, #fffdf9, #ead8c6);
+  box-shadow:
+    0 0 0 7px rgba(245, 238, 229, .96),
+    0 0 18px rgba(var(--accent-rgb), .2),
+    inset 0 1px 0 rgba(255, 255, 255, .95);
+}
+
+:root[data-theme="ember"] .current .route-dot {
+  color: #fffaf4;
+  border-color: #fff8ef;
+  background: linear-gradient(145deg, #3f918a, #256b68);
+  box-shadow:
+    0 0 0 7px rgba(245, 238, 229, .96),
+    0 0 25px rgba(47, 125, 120, .5);
+}
+
+:root[data-theme="ember"] .next .route-dot {
+  color: #fffaf4;
+  border-color: #fff7ed;
+  background: linear-gradient(145deg, #df8048, #ba4f26);
+  box-shadow:
+    0 0 0 7px rgba(245, 238, 229, .96),
+    0 0 22px rgba(var(--accent-rgb), .42);
+}
+
+:root[data-theme="ember"] .past .route-dot {
+  border-color: #fff4e8;
+  box-shadow:
+    0 0 0 7px rgba(245, 238, 229, .96),
+    0 0 20px rgba(var(--signal-deep-rgb), .34);
+}
+
 :root[data-theme="porcelain"] {
   color-scheme: light;
   --bg: #eef2f7;
