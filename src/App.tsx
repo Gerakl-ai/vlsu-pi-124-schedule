@@ -1204,6 +1204,8 @@ function WeekView({
               key={mode}
               className={weekOverride === mode ? "active" : ""}
               type="button"
+              role="radio"
+              aria-checked={weekOverride === mode}
               onClick={() => setWeekOverride(mode as WeekMode | "current")}
             >
               {label}
@@ -1232,7 +1234,10 @@ function WeekView({
                   const linkedCount = notesForLesson(lesson, notes).length;
                   return (
                     <div className="mini-lesson" key={lesson.id}>
-                      <span>{lesson.start}</span>
+                      <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                        <time dateTime={lesson.start}>{lesson.start}</time>
+                        <time dateTime={lesson.end}>{lesson.end}</time>
+                      </span>
                       <strong>{lesson.subject}</strong>
                       <small>{lesson.room || lesson.kind || "ВлГУ"}</small>
                       {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
@@ -1291,7 +1296,7 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
               <div className="session-date-card" key={group.key}>
                 <strong>{group.title}</strong>
                 <span>{formatLessonCount(group.lessons.length)}</span>
-                <small>{group.lessons[0]?.start}</small>
+                <small>{group.lessons[0] ? `${group.lessons[0].start}–${group.lessons[0].end}` : ""}</small>
               </div>
             ))}
           </div>
@@ -1309,7 +1314,10 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
               const linkedCount = notesForLesson(lesson, notes).length;
               return (
                 <div className="mini-lesson" key={lesson.id}>
-                  <span>{lesson.start}</span>
+                  <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                    <time dateTime={lesson.start}>{lesson.start}</time>
+                    <time dateTime={lesson.end}>{lesson.end}</time>
+                  </span>
                   <strong>{lesson.subject}</strong>
                   <small>{[lesson.room, lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small>
                   {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}

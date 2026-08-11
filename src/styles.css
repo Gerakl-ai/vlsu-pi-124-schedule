@@ -933,7 +933,7 @@ select,
 }
 
 .hero-card.mode-next {
-  border-color: rgba(143, 184, 255, 0.62);
+  border-color: rgba(var(--accent-rgb), 0.62);
 }
 
 .hero-card::after {
@@ -1321,7 +1321,7 @@ select,
 }
 
 .focus-note-card:hover {
-  border-color: rgba(143, 184, 255, 0.48);
+  border-color: rgba(var(--accent-rgb), 0.48);
 }
 
 .focus-note-card:active {
@@ -1523,7 +1523,7 @@ select,
   background:
     linear-gradient(135deg, rgba(var(--accent-rgb), 0.34), rgba(var(--accent-soft-rgb), 0.12)),
     rgba(12, 20, 34, 0.72);
-  box-shadow: inset 0 0 0 1px rgba(143, 184, 255, 0.32), 0 0 26px rgba(var(--accent-rgb), 0.12);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.32), 0 0 26px rgba(var(--accent-rgb), 0.12);
 }
 
 .timeline-card {
@@ -2256,7 +2256,7 @@ select,
 }
 
 .week-map-day.active {
-  border-color: rgba(143, 184, 255, 0.5);
+  border-color: rgba(var(--accent-rgb), 0.5);
   box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.14), 0 0 24px rgba(var(--accent-rgb), 0.15);
   transform: translateY(-2px);
 }
@@ -2426,7 +2426,7 @@ select,
 .mini-lesson {
   position: relative;
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr) auto;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
   gap: 4px 12px;
   padding: 10px 0 10px 10px;
   border-top: 1px solid rgba(159, 179, 196, 0.13);
@@ -2448,10 +2448,33 @@ select,
   animation: week-lesson-signal 3.8s ease-in-out infinite;
 }
 
-.mini-lesson span {
+.mini-lesson > span:not(.mini-lesson-time) {
   color: var(--cyan);
   font-size: 13px;
   font-weight: 900;
+}
+
+.mini-lesson-time {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  display: grid;
+  gap: 5px;
+  color: var(--cyan);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.mini-lesson-time time {
+  display: block;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mini-lesson-time time:last-child {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 800;
 }
 
 .mini-lesson strong {
@@ -2654,7 +2677,7 @@ select,
 
 .reminder-options .active {
   color: white;
-  border-color: rgba(143, 184, 255, 0.46);
+  border-color: rgba(var(--accent-rgb), 0.46);
   background: rgba(var(--accent-rgb), 0.18);
 }
 
@@ -3129,7 +3152,7 @@ select,
 .reminder-options button:focus-visible,
 .backup-actions button:focus-visible,
 .setting-switch:focus-visible {
-  outline: 2px solid rgba(143, 184, 255, 0.78);
+  outline: 2px solid rgba(var(--accent-rgb), 0.78);
   outline-offset: 2px;
 }
 
@@ -4251,7 +4274,7 @@ select,
     width: 100%;
     max-width: 100%;
     min-width: 0;
-    grid-template-columns: 45px minmax(0, 1fr) max-content;
+    grid-template-columns: 54px minmax(0, 1fr) max-content;
     gap: 3px 9px;
     padding: 9px 0 9px 9px;
   }
@@ -4446,15 +4469,20 @@ select,
   }
 
   .progress-track span,
-  .command-strip::before,
-  .command-item::before,
-  .timeline-route::after,
-  .week-view::before,
-  .week-map::before,
-  .week-map-day.active::before,
-  .week-map-day.active .week-map-bar span,
-  .settings-view::before,
-  .settings-panel::before,
+  .command-strip::after,
+  .command-item::after,
+  .command-item svg,
+  .next-icon svg,
+  .focus-note-icon svg,
+  .timeline-card::before,
+  .timeline-card::after,
+  .week-toolbar::before,
+  .week-toolbar::after,
+  .week-map::after,
+  .day-block::after,
+  .week-map-day.active::after,
+  .week-map-bar span,
+  .settings-panel::after,
   .empty-state::before,
   .empty-state::after,
   .bottom-nav::after,
