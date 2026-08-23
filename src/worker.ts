@@ -46,8 +46,9 @@ function responseWithPlatformHeaders(response: Response, env: Env, request: Requ
   const url = new URL(request.url);
   const contentType = headers.get("Content-Type") ?? "";
   headers.set("X-Content-Type-Options", "nosniff");
-  headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  headers.set("Referrer-Policy", "no-referrer");
   headers.set("X-Frame-Options", "DENY");
+  headers.set("Permissions-Policy", "camera=(), geolocation=(), microphone=(self), payment=(), usb=()");
   headers.set("X-Lad-Release", RELEASE_CHANNEL);
   if (url.pathname === "/sw.js" || contentType.includes("text/html")) {
     headers.set("Cache-Control", "no-cache, no-store, must-revalidate");

@@ -59,6 +59,8 @@ describe("Cloudflare worker", () => {
     expect(await response.text()).toBe("app shell");
     expect(response.headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(response.headers.get("X-Frame-Options")).toBe("DENY");
+    expect(response.headers.get("Referrer-Policy")).toBe("no-referrer");
+    expect(response.headers.get("Permissions-Policy")).toBe("camera=(), geolocation=(), microphone=(self), payment=(), usb=()");
     expect(response.headers.get("Cache-Control")).toBe("no-cache, no-store, must-revalidate");
     expect(env.ASSETS.fetch).toHaveBeenCalledOnce();
   });

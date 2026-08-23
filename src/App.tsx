@@ -29,7 +29,7 @@ import {
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
 import { lessonSubjectKeys } from "./features/notes/noteClassifier";
-import { readAiEnabled, writeAiEnabled } from "./features/notes/notePreferences";
+import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./features/notes/notePreferences";
 import type { SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
@@ -259,7 +259,7 @@ export function App() {
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
-  const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled());
+  const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled() && readAiConsent());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -338,6 +338,10 @@ export function App() {
     if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
     setNotice(message);
   }
+
+  useEffect(() => {
+    if (readAiEnabled() && !readAiConsent()) writeAiEnabled(false);
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => refreshSchedule(), 0);
@@ -1239,7 +1243,10 @@ function WeekView({
                         <time dateTime={lesson.end}>{lesson.end}</time>
                       </span>
                       <strong>{lesson.subject}</strong>
-                      <small>{lesson.room || lesson.kind || "ВлГУ"}</small>
+                      <small className="mini-lesson-meta">
+                        <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                        <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                      </small>
                       {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
                     </div>
                   );
@@ -1319,7 +1326,10 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
                     <time dateTime={lesson.end}>{lesson.end}</time>
                   </span>
                   <strong>{lesson.subject}</strong>
-                  <small>{[lesson.room, lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "ВлГУ"}</small>
+                  <small className="mini-lesson-meta">
+                    <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                    <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                  </small>
                   {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
                 </div>
               );
@@ -1410,6 +1420,13 @@ function SettingsView({
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
+  const [cloudConsent, setCloudConsent] = useState(() => readAiConsent());
+
+  function updateCloudConsent(consented: boolean) {
+    setCloudConsent(consented);
+    writeAiConsent(consented);
+    if (!consented && aiEnabled) onAiEnabled(false);
+  }
 
   async function importBackup(file?: File) {
     if (!file) return;
@@ -1514,11 +1531,25 @@ function SettingsView({
             </div>
           </header>
           <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
+          <div className="privacy-map" aria-label="Как приложение работает с данными">
+            <div>
+              <ShieldCheck size={18} />
+              <span><strong>Только на iPhone</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
+            </div>
+            <div>
+              <CloudOff size={18} />
+              <span><strong>Без слежения</strong><small>Нет аккаунта, рекламных счётчиков, аналитики и cookies.</small></span>
+            </div>
+            <div>
+              <BrainCircuit size={18} />
+              <span><strong>Облако — только по выбору</strong><small>Текст новой заметки отправляется в Cloudflare AI лишь после отдельного разрешения.</small></span>
+            </div>
+          </div>
           <div className="ai-setting">
             <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
             <div>
               <strong>Облачное уточнение</strong>
-              <small>Новые сложные записи уточняет Cloudflare AI. Локальная сортировка работает всегда.</small>
+              <small>До 4000 символов новой заметки передаются Cloudflare AI. Локальная сортировка работает всегда.</small>
             </div>
             <button
               className={`setting-switch ${aiEnabled ? "active" : ""}`}
@@ -1526,11 +1557,28 @@ function SettingsView({
               role="switch"
               aria-checked={aiEnabled}
               aria-label="Облачное уточнение записей"
+              disabled={!cloudConsent}
               onClick={() => onAiEnabled(!aiEnabled)}
             >
               <span />
             </button>
           </div>
+          <label className="cloud-consent">
+            <input
+              type="checkbox"
+              checked={cloudConsent}
+              onChange={(event) => updateCloudConsent(event.target.checked)}
+            />
+            <span>
+              <strong>Разрешаю облачную классификацию</strong>
+              <small>Не отправляйте чужие, медицинские, паспортные и другие чувствительные данные. Разрешение можно отозвать здесь в любой момент.</small>
+            </span>
+          </label>
+          <details className="privacy-details">
+            <summary>Данные и статус приложения</summary>
+            <p>Неофициальное приложение ПИ-124. Расписание загружается из публичного API ВлГУ через технический прокси; заметки и вложения сервер приложения не хранит.</p>
+            <p>При обычном открытии Cloudflare технически обрабатывает сетевой запрос. Облачное уточнение по умолчанию выключено.</p>
+          </details>
           <div className="backup-actions">
             <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>
               <Download size={17} /> Экспорт
