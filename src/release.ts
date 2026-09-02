@@ -1,1 +1,1 @@
-export const RELEASE_CHANNEL = "2026.08.23.1";
+export const RELEASE_CHANNEL = "2026.09.02.1";

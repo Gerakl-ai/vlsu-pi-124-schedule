@@ -26,7 +26,7 @@ import { FolderSheet } from "./FolderSheet";
 import { deadlineForCalendarDate } from "./noteDeadline";
 import { NoteCard } from "./NoteCard";
 import type { NoteDropPlacement } from "./noteOrdering";
-import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
+import type { LessonNoteContext, NoteClassification, NoteComposerRequest, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 let noteComposerModule: Promise<typeof import("./NoteComposer")> | undefined;
 let calendarModule: Promise<typeof import("./SmartCalendarSheet")> | undefined;
@@ -70,6 +70,7 @@ interface NotesViewProps {
   ready: boolean;
   weekMode: WeekMode;
   calendarRequestToken: number;
+  composerRequest?: NoteComposerRequest | null;
   classifyDraft: (text: string) => NoteClassification;
   onCreate: (input: NoteDocumentInput) => Promise<SmartNote>;
   onCreateFolder: (name: string) => Promise<NoteFolder | null>;
@@ -80,6 +81,7 @@ interface NotesViewProps {
   onTogglePinned: (noteId: string) => void;
   onUpdate: (noteId: string, input: NoteDocumentInput) => Promise<SmartNote | undefined>;
   onCalendarRequestHandled: () => void;
+  onComposerRequestHandled: () => void;
 }
 
 interface SmartFilter {
@@ -119,6 +121,7 @@ export function NotesView({
   ready,
   weekMode = "all",
   calendarRequestToken,
+  composerRequest,
   classifyDraft,
   onCreate,
   onCreateFolder,
@@ -128,7 +131,8 @@ export function NotesView({
   onToggle,
   onTogglePinned,
   onUpdate,
-  onCalendarRequestHandled
+  onCalendarRequestHandled,
+  onComposerRequestHandled
 }: NotesViewProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -139,6 +143,7 @@ export function NotesView({
   const [voiceStartToken, setVoiceStartToken] = useState(0);
   const [composerSeed, setComposerSeed] = useState("");
   const [composerDueAt, setComposerDueAt] = useState<string | undefined>(undefined);
+  const [composerLessonContext, setComposerLessonContext] = useState<LessonNoteContext | undefined>(undefined);
   const [revealedNoteId, setRevealedNoteId] = useState<string | null>(null);
   const [reorderState, setReorderState] = useState<NoteReorderState | null>(null);
   const [reorderAnnouncement, setReorderAnnouncement] = useState("");
@@ -330,6 +335,18 @@ export function NotesView({
   }, [calendarRequestToken, onCalendarRequestHandled]);
 
   useEffect(() => {
+    if (!composerRequest) return;
+    preloadNoteComposer();
+    setEditingNote(null);
+    setComposerSeed(composerRequest.seed ?? "");
+    setComposerDueAt(composerRequest.dueAt);
+    setComposerLessonContext(composerRequest.lessonContext);
+    setVoiceStartToken(0);
+    setComposerOpen(true);
+    onComposerRequestHandled();
+  }, [composerRequest, onComposerRequestHandled]);
+
+  useEffect(() => {
     const timer = window.setTimeout(() => {
       void Promise.allSettled([loadNoteComposer(), loadSmartCalendar()]);
     }, 1200);
@@ -342,13 +359,15 @@ export function NotesView({
     setVoiceStartToken(0);
     setComposerSeed("");
     setComposerDueAt(undefined);
+    setComposerLessonContext(undefined);
   }
 
-  function createBlankNote(seed = "", dueAt?: string) {
+  function createBlankNote(seed = "", dueAt?: string, lessonContext?: LessonNoteContext) {
     preloadNoteComposer();
     setEditingNote(null);
     setComposerSeed(seed);
     setComposerDueAt(dueAt);
+    setComposerLessonContext(lessonContext);
     setVoiceStartToken(0);
     setComposerOpen(true);
   }
@@ -358,6 +377,7 @@ export function NotesView({
     setEditingNote(null);
     setComposerSeed("");
     setComposerDueAt(undefined);
+    setComposerLessonContext(undefined);
     voiceRequestIdRef.current += 1;
     setVoiceStartToken(voiceRequestIdRef.current);
     setComposerOpen(true);
@@ -369,6 +389,7 @@ export function NotesView({
     setEditingNote(note);
     setComposerSeed("");
     setComposerDueAt(undefined);
+    setComposerLessonContext(note.lessonContext);
     setVoiceStartToken(0);
     setComposerOpen(true);
   }
@@ -515,6 +536,7 @@ export function NotesView({
             open={composerOpen}
             initialSeed={composerSeed}
             initialDueAt={composerDueAt}
+            initialLessonContext={composerLessonContext}
             voiceStartToken={voiceStartToken}
             classifyDraft={classifyDraft}
             onClose={closeComposer}

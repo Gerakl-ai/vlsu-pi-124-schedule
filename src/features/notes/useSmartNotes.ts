@@ -14,7 +14,7 @@ import {
   storeFolder,
   storeNote
 } from "./noteStorage";
-import type { NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
+import type { LessonNoteContext, NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 const FOLDER_COLORS = ["#6bd6ff", "#59dfc1", "#ffc55f", "#ff8a7f", "#d89cff", "#76a8ff"];
 
@@ -24,6 +24,19 @@ function createId(prefix: string) {
 
 function normalizedFolderName(value: string) {
   return value.trim().replace(/\s+/g, " ");
+}
+
+function applyLessonContext(classification: NoteClassification, context?: LessonNoteContext | null): NoteClassification {
+  if (!context) return classification;
+  return {
+    ...classification,
+    kind: context.intent === "homework" ? "homework" : classification.kind,
+    space: "Учёба",
+    topic: context.subjectLabel,
+    confidence: 1,
+    subjectKey: context.subjectKeys[0],
+    subjectLabel: context.subjectLabel
+  };
 }
 
 export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabled: boolean) {
@@ -57,16 +70,16 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       const next = current.map((note) => {
         const classification = classifyNote(note.text, subjects, folderSpaces);
         const canValidateSubject = subjects.length > 0;
-        const subjectChanged = Boolean(canValidateSubject && note.subjectKey && classification.subjectKey !== note.subjectKey);
-        const canRefreshLocalSpace = !note.spaceManual && (
+        const subjectChanged = Boolean(!note.lessonContext && canValidateSubject && note.subjectKey && classification.subjectKey !== note.subjectKey);
+        const canRefreshLocalSpace = !note.lessonContext && !note.spaceManual && (
           note.classificationSource === "local" ||
           note.space === "Входящие" ||
           note.space === "Учёба"
         ) && (!note.subjectKey || canValidateSubject);
         const nextSpace = canRefreshLocalSpace ? classification.space : note.space;
-        const nextTopic = note.classificationSource === "ai" && note.topic
+        const nextTopic = note.lessonContext?.subjectLabel ?? (note.classificationSource === "ai" && note.topic
           ? note.topic
-          : note.subjectLabel ?? classification.topic;
+          : note.subjectLabel ?? classification.topic);
         if (!subjectChanged && nextSpace === note.space && nextTopic === note.topic) return note;
         const migrated: SmartNote = {
           ...note,
@@ -88,6 +101,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
 
   const enrichNote = useCallback((note: SmartNote) => {
     if (!aiEnabled) return;
+    const explicitClassification = classifyNote(note.text, subjects, spaces);
     void requestSmartClassification(note.text, subjects, spaces).then((remote) => {
       if (!remote || (remote.confidence ?? 0) < note.confidence) {
         if (note.classificationPending) {
@@ -108,7 +122,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       setNotes((current) => {
         let enriched: SmartNote | undefined;
         const personalSpace = explicitPersonalSpace(note.text);
-        const protectedSpace = note.subjectKey ? "Учёба" : personalSpace;
+          const protectedSpace = explicitClassification.subjectKey || note.lessonContext ? "Учёба" : personalSpace;
         const next = current.map((item) => {
           if (item.id !== note.id || item.text !== note.text) return item;
           const enrichedSpace = item.spaceManual ? item.space : protectedSpace ?? remote.space ?? item.space;
@@ -119,8 +133,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
             space: enrichedSpace,
             topic: item.subjectLabel ?? remote.topic ?? item.topic,
             spaceManual: item.spaceManual,
-            subjectKey: personalSpace ? undefined : remote.subjectKey ?? item.subjectKey,
-            subjectLabel: personalSpace ? undefined : remote.subjectLabel ?? item.subjectLabel,
+            subjectKey: item.lessonContext?.subjectKeys[0] ?? explicitClassification.subjectKey,
+            subjectLabel: item.lessonContext?.subjectLabel ?? explicitClassification.subjectLabel,
             dueAt: remoteDueAt,
             dueLabel: remoteDueAt ? formatDueLabel(remoteDueAt) : undefined,
             dueManual: item.dueManual,
@@ -139,7 +153,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
 
   const createNote = useCallback(async (input: NoteDocumentInput) => {
     const timestamp = new Date().toISOString();
-    const classification = classifyNote(input.text, subjects, spaces);
+    const classification = applyLessonContext(classifyNote(input.text, subjects, spaces), input.lessonContext);
     if (input.spaceOverride) classification.space = input.spaceOverride;
     const deadline = resolveNoteDeadline(classification, input.dueAtOverride);
     const note: SmartNote = {
@@ -156,6 +170,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       contentUpdatedAt: timestamp,
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
+      lessonContext: input.lessonContext ?? undefined,
       ...classification,
       ...deadline
     };
@@ -168,7 +183,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
   const updateNote = useCallback(async (noteId: string, input: NoteDocumentInput) => {
     const existing = notes.find((note) => note.id === noteId);
     if (!existing) return;
-    const classification = classifyNote(input.text, subjects, spaces);
+    const classification = applyLessonContext(classifyNote(input.text, subjects, spaces), input.lessonContext);
     if (input.spaceOverride) classification.space = input.spaceOverride;
     const deadline = resolveNoteDeadline(classification, input.dueAtOverride);
     const timestamp = new Date().toISOString();
@@ -184,6 +199,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       contentUpdatedAt: timestamp,
       classificationSource: "local",
       classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
+      lessonContext: input.lessonContext ?? undefined,
       ...deadline
     };
     setNotes((current) => sortNotes(current.map((item) => item.id === noteId ? note : item)));

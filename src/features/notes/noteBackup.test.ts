@@ -21,9 +21,9 @@ const manualDeadlineNote: SmartNote = {
 };
 
 describe("notes backup", () => {
-  it("preserves manual deadline metadata in version 3", () => {
+  it("preserves manual deadline metadata in the current version", () => {
     const backup = createNotesBackup([manualDeadlineNote]);
-    expect(backup.version).toBe(3);
+    expect(backup.version).toBe(4);
     expect(parseNotesBackup(JSON.stringify(backup))).toEqual([manualDeadlineNote]);
   });
 

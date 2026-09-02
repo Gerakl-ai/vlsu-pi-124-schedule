@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { currentDayIndex, dateKeyFromDate, selectDayLessons } from "../../lib/time";
+import { currentDayIndex, dateKeyFromDate, selectDayLessons, weekModeForDate } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
 
@@ -21,9 +21,11 @@ interface SmartCalendarSheetProps {
   notes: SmartNote[];
   open: boolean;
   weekMode: WeekMode;
+  initialDate?: Date;
   onClose: () => void;
   onCreateForDate: (date: Date) => void;
   onOpenNote: (noteId: string) => void;
+  onSelectDate?: (date: Date) => void;
 }
 
 interface CalendarEvent {
@@ -51,14 +53,6 @@ function addDays(date: Date, amount: number) {
   return value;
 }
 
-function modeForDate(date: Date, currentMode: WeekMode, now = new Date()): WeekMode {
-  if (currentMode === "all") return "all";
-  const monday = (value: Date) => addDays(startOfDay(value), 1 - currentDayIndex(value));
-  const weekDelta = Math.round((monday(date).getTime() - monday(now).getTime()) / 604_800_000);
-  if (Math.abs(weekDelta) % 2 === 0) return currentMode;
-  return currentMode === "numerator" ? "denominator" : "numerator";
-}
-
 function timeOnDate(date: Date, value: string) {
   const [hours, minutes] = value.split(":").map(Number);
   const result = new Date(date);
@@ -67,12 +61,15 @@ function timeOnDate(date: Date, value: string) {
 }
 
 function lessonsForDate(lessons: LessonSlot[], date: Date, currentMode: WeekMode) {
-  return selectDayLessons(lessons, currentDayIndex(date), modeForDate(date, currentMode), date);
+  return selectDayLessons(lessons, currentDayIndex(date), weekModeForDate(date, currentMode), date);
 }
 
 function notesForDate(notes: SmartNote[], date: Date) {
   const key = dateKeyFromDate(date);
-  return notes.filter((note) => note.dueAt && dateKeyFromDate(new Date(note.dueAt)) === key);
+  return notes.filter((note) => note.status === "open" && (
+    note.lessonContext?.date === key
+    || Boolean(note.dueAt && dateKeyFromDate(new Date(note.dueAt)) === key)
+  ));
 }
 
 function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode): CalendarEvent[] {
@@ -196,7 +193,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, onCreateForDate, onOpenNote }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const [today, setToday] = useState(() => startOfDay(new Date()));
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
@@ -217,7 +214,11 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
 
   useEffect(() => {
     if (!open) return;
-    setToday(startOfDay(new Date()));
+    const current = startOfDay(new Date());
+    const initial = startOfDay(initialDate ?? current);
+    setToday(current);
+    setSelectedDate(initial);
+    setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
     setExportState("idle");
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     let midnightTimer: number | undefined;
@@ -236,7 +237,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
       if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
       if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
     };
-  }, [onClose, open]);
+  }, [initialDate, onClose, open]);
 
   if (!open) return null;
 
@@ -376,6 +377,11 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, onClose, on
         </section>
 
         <footer className="calendar-actions">
+          {onSelectDate && (
+            <button className="calendar-open-day" type="button" onClick={() => { onSelectDate(selectedDate); onClose(); }}>
+              <CalendarDays size={17} /> Показать день
+            </button>
+          )}
           <button type="button" disabled={!selectedEvents.length || exportState === "working"} onClick={() => void exportEvents(selectedEvents, `lad-${dateKeyFromDate(selectedDate)}.ics`, `Лад · ${selectedLabel}`)}>
             <Share2 size={17} /> День
           </button>

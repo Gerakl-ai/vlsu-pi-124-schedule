@@ -1,11 +1,11 @@
-import { CalendarClock, Check, Folder, LoaderCircle, Pin, Save, Share2, Trash2, X } from "lucide-react";
+import { BookOpenCheck, CalendarClock, Check, Folder, Link2, LoaderCircle, Pin, Save, Share2, Trash2, X } from "lucide-react";
 import { lazy, Suspense, useCallback, useDeferredValue, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { noteKindLabel } from "./noteClassifier";
 import { plainTextToHtml } from "./noteContent";
 import { localDateTimeToIso, resolveNoteDeadline, toLocalDateTimeValue } from "./noteDeadline";
 import { readDraftSnapshot, removeDraft, storeDraft } from "./noteStorage";
-import type { NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
+import type { LessonNoteContext, NoteClassification, NoteDocumentInput, NoteFolder, SmartNote } from "./noteTypes";
 
 const LazyRichNoteEditor = lazy(async () => ({ default: (await import("./RichNoteEditor")).RichNoteEditor }));
 
@@ -15,6 +15,7 @@ interface NoteComposerProps {
   open: boolean;
   initialSeed?: string;
   initialDueAt?: string;
+  initialLessonContext?: LessonNoteContext;
   voiceStartToken?: number;
   classifyDraft: (text: string) => NoteClassification;
   onClose: () => void;
@@ -25,7 +26,7 @@ interface NoteComposerProps {
 type DraftState = "idle" | "saving" | "saved";
 type ShareState = "idle" | "working" | "done" | "error";
 
-export function NoteComposer({ note, folders, open, initialSeed = "", initialDueAt, voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
+export function NoteComposer({ note, folders, open, initialSeed = "", initialDueAt, initialLessonContext, voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
   const [contentHtml, setContentHtml] = useState("<p></p>");
   const [text, setText] = useState("");
   const [pinned, setPinned] = useState(false);
@@ -33,6 +34,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const [deadlineValue, setDeadlineValue] = useState("");
   const [deadlineTouched, setDeadlineTouched] = useState(false);
   const [deadlineOpen, setDeadlineOpen] = useState(false);
+  const [lessonContext, setLessonContext] = useState<LessonNoteContext | undefined>();
   const [shareState, setShareState] = useState<ShareState>("idle");
   const [hydrating, setHydrating] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -42,7 +44,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const hydratedDraftRef = useRef<string | null>(null);
   const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
   const shareResetTimerRef = useRef<number | undefined>(undefined);
-  const draftId = note?.id ?? "new";
+  const draftId = note?.id ?? (initialLessonContext
+    ? `new-${initialLessonContext.lessonId}-${initialLessonContext.date}-${initialLessonContext.intent}`
+    : "new");
   const noteSavedAt = note?.contentUpdatedAt ?? note?.createdAt ?? note?.updatedAt ?? "";
   const hasContent = Boolean(text.trim() || /<img\b/i.test(contentHtml));
   const hasShareableText = Boolean(text.trim());
@@ -67,6 +71,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     setText(restoredDraft?.text ?? note?.text ?? initialSeed);
     setPinned(restoredDraft?.pinned ?? note?.pinned ?? false);
     setSpaceOverride(restoredDraft?.spaceOverride ?? (note?.spaceManual ? note.space : ""));
+    setLessonContext(restoredDraft?.lessonContext ?? note?.lessonContext ?? initialLessonContext);
     const draftHasDeadline = Boolean(restoredDraft && Object.prototype.hasOwnProperty.call(restoredDraft, "dueAtOverride"));
     const restoredDeadline = draftHasDeadline
       ? restoredDraft!.dueAtOverride
@@ -82,7 +87,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     setShareState("idle");
     setDeadlineOpen(Boolean(initialDueAt));
     setDraftState(restoredDraft ? "saved" : "idle");
-  }, [draftId, initialDueAt, initialSeed, note, noteSavedAt, open]);
+  }, [draftId, initialDueAt, initialLessonContext, initialSeed, note, noteSavedAt, open]);
 
   const persistDraft = useCallback(async () => {
     if (!open || hydrating || hydratedDraftRef.current !== draftId) return;
@@ -95,6 +100,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
       pinned,
       spaceOverride: spaceOverride || undefined,
       ...(deadlineTouched ? { dueAtOverride: localDateTimeToIso(deadlineValue) ?? null } : {}),
+      lessonContext,
       updatedAt: new Date().toISOString()
     };
     const write = draftWriteRef.current
@@ -103,13 +109,13 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     draftWriteRef.current = write;
     await write;
     if (revision === draftRevisionRef.current) setDraftState("saved");
-  }, [contentHtml, deadlineTouched, deadlineValue, draftId, hydrating, open, pinned, spaceOverride, text]);
+  }, [contentHtml, deadlineTouched, deadlineValue, draftId, hydrating, lessonContext, open, pinned, spaceOverride, text]);
 
   useEffect(() => {
     if (!open || hydrating) return;
     const timer = window.setTimeout(() => void persistDraft(), 480);
     return () => window.clearTimeout(timer);
-  }, [contentHtml, deadlineTouched, deadlineValue, hydrating, open, persistDraft, pinned, spaceOverride, text]);
+  }, [contentHtml, deadlineTouched, deadlineValue, hydrating, lessonContext, open, persistDraft, pinned, spaceOverride, text]);
 
   useEffect(() => () => {
     if (shareResetTimerRef.current !== undefined) window.clearTimeout(shareResetTimerRef.current);
@@ -184,7 +190,8 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
         contentHtml,
         pinned,
         spaceOverride: spaceOverride || undefined,
-        ...(deadlineTouched ? { dueAtOverride: localDateTimeToIso(deadlineValue) ?? null } : {})
+        ...(deadlineTouched ? { dueAtOverride: localDateTimeToIso(deadlineValue) ?? null } : {}),
+        lessonContext
       }, note?.id);
       await draftWriteRef.current.catch(() => undefined);
       await removeDraft(draftId);
@@ -259,6 +266,24 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
           </button>
         </div>
 
+        {lessonContext && (
+          <section className="composer-lesson-context" aria-label={`Связь с предметом ${lessonContext.subjectLabel}`}>
+            <span className="composer-lesson-icon" aria-hidden="true">
+              {lessonContext.intent === "homework" ? <BookOpenCheck size={18} /> : <Link2 size={18} />}
+            </span>
+            <span className="composer-lesson-copy">
+              <small>{lessonContext.intent === "homework" ? "Домашнее задание" : "Запись к паре"}</small>
+              <strong>{lessonContext.subjectLabel}</strong>
+              <i>{new Date(`${lessonContext.date}T00:00:00`).toLocaleDateString("ru-RU", { day: "numeric", month: "long" })} · {lessonContext.start}</i>
+            </span>
+            <span className="composer-link-scope" role="radiogroup" aria-label="Область связи записи">
+              <button type="button" className={lessonContext.scope === "lesson" ? "active" : ""} onClick={() => { setLessonContext((value) => value ? { ...value, scope: "lesson" } : value); markDraftDirty(); }} aria-pressed={lessonContext.scope === "lesson"}>Эта пара</button>
+              <button type="button" className={lessonContext.scope === "subject" ? "active" : ""} onClick={() => { setLessonContext((value) => value ? { ...value, scope: "subject" } : value); markDraftDirty(); }} aria-pressed={lessonContext.scope === "subject"}>Все пары</button>
+            </span>
+            <button className="composer-unlink" type="button" onClick={() => { setLessonContext(undefined); markDraftDirty(); }} aria-label="Убрать связь с парой" title="Убрать связь"><X size={16} /></button>
+          </section>
+        )}
+
         {deadlineOpen && (
           <div className="composer-deadline-panel">
             <label>
@@ -286,10 +311,10 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
           {preview ? (
             <>
               <span>Тема</span>
-              <strong>{preview.topic ?? preview.space}</strong>
+              <strong>{lessonContext?.subjectLabel ?? preview.topic ?? preview.space}</strong>
               {preview.space !== "Входящие" && preview.space !== preview.topic && <i>{preview.space}</i>}
               <i>{noteKindLabel(preview.kind)}</i>
-              {preview.subjectLabel && preview.subjectLabel !== preview.topic && <i>{preview.subjectLabel}</i>}
+              {(lessonContext?.subjectLabel ?? preview.subjectLabel) && (lessonContext?.subjectLabel ?? preview.subjectLabel) !== preview.topic && <i>{lessonContext?.subjectLabel ?? preview.subjectLabel}</i>}
               {preview.dueLabel && <i>{preview.dueLabel}</i>}
             </>
           ) : (

@@ -1,6 +1,24 @@
 export type NoteKind = "note" | "task" | "homework" | "wish" | "idea";
 export type NoteStatus = "open" | "done";
 export type ClassificationSource = "local" | "ai";
+export type LessonLinkScope = "lesson" | "subject";
+
+export interface LessonNoteContext {
+  lessonId: string;
+  date: string;
+  start: string;
+  subjectKeys: string[];
+  subjectLabel: string;
+  scope: LessonLinkScope;
+  intent: "note" | "homework";
+}
+
+export interface NoteComposerRequest {
+  id: number;
+  seed?: string;
+  dueAt?: string;
+  lessonContext?: LessonNoteContext;
+}
 
 export interface NoteFolder {
   id: string;
@@ -16,6 +34,7 @@ export interface NoteDocumentInput {
   pinned: boolean;
   spaceOverride?: string;
   dueAtOverride?: string | null;
+  lessonContext?: LessonNoteContext | null;
 }
 
 export interface NoteDraft extends NoteDocumentInput {
@@ -57,4 +76,5 @@ export interface SmartNote extends NoteClassification {
   completedAt?: string;
   classificationSource: ClassificationSource;
   classificationPending?: boolean;
+  lessonContext?: LessonNoteContext;
 }

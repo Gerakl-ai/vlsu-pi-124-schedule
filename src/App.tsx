@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   Activity,
   Bell,
@@ -7,6 +7,7 @@ import {
   BookCheck,
   CalendarDays,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   Clock3,
   CloudOff,
@@ -28,9 +29,10 @@ import {
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
-import { lessonSubjectKeys } from "./features/notes/noteClassifier";
+import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
+import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
 import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./features/notes/notePreferences";
-import type { SmartNote } from "./features/notes/noteTypes";
+import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
 import {
@@ -60,7 +62,8 @@ import {
   minutesUntilEnd,
   minutesUntilStart,
   nowMinutes,
-  selectDayLessons
+  selectDayLessons,
+  weekModeForDate
 } from "./lib/time";
 
 const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
@@ -71,11 +74,13 @@ const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
 const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
+const STARTUP_NETWORK_BUDGET_MS = 1_000;
 const CACHED_SCHEDULE = readScheduleCache();
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
 const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
+const LazySmartCalendarSheet = lazy(async () => ({ default: (await import("./features/notes/SmartCalendarSheet")).SmartCalendarSheet }));
 
 let notesViewPromise: Promise<NotesViewComponent> | null = null;
 const loadNotesView = () => {
@@ -124,12 +129,6 @@ function lessonKeySubject(lesson?: LessonSlot) {
   return lesson?.subject || "";
 }
 
-function notesForLesson(lesson: LessonSlot | undefined, notes: SmartNote[]) {
-  if (!lesson) return [];
-  const subjectKeys = new Set(lessonSubjectKeys(lesson));
-  return notes.filter((note) => note.status === "open" && Boolean(note.subjectKey) && subjectKeys.has(note.subjectKey!));
-}
-
 function formatLessonCount(count: number) {
   const mod10 = count % 10;
   const mod100 = count % 100;
@@ -173,14 +172,15 @@ function buildStudyWindows(lessons: LessonSlot[]): StudyWindow[] {
 
 function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date): NextStudyDay | null {
   const isDated = hasDatedLessons(lessons);
-  const today = currentDayIndex(date);
   const currentMinutes = nowMinutes(date);
   const maxOffset = isDated ? 90 : 6;
 
   for (let offset = 0; offset < maxOffset; offset += 1) {
     const targetDate = addDays(date, offset);
-    const dayIndex = isDated ? currentDayIndex(targetDate) : ((today - 1 + offset) % 6) + 1;
-    const dayLessons = selectDayLessons(lessons, dayIndex, weekMode, targetDate);
+    const dayIndex = currentDayIndex(targetDate);
+    if (!isDated && dayIndex === 7) continue;
+    const targetWeekMode = weekModeForDate(targetDate, weekMode, date);
+    const dayLessons = selectDayLessons(lessons, dayIndex, targetWeekMode, targetDate);
     if (!dayLessons.length) continue;
 
     if (offset === 0) {
@@ -258,7 +258,14 @@ export function App() {
   const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+  const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
+  const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  });
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled() && readAiConsent());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
@@ -286,26 +293,41 @@ export function App() {
     })[0];
   }, [openNotes]);
 
-  const { todayLessons, current, next } = useMemo(
-    () => findCurrentAndNext(schedule?.allLessons ?? [], weekMode, nowDate),
-    [schedule?.allLessons, weekMode, nowDate]
-  );
+  const selectedDateKey = dateKeyFromDate(selectedDate);
+  const todayDateKey = dateKeyFromDate(nowDate);
+  const isSelectedToday = selectedDateKey === todayDateKey;
+  const isSelectedPast = selectedDateKey < todayDateKey;
+  const selectedWeekMode = weekModeForDate(selectedDate, weekMode, nowDate);
+  const { todayLessons, current, next } = useMemo(() => {
+    const allLessons = schedule?.allLessons ?? [];
+    const selectedLessons = selectDayLessons(allLessons, currentDayIndex(selectedDate), selectedWeekMode, selectedDate);
+    if (isSelectedToday) return findCurrentAndNext(allLessons, selectedWeekMode, nowDate);
+    return {
+      todayLessons: selectedLessons,
+      current: undefined,
+      next: isSelectedPast ? undefined : selectedLessons[0]
+    };
+  }, [isSelectedPast, isSelectedToday, nowDate, schedule?.allLessons, selectedDate, selectedWeekMode]);
 
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
-  const dayCompleted = !heroLesson && todayLessons.length > 0;
+  const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
-  const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? "Сегодня без пар" : heroFallback?.subject ?? "Загрузка расписания");
+  const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
   const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : dayCompleted || freeStudyDay ? "ПИ-124" : heroFallback?.room ?? "ИИТЭ";
   const heroStart = heroLesson?.start ?? todayLessons[0]?.start ?? "08:30";
   const heroEnd = heroLesson?.end ?? todayLessons[todayLessons.length - 1]?.end ?? "10:00";
   const heroTime = freeStudyDay ? "без пар" : `${heroStart}-${heroEnd}`;
-  const completedCount = todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length;
+  const completedCount = isSelectedPast
+    ? todayLessons.length
+    : isSelectedToday
+      ? todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length
+      : 0;
   const dayProgress = todayLessons.length ? Math.round((completedCount / todayLessons.length) * 100) : 100;
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
-  const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, weekMode, nowDate) : null;
+  const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
   const studyWindows = buildStudyWindows(todayLessons);
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
@@ -315,6 +337,11 @@ export function App() {
     const currentSchedule = scheduleRef.current;
     const hasCache = Boolean(currentSchedule);
     setStatus(hasCache ? "refreshing" : "loading");
+    let settled = false;
+    const startupBudget = window.setTimeout(() => {
+      if (settled) return;
+      setStatus(hasCache ? "stale" : "error-without-cache");
+    }, STARTUP_NETWORK_BUDGET_MS);
 
     try {
       const loaded = await loadSchedule();
@@ -330,6 +357,8 @@ export function App() {
 
       setStatus("stale");
     } finally {
+      settled = true;
+      window.clearTimeout(startupBudget);
       refreshInFlightRef.current = false;
     }
   }, []);
@@ -506,13 +535,33 @@ export function App() {
     commitTab();
   }, [NotesView, activeTab]);
 
+  const openLessonComposer = useCallback((lesson: LessonSlot, date: Date, intent: "note" | "homework") => {
+    setComposerRequest({
+      id: Date.now(),
+      lessonContext: createLessonNoteContext(lesson, date, intent)
+    });
+    navigateToTab("notes");
+  }, [navigateToTab]);
+
+  const openComposerForDate = useCallback((date: Date) => {
+    setComposerRequest({ id: Date.now(), dueAt: deadlineForCalendarDate(date) });
+    navigateToTab("notes");
+  }, [navigateToTab]);
+
+  const showScheduleDate = useCallback((date: Date) => {
+    const nextDate = new Date(date);
+    nextDate.setHours(0, 0, 0, 0);
+    setSelectedDate(nextDate);
+    navigateToTab("today");
+  }, [navigateToTab]);
+
   useLayoutEffect(() => {
     const container = contentScrollRef.current;
     const activeScroller = tabScrollContainer(activeTab, container);
     if (activeScroller) activeScroller.scrollTop = tabScrollPositionsRef.current[activeTab];
   }, [activeTab]);
 
-  const nextLabel = next ? `${next.start}, ${next.subject}` : "Сегодня новых пар нет";
+  const nextLabel = next ? `${next.start}, ${next.subject}` : isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
@@ -561,16 +610,18 @@ export function App() {
               studyWindows={studyWindows}
               nextLabel={nextLabel}
               lessons={displayLessons}
-              weekMode={weekMode}
+              weekMode={selectedWeekMode}
+              selectedDate={selectedDate}
+              isSelectedToday={isSelectedToday}
+              isSelectedPast={isSelectedPast}
               now={nowDate}
               notes={openNotes}
               focusNote={focusNote}
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
-              onOpenCalendar={() => {
-                setCalendarRequestToken((value) => value + 1);
-                navigateToTab("notes");
-              }}
+              onOpenCalendar={() => setCalendarOpen(true)}
+              onDateChange={setSelectedDate}
+              onCreateLessonNote={openLessonComposer}
             />
           )}
 
@@ -581,6 +632,10 @@ export function App() {
               weekOverride={weekOverride}
               setWeekOverride={setWeekOverride}
               notes={openNotes}
+              onToggleNote={smartNotes.toggleNote}
+              onOpenCalendar={() => setCalendarOpen(true)}
+              onSelectDate={showScheduleDate}
+              onCreateLessonNote={openLessonComposer}
             />
           )}
 
@@ -594,6 +649,7 @@ export function App() {
                 ready={smartNotes.ready}
                 weekMode={currentWeek}
                 calendarRequestToken={calendarRequestToken}
+                composerRequest={composerRequest}
                 classifyDraft={smartNotes.classifyDraft}
                 onCreate={smartNotes.createNote}
                 onCreateFolder={smartNotes.createFolder}
@@ -604,6 +660,7 @@ export function App() {
                 onTogglePinned={smartNotes.togglePinned}
                 onUpdate={smartNotes.updateNote}
                 onCalendarRequestHandled={() => setCalendarRequestToken(0)}
+                onComposerRequestHandled={() => setComposerRequest(null)}
               />
             ) : <section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>
           )}
@@ -633,6 +690,21 @@ export function App() {
         </div>
 
         <BottomNav activeTab={activeTab} onTabChange={navigateToTab} />
+        {calendarOpen && (
+          <Suspense fallback={null}>
+            <LazySmartCalendarSheet
+              lessons={schedule?.allLessons ?? []}
+              notes={smartNotes.notes}
+              open={calendarOpen}
+              weekMode={currentWeek}
+              initialDate={selectedDate}
+              onClose={() => setCalendarOpen(false)}
+              onCreateForDate={openComposerForDate}
+              onOpenNote={() => navigateToTab("notes")}
+              onSelectDate={showScheduleDate}
+            />
+          </Suspense>
+        )}
         <ThemeSheet
           currentTheme={themeId}
           customTheme={customTheme}
@@ -709,12 +781,17 @@ function TodayView({
   nextLabel,
   lessons,
   weekMode,
+  selectedDate,
+  isSelectedToday,
+  isSelectedPast,
   now,
   notes,
   focusNote,
   onToggleNote,
   onOpenNotes,
-  onOpenCalendar
+  onOpenCalendar,
+  onDateChange,
+  onCreateLessonNote
 }: {
   heroSubject: string;
   heroVisual: string;
@@ -735,20 +812,26 @@ function TodayView({
   nextLabel: string;
   lessons: LessonSlot[];
   weekMode: WeekMode;
+  selectedDate: Date;
+  isSelectedToday: boolean;
+  isSelectedPast: boolean;
   now: Date;
   notes: SmartNote[];
   focusNote?: SmartNote;
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
   onOpenCalendar: () => void;
+  onDateChange: (date: Date) => void;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
+  const dateSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
-  const minutesToNext = next ? minutesUntilStart(next, now) : 0;
+  const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
   const sigilLabel = heroMode === "current" ? "Пара" : heroMode === "next" ? "Старт" : heroMode === "done" ? "Готово" : heroMode === "free" ? "Свободно" : "ВлГУ";
   const sigilValue = heroMode === "current"
     ? `${progress}%`
     : heroMode === "next"
-      ? formatDuration(minutesToNext)
+      ? isSelectedToday ? formatDuration(minutesToNext) : next?.start ?? "—"
       : heroMode === "done"
         ? `${completedCount}/${lessons.length}`
         : heroMode === "free"
@@ -757,7 +840,7 @@ function TodayView({
   const statusCopy = heroMode === "current"
     ? "Пара идёт"
     : heroMode === "next"
-      ? `До пары ${formatDuration(minutesToNext)}`
+      ? isSelectedToday ? `До пары ${formatDuration(minutesToNext)}` : "В расписании"
       : heroMode === "done"
         ? "День закрыт"
         : heroMode === "free"
@@ -766,7 +849,7 @@ function TodayView({
   const progressTitle = heroMode === "current"
     ? `${remaining} мин осталось`
     : heroMode === "next"
-      ? `Старт в ${next?.start}`
+      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next?.start}`
       : heroMode === "done"
         ? "День закрыт"
         : heroMode === "free"
@@ -776,31 +859,53 @@ function TodayView({
     ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
     : heroMode === "done"
       ? `${completedCount} из ${lessons.length} пройдено`
-      : `${formatLessonCount(lessons.length)} сегодня`;
-  const calendarDay = now.getDate();
-  const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(now).replace(".", "");
-  const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(now);
+      : `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в этот день"}`;
+  const calendarDay = selectedDate.getDate();
+  const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(selectedDate).replace(".", "");
+  const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
+  const dateEyebrow = isSelectedToday ? "Сегодня" : isSelectedPast ? "Прошедший день" : "Выбранный день";
+
+  function moveDay(offset: number) {
+    onDateChange(addDays(selectedDate, offset));
+  }
+
+  function finishDateSwipe(clientX: number, clientY: number) {
+    const start = dateSwipeStartRef.current;
+    dateSwipeStartRef.current = null;
+    if (!start) return;
+    const deltaX = clientX - start.x;
+    const deltaY = clientY - start.y;
+    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
+    moveDay(deltaX < 0 ? 1 : -1);
+  }
 
   return (
     <div className="view-stack today-view">
       <div className="today-primary">
-        <button
-          className="today-date-launch"
-          type="button"
-          onClick={onOpenCalendar}
-          aria-label={`Открыть календарь: сегодня, ${calendarLabel}`}
-          data-testid="today-calendar-launch"
+        <div
+          className="today-date-navigator"
+          onTouchStart={(event) => { const touch = event.touches[0]; dateSwipeStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null; }}
+          onTouchEnd={(event) => { const touch = event.changedTouches[0]; if (touch) finishDateSwipe(touch.clientX, touch.clientY); }}
         >
-          <span className="today-date-tile" aria-hidden="true">
-            <small>{calendarMonth}</small>
-            <strong>{calendarDay}</strong>
-          </span>
-          <span className="today-date-copy">
-            <small><CalendarDays size={14} /> Сегодня</small>
-            <strong>{calendarLabel}</strong>
-          </span>
-          <ChevronRight size={20} aria-hidden="true" />
-        </button>
+          <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
+          <button
+            className="today-date-launch"
+            type="button"
+            onClick={onOpenCalendar}
+            aria-label={`Открыть календарь: ${calendarLabel}`}
+            data-testid="today-calendar-launch"
+          >
+            <span className="today-date-tile" aria-hidden="true">
+              <small>{calendarMonth}</small>
+              <strong>{calendarDay}</strong>
+            </span>
+            <span className="today-date-copy">
+              <small><CalendarDays size={14} /> {dateEyebrow}</small>
+              <strong>{calendarLabel}</strong>
+            </span>
+          </button>
+          <button className="date-step" type="button" onClick={() => moveDay(1)} aria-label="Следующий день"><ChevronRight size={21} /></button>
+        </div>
 
         <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
@@ -840,6 +945,7 @@ function TodayView({
           current={current}
           next={next}
           nextStudyDay={nextStudyDay}
+          isSelectedToday={isSelectedToday}
         />
 
         <DayCommandStrip
@@ -848,6 +954,7 @@ function TodayView({
           lessons={lessons}
           nextStudyDay={nextStudyDay}
           studyWindows={studyWindows}
+          isSelectedToday={isSelectedToday}
         />
 
         {focusNote && (
@@ -874,7 +981,18 @@ function TodayView({
           </section>
         )}
 
-        <Timeline lessons={lessons} current={current} next={next} now={now} notes={notes} onToggleNote={onToggleNote} />
+        <Timeline
+          lessons={lessons}
+          current={current}
+          next={next}
+          now={now}
+          selectedDate={selectedDate}
+          isSelectedToday={isSelectedToday}
+          isSelectedPast={isSelectedPast}
+          notes={notes}
+          onToggleNote={onToggleNote}
+          onCreateLessonNote={onCreateLessonNote}
+        />
       </div>
     </div>
   );
@@ -887,7 +1005,8 @@ function DayMotionRail({
   remaining,
   current,
   next,
-  nextStudyDay
+  nextStudyDay,
+  isSelectedToday
 }: {
   weekMode: WeekMode;
   lessons: LessonSlot[];
@@ -896,17 +1015,18 @@ function DayMotionRail({
   current?: LessonSlot;
   next?: LessonSlot;
   nextStudyDay: NextStudyDay | null;
+  isSelectedToday: boolean;
 }) {
   const timingSignal = current
     ? `${remaining} мин до конца`
     : next
-      ? `Старт в ${next.start}`
+      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next.start}`
       : nextStudyDay
         ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
         : "День свободен";
   const signals = [
     formatWeekMode(weekMode),
-    `${formatLessonCount(lessons.length)} сегодня`,
+    `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в выбранный день"}`,
     lessons.length ? `${dayProgress}% дня пройдено` : "Свободный день",
     timingSignal
   ];
@@ -941,18 +1061,20 @@ function DayCommandStrip({
   dayProgress,
   lessons,
   nextStudyDay,
-  studyWindows
+  studyWindows,
+  isSelectedToday
 }: {
   completedCount: number;
   dayProgress: number;
   lessons: LessonSlot[];
   nextStudyDay: NextStudyDay | null;
   studyWindows: StudyWindow[];
+  isSelectedToday: boolean;
 }) {
   const nearestWindow = studyWindows[0];
   const nextShortDay = nextStudyDay ? nextStudyDay.firstLesson.dateLabel ?? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
   const nextStudyLabel = nextStudyDay
-    ? `${nextStudyDay.isToday ? "Сегодня" : nextShortDay}, ${nextStudyDay.firstLesson.start}`
+    ? `${nextStudyDay.isToday ? (isSelectedToday ? "Сегодня" : nextShortDay) : nextShortDay}, ${nextStudyDay.firstLesson.start}`
     : "Нет данных";
   const windowCopy = lessons.length ? "пары идут подряд" : "можно отдыхать";
 
@@ -982,15 +1104,23 @@ function Timeline({
   current,
   next,
   now,
+  selectedDate,
+  isSelectedToday,
+  isSelectedPast,
   notes,
-  onToggleNote
+  onToggleNote,
+  onCreateLessonNote
 }: {
   lessons: LessonSlot[];
   current?: LessonSlot;
   next?: LessonSlot;
   now: Date;
+  selectedDate: Date;
+  isSelectedToday: boolean;
+  isSelectedPast: boolean;
   notes: SmartNote[];
   onToggleNote: (noteId: string) => void;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -998,25 +1128,32 @@ function Timeline({
     return (
       <section className="empty-state">
         <Sparkles size={28} />
-        <h3>Сегодня пар нет</h3>
-        <p>Можно спокойно свериться с неделей или включить напоминания на завтра.</p>
+        <h3>{isSelectedToday ? "Сегодня пар нет" : "На этот день пар нет"}</h3>
+        <p>{isSelectedToday ? "Можно спокойно свериться с неделей или включить напоминания на завтра." : "Свайпни дату или открой календарь, чтобы выбрать другой день."}</p>
       </section>
     );
   }
 
-  const completedCount = lessons.filter((lesson) => lessonTimingState(lesson, now) === "past").length;
+  const completedCount = isSelectedPast
+    ? lessons.length
+    : isSelectedToday
+      ? lessons.filter((lesson) => lessonTimingState(lesson, now) === "past").length
+      : 0;
   const focusLesson = current ?? next;
   const focusCopy = current
     ? `${minutesUntilEnd(current, now)} мин до конца`
     : next
-      ? `${minutesUntilStart(next, now)} мин до начала`
-      : "Все пары на сегодня пройдены";
+      ? isSelectedToday ? `${minutesUntilStart(next, now)} мин до начала` : `Начало в ${next.start}`
+    : isSelectedPast ? "День завершён" : isSelectedToday ? "Все пары на сегодня пройдены" : "День в плане";
+  const timelineLabel = isSelectedToday
+    ? "Сегодня"
+    : new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" }).format(selectedDate).replace(".", "");
 
   return (
     <section className="timeline-card">
       <div className="timeline-summary">
         <div>
-          <span>Сегодня</span>
+          <span>{timelineLabel}</span>
           <strong>{completedCount}/{lessons.length} пройдено</strong>
         </div>
         <p>{focusLesson ? `${focusCopy}: ${lessonKeySubject(focusLesson)}` : focusCopy}</p>
@@ -1027,11 +1164,12 @@ function Timeline({
           lesson={lesson}
           isCurrent={lesson.id === current?.id}
           isNext={lesson.id === next?.id}
-          isPast={lessonTimingState(lesson, now) === "past"}
+          isPast={isSelectedPast || (isSelectedToday && lessonTimingState(lesson, now) === "past")}
           isExpanded={expandedId === lesson.id}
           onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
-          linkedNotes={notesForLesson(lesson, notes)}
+          linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate)}
           onToggleNote={onToggleNote}
+          onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
           index={index}
         />
       ))}
@@ -1048,6 +1186,7 @@ function LessonRow({
   onToggle,
   linkedNotes,
   onToggleNote,
+  onCreateNote,
   index
 }: {
   lesson: LessonSlot;
@@ -1058,6 +1197,7 @@ function LessonRow({
   onToggle: () => void;
   linkedNotes: SmartNote[];
   onToggleNote: (noteId: string) => void;
+  onCreateNote: (intent: "note" | "homework") => void;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
@@ -1112,6 +1252,10 @@ function LessonRow({
               ))}
             </div>
           ) : lesson.teacher ? <span>{lesson.teacher}</span> : null}
+          <div className="lesson-note-actions" aria-label="Добавить к паре">
+            <button type="button" onClick={() => onCreateNote("note")}><NotebookPen size={16} /> Записка</button>
+            <button type="button" onClick={() => onCreateNote("homework")}><BookCheck size={16} /> ДЗ</button>
+          </div>
           {linkedNotes.length > 0 && (
             <div className="lesson-linked-notes">
               <strong><BookCheck size={15} /> Связано с предметом</strong>
@@ -1161,16 +1305,25 @@ function WeekView({
   weekMode,
   weekOverride,
   setWeekOverride,
-  notes
+  notes,
+  onToggleNote,
+  onOpenCalendar,
+  onSelectDate,
+  onCreateLessonNote
 }: {
   lessons: LessonSlot[];
   weekMode: WeekMode;
   weekOverride: WeekMode | "current";
   setWeekOverride: (mode: WeekMode | "current") => void;
   notes: SmartNote[];
+  onToggleNote: (noteId: string) => void;
+  onOpenCalendar: () => void;
+  onSelectDate: (date: Date) => void;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} notes={notes} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
   }
 
   const dayLoads = buildWeekLoads(lessons, weekMode);
@@ -1194,6 +1347,9 @@ function WeekView({
             <strong>{String(todayDate.getDate()).padStart(2, "0")}</strong>
             <small>сегодня</small>
           </div>
+          <button className="week-calendar-button" type="button" onClick={onOpenCalendar} aria-label="Открыть календарь расписания" title="Календарь">
+            <CalendarDays size={22} />
+          </button>
         </section>
 
         <WeekMap dayLoads={dayLoads} weekMode={weekMode} />
@@ -1223,7 +1379,7 @@ function WeekView({
           const isToday = day.dayIndex === today;
           return (
             <article className={`day-block ${isToday ? "current-day" : ""} ${day.count ? "" : "empty-day"}`} key={day.dayName}>
-              <div className="day-title">
+              <button className="day-title" type="button" onClick={() => onSelectDate(day.date)} aria-label={`Открыть расписание: ${day.dayName}`}>
                 <div className="day-title-main">
                   <span className="day-date-tile">{String(day.date.getDate()).padStart(2, "0")}</span>
                   <div>
@@ -1232,23 +1388,39 @@ function WeekView({
                   </div>
                 </div>
                 <span>{day.count ? formatLessonCount(day.count) : "без пар"}</span>
-              </div>
+                <ChevronRight size={18} aria-hidden="true" />
+              </button>
               {day.lessons.length ? (
                 day.lessons.map((lesson) => {
-                  const linkedCount = notesForLesson(lesson, notes).length;
+                  const linkedNotes = notesLinkedToLesson(lesson, notes, day.date);
+                  const expanded = expandedLessonId === `${dateKeyFromDate(day.date)}-${lesson.id}`;
                   return (
-                    <div className="mini-lesson" key={lesson.id}>
-                      <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
-                        <time dateTime={lesson.start}>{lesson.start}</time>
-                        <time dateTime={lesson.end}>{lesson.end}</time>
-                      </span>
-                      <strong>{lesson.subject}</strong>
-                      <small className="mini-lesson-meta">
-                        <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
-                        <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
-                      </small>
-                      {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
-                    </div>
+                    <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
+                      <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === `${dateKeyFromDate(day.date)}-${lesson.id}` ? null : `${dateKeyFromDate(day.date)}-${lesson.id}`)} aria-expanded={expanded}>
+                        <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                          <time dateTime={lesson.start}>{lesson.start}</time>
+                          <time dateTime={lesson.end}>{lesson.end}</time>
+                        </span>
+                        <strong>{lesson.subject}</strong>
+                        <small className="mini-lesson-meta">
+                          <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                          <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                        </small>
+                        {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}
+                        <ChevronRight className="mini-lesson-chevron" size={18} aria-hidden="true" />
+                      </button>
+                      {expanded && (
+                        <div className="mini-lesson-actions">
+                          <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "note")}><NotebookPen size={15} /> Записка</button>
+                          <button type="button" onClick={() => onCreateLessonNote(lesson, day.date, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
+                          {linkedNotes.map((note) => (
+                            <button className="mini-linked-note" key={note.id} type="button" onClick={() => onToggleNote(note.id)} aria-label={`Отметить выполненным: ${note.title}`}>
+                              <CheckCircle2 size={14} /> <span>{note.title}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </article>
                   );
                 })
               ) : (
@@ -1262,7 +1434,14 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes: SmartNote[] }) {
+function SessionScheduleView({ lessons, notes, onToggleNote, onOpenCalendar, onCreateLessonNote }: {
+  lessons: LessonSlot[];
+  notes: SmartNote[];
+  onToggleNote: (noteId: string) => void;
+  onOpenCalendar: () => void;
+  onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+}) {
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   const todayKey = dateKeyFromDate();
   const upcoming = lessons.filter((lesson) => !lesson.date || lesson.date >= todayKey);
   const visibleLessons = (upcoming.length ? upcoming : lessons).sort((a, b) => `${a.date ?? ""} ${a.start}`.localeCompare(`${b.date ?? ""} ${b.start}`, "ru"));
@@ -1291,6 +1470,9 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
             <strong>{groups.length}</strong>
             <small>дат</small>
           </div>
+          <button className="week-calendar-button" type="button" onClick={onOpenCalendar} aria-label="Открыть календарь расписания" title="Календарь">
+            <CalendarDays size={22} />
+          </button>
         </section>
 
         <section className="week-map session-map" aria-label="Карта сессии">
@@ -1318,20 +1500,36 @@ function SessionScheduleView({ lessons, notes }: { lessons: LessonSlot[]; notes:
               <span>{formatLessonCount(group.lessons.length)}</span>
             </div>
             {group.lessons.map((lesson) => {
-              const linkedCount = notesForLesson(lesson, notes).length;
+              const lessonDate = lesson.date ? new Date(`${lesson.date}T00:00:00`) : new Date();
+              const linkedNotes = notesLinkedToLesson(lesson, notes, lessonDate);
+              const expanded = expandedLessonId === lesson.id;
               return (
-                <div className="mini-lesson" key={lesson.id}>
-                  <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
-                    <time dateTime={lesson.start}>{lesson.start}</time>
-                    <time dateTime={lesson.end}>{lesson.end}</time>
-                  </span>
-                  <strong>{lesson.subject}</strong>
-                  <small className="mini-lesson-meta">
-                    <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
-                    <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
-                  </small>
-                  {linkedCount > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedCount}</span>}
-                </div>
+                <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
+                  <button className="mini-lesson-main" type="button" onClick={() => setExpandedLessonId((value) => value === lesson.id ? null : lesson.id)} aria-expanded={expanded}>
+                    <span className="mini-lesson-time" aria-label={`С ${lesson.start} до ${lesson.end}`}>
+                      <time dateTime={lesson.start}>{lesson.start}</time>
+                      <time dateTime={lesson.end}>{lesson.end}</time>
+                    </span>
+                    <strong>{lesson.subject}</strong>
+                    <small className="mini-lesson-meta">
+                      <span>{[lesson.room, lesson.kind].filter(Boolean).join(" · ") || "ВлГУ"}</span>
+                      <span className="mini-lesson-teacher">{lesson.teacher || "Преподаватель не указан"}</span>
+                    </small>
+                    {linkedNotes.length > 0 && <span className="mini-note-badge"><BookCheck size={13} /> {linkedNotes.length}</span>}
+                    <ChevronRight className="mini-lesson-chevron" size={18} aria-hidden="true" />
+                  </button>
+                  {expanded && (
+                    <div className="mini-lesson-actions">
+                      <button type="button" onClick={() => onCreateLessonNote(lesson, lessonDate, "note")}><NotebookPen size={15} /> Записка</button>
+                      <button type="button" onClick={() => onCreateLessonNote(lesson, lessonDate, "homework")}><BookCheck size={15} /> Добавить ДЗ</button>
+                      {linkedNotes.map((note) => (
+                        <button className="mini-linked-note" key={note.id} type="button" onClick={() => onToggleNote(note.id)} aria-label={`Отметить выполненным: ${note.title}`}>
+                          <CheckCircle2 size={14} /> <span>{note.title}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </article>
               );
             })}
           </article>

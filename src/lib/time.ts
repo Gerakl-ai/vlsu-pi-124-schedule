@@ -35,6 +35,15 @@ export function dateForWeekDay(dayIndex: number, baseDate = new Date()) {
   return addDays(monday, dayIndex - 1);
 }
 
+export function weekModeForDate(date: Date, currentMode: WeekMode, baseDate = new Date()): WeekMode {
+  if (currentMode === "all") return "all";
+  const targetMonday = dateForWeekDay(1, date);
+  const baseMonday = dateForWeekDay(1, baseDate);
+  const weekDelta = Math.round((targetMonday.getTime() - baseMonday.getTime()) / 604_800_000);
+  if (Math.abs(weekDelta) % 2 === 0) return currentMode;
+  return currentMode === "numerator" ? "denominator" : "numerator";
+}
+
 export function hasDatedLessons(lessons: LessonSlot[]) {
   return lessons.some((lesson) => Boolean(lesson.date));
 }
