@@ -1,13 +1,20 @@
-const CACHE_NAME = "lad-pi-124-v56";
+const CACHE_NAME = "lad-pi-124-v57";
 const APP_SHELL = [
   "/",
-  "/index.html",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/images/hero-obsidian-campus.jpg",
   "/images/hero-porcelain-campus.jpg"
 ];
+
+function navigationSafeResponse(response) {
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers: new Headers(response.headers)
+  });
+}
 
 async function discoverBuildAssets() {
   try {
@@ -83,22 +90,24 @@ self.addEventListener("fetch", (event) => {
       const preloaded = await event.preloadResponse;
       const response = preloaded || await fetch(request, { cache: "no-store" });
       if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+      const safeResponse = navigationSafeResponse(response);
       const cache = await caches.open(CACHE_NAME);
-      await cache.put("/index.html", response.clone());
-      return response;
+      await cache.put("/", safeResponse.clone());
+      return safeResponse;
     })();
     event.waitUntil(refreshShell.then(() => undefined).catch(() => undefined));
     event.respondWith(
       (async () => {
-        const cachedShell = (await caches.match("/index.html")) || (await caches.match("/"));
+        const cachedShell = await caches.match("/");
 
         // A controlled PWA must never wait for a slow route before showing its local app shell.
-        if (cachedShell) return cachedShell;
+        if (cachedShell) return navigationSafeResponse(cachedShell);
 
         try {
           return await refreshShell;
         } catch {
-          return (await caches.match("/index.html")) || Response.error();
+          const fallback = await caches.match("/");
+          return fallback ? navigationSafeResponse(fallback) : Response.error();
         }
       })()
     );
