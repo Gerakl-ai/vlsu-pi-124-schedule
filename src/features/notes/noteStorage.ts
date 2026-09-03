@@ -110,33 +110,40 @@ async function deleteValue(storeName: string, id: string): Promise<void> {
 }
 
 export async function loadNotes(): Promise<SmartNote[]> {
+  const fallbackNotes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
   let notes: SmartNote[];
   try {
-    notes = await getAll<SmartNote>(NOTES_STORE);
+    const storedNotes = await getAll<SmartNote>(NOTES_STORE);
+    const merged = new Map(fallbackNotes.map((note) => [note.id, note]));
+    storedNotes.forEach((note) => {
+      const fallback = merged.get(note.id);
+      if (!fallback || note.updatedAt >= fallback.updatedAt) merged.set(note.id, note);
+    });
+    notes = [...merged.values()];
   } catch {
-    notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []);
+    notes = fallbackNotes;
   }
-  return notes.map((note) => ({
+  const normalized = notes.map((note) => ({
     ...note,
     contentUpdatedAt: note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt
   }));
+  writeFallback(NOTES_FALLBACK_KEY, normalized);
+  return normalized;
 }
 
 export async function storeNote(note: SmartNote): Promise<void> {
+  const notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((item) => item.id !== note.id);
+  writeFallback(NOTES_FALLBACK_KEY, [...notes, note]);
   try {
     await putValue(NOTES_STORE, note);
-  } catch {
-    const notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((item) => item.id !== note.id);
-    writeFallback(NOTES_FALLBACK_KEY, [...notes, note]);
-  }
+  } catch { /* The synchronous mirror is already up to date. */ }
 }
 
 export async function removeNote(noteId: string): Promise<void> {
+  writeFallback(NOTES_FALLBACK_KEY, readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((note) => note.id !== noteId));
   try {
     await deleteValue(NOTES_STORE, noteId);
-  } catch {
-    writeFallback(NOTES_FALLBACK_KEY, readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((note) => note.id !== noteId));
-  }
+  } catch { /* The synchronous mirror is already up to date. */ }
 }
 
 function mergeDefaultFolders(stored: NoteFolder[]) {

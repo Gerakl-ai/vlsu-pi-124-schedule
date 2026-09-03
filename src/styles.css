@@ -46,17 +46,6 @@
   }
 }
 
-/* Installed iOS PWAs subtract safe areas from dvh; vh still spans the physical display. */
-@media (display-mode: standalone) {
-  :root {
-    --app-viewport-height: 100vh;
-  }
-}
-
-:root[data-standalone="true"] {
-  --app-viewport-height: 100vh;
-}
-
 * {
   box-sizing: border-box;
 }

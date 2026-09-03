@@ -2,6 +2,16 @@ import { describe, expect, it, vi } from "vitest";
 import { RELEASE_CHANNEL } from "./release";
 import worker from "./worker";
 
+function createEdgeCache() {
+  const entries = new Map<string, Response>();
+  return {
+    match: vi.fn(async (request: RequestInfo | URL) => entries.get(String(request instanceof Request ? request.url : request))?.clone()),
+    put: vi.fn(async (request: RequestInfo | URL, response: Response) => {
+      entries.set(String(request instanceof Request ? request.url : request), response.clone());
+    })
+  };
+}
+
 function createEnv() {
   return {
     ASSETS: {
@@ -64,4 +74,42 @@ describe("Cloudflare worker", () => {
     expect(response.headers.get("Cache-Control")).toBe("no-cache, no-store, must-revalidate");
     expect(env.ASSETS.fetch).toHaveBeenCalledOnce();
   });
+
+  it("serves /index.html as a direct app shell response without a redirect", async () => {
+    const env = createEnv();
+    const response = await worker.fetch(new Request("https://app.example/index.html"), env);
+    const assetRequest = (env.ASSETS.fetch as unknown as { mock: { calls: Array<[Request]> } }).mock.calls[0]?.[0];
+
+    expect(assetRequest && new URL(assetRequest.url).pathname).toBe("/");
+    expect(response.status).toBe(200);
+    expect(response.redirected).toBe(false);
+  });
+
+  it("falls back to the last successful edge copy when VLSU is unavailable", async () => {
+    const edgeCache = createEdgeCache();
+    const env = { ...createEnv(), EDGE_CACHE: edgeCache };
+    const request = () => new Request("https://app.example/vlsu-api/student/GetGroupCurrentInfo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify("group-id")
+    });
+    const waitUntil: Promise<unknown>[] = [];
+    const context = { waitUntil: (promise: Promise<unknown>) => waitUntil.push(promise) };
+
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest({ CurrentWeekType: 1 })));
+    const live = await worker.fetch(request(), env, context);
+    await Promise.all(waitUntil.splice(0));
+    expect(live.headers.get("X-Lad-Data-Source")).toBe("live");
+
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    const cached = await worker.fetch(request(), env, context);
+    expect(cached.status).toBe(200);
+    expect(cached.headers.get("X-Lad-Data-Source")).toBe("edge-cache");
+    expect(await cached.json()).toEqual({ CurrentWeekType: 1 });
+    vi.unstubAllGlobals();
+  });
 });
+
+function jsonResponseForTest(payload: unknown) {
+  return new Response(JSON.stringify(payload), { headers: { "Content-Type": "application/json" } });
+}

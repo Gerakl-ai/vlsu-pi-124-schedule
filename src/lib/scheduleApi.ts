@@ -5,8 +5,8 @@ const API_BASE = "/vlsu-api";
 const INSTITUTE_NAME = "Институт информационных технологий и электроники";
 const GROUP_NAME = "ПИ-124";
 const FALLBACK_NREC = "7936a2a43b11b20b01d30f5b00c73166";
-const REQUEST_TIMEOUT_MS = 12_000;
-const REQUEST_RETRIES = 1;
+const REQUEST_TIMEOUT_MS = 8_000;
+const REQUEST_RETRIES = 0;
 
 const PAIR_TIMES = [
   ["08:30", "10:00"],
@@ -380,12 +380,21 @@ async function fetchSchedule(nrec: string) {
 }
 
 export async function loadSchedule(): Promise<ScheduleState> {
-  const groupNrec = await resolveGroupNrec();
-  const [currentInfo, allLessons] = await Promise.all([fetchCurrentInfo(groupNrec), fetchSchedule(groupNrec)]);
+  const fetchState = async (groupNrec: string) => {
+    const [currentInfo, allLessons] = await Promise.all([fetchCurrentInfo(groupNrec), fetchSchedule(groupNrec)]);
+    return { groupNrec, currentInfo, allLessons };
+  };
+
+  let resolved;
+  try {
+    resolved = await fetchState(FALLBACK_NREC);
+  } catch (initialError) {
+    const discoveredNrec = await resolveGroupNrec();
+    if (discoveredNrec === FALLBACK_NREC) throw initialError;
+    resolved = await fetchState(discoveredNrec);
+  }
   const state = {
-    groupNrec,
-    currentInfo,
-    allLessons,
+    ...resolved,
     fetchedAt: new Date().toISOString()
   };
   writeScheduleCache(state);

@@ -23,25 +23,20 @@ function viewportOrientation(): ViewportOrientation {
 function commitAppViewportHeight() {
   const visualViewport = window.visualViewport;
   const visualHeight = Math.round(visualViewport?.height || window.innerHeight || document.documentElement.clientHeight);
-  const layoutHeight = Math.round(window.innerHeight || document.documentElement.clientHeight || visualHeight);
   const orientation = viewportOrientation();
   const stableHeight = stableViewportHeights[orientation];
   const activeElement = document.activeElement;
   const editing = activeElement instanceof HTMLElement && (
     activeElement.isContentEditable || activeElement.matches("input, textarea, select, [role='textbox']")
   );
-  const viewportLoss = Math.max(
-    0,
-    layoutHeight - visualHeight,
-    stableHeight > 0 ? stableHeight - visualHeight : 0
-  );
+  const viewportLoss = Math.max(0, stableHeight > 0 ? stableHeight - visualHeight : 0);
   const threshold = keyboardOpen ? 64 : 104;
   const nextKeyboardOpen = Boolean(visualViewport && viewportLoss > threshold && (editing || keyboardOpen));
 
   keyboardOpen = nextKeyboardOpen;
-  if (!keyboardOpen && layoutHeight > 0) stableViewportHeights[orientation] = layoutHeight;
-  // CSS 100dvh owns the app shell; standalone WebKit may report an innerHeight with safe areas already removed.
-  document.documentElement.style.removeProperty("--app-viewport-height");
+  if (!keyboardOpen && visualHeight > 0) stableViewportHeights[orientation] = visualHeight;
+  const appHeight = keyboardOpen && stableHeight > 0 ? stableHeight : visualHeight;
+  document.documentElement.style.setProperty("--app-viewport-height", `${appHeight}px`);
   if (Math.abs(visualHeight - appliedVisualHeight) > 1) {
     appliedVisualHeight = visualHeight;
     document.documentElement.style.setProperty("--visual-viewport-height", `${visualHeight}px`);

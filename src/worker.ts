@@ -14,10 +14,17 @@ interface Env {
     run(model: string, input: Record<string, unknown>): Promise<unknown>;
   };
   CF_VERSION_METADATA?: WorkerVersionMetadata;
+  EDGE_CACHE?: Pick<Cache, "match" | "put">;
+}
+
+interface WorkerExecutionContext {
+  waitUntil(promise: Promise<unknown>): void;
 }
 
 const API_ORIGIN = "https://abiturient-api.vlsu.ru/api";
-const UPSTREAM_TIMEOUT_MS = 15_000;
+const UPSTREAM_TIMEOUT_MS = 8_500;
+const EDGE_FRESH_WAIT_MS = 900;
+const EDGE_CACHE_SECONDS = 30 * 24 * 60 * 60;
 const MAX_PROXY_BODY_BYTES = 16_384;
 const MAX_CLASSIFICATION_BODY_BYTES = 32_768;
 
@@ -79,6 +86,56 @@ function methodNotAllowed(allowedMethod: string) {
   return jsonResponse({ error: "Method not allowed" }, 405, { Allow: allowedMethod });
 }
 
+function defaultEdgeCache() {
+  if (typeof caches === "undefined") return undefined;
+  return (caches as CacheStorage & { default?: Cache }).default;
+}
+
+function cacheBodyFingerprint(value = "") {
+  let hash = 0x811c9dc5;
+  for (let index = 0; index < value.length; index += 1) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return `${value.length}-${(hash >>> 0).toString(16)}`;
+}
+
+function edgeCacheRequest(sourceUrl: URL, apiPath: string, body?: string) {
+  const key = new URL(`/__edge-vlsu-cache/${apiPath}`, sourceUrl.origin);
+  key.searchParams.set("query", sourceUrl.searchParams.toString());
+  key.searchParams.set("body", cacheBodyFingerprint(body));
+  return new Request(key, { method: "GET" });
+}
+
+function apiResponse(response: Response, source: "live" | "edge-cache") {
+  const headers = new Headers(response.headers);
+  headers.delete("Access-Control-Allow-Origin");
+  headers.delete("Access-Control-Allow-Credentials");
+  headers.set("Cache-Control", "no-store");
+  headers.set("X-Lad-Data-Source", source);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
+
+async function storeEdgeResponse(cache: Pick<Cache, "put"> | undefined, key: Request, response: Response) {
+  if (!cache || !response.ok) return;
+  const headers = new Headers(response.headers);
+  headers.delete("Set-Cookie");
+  headers.set("Cache-Control", `public, max-age=${EDGE_CACHE_SECONDS}`);
+  await cache.put(key, new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  }));
+}
+
+function wait(milliseconds: number) {
+  return new Promise<null>((resolve) => setTimeout(() => resolve(null), milliseconds));
+}
+
 async function readLimitedBody(request: Request, maximumBytes: number) {
   const declaredLength = Number(request.headers.get("Content-Length"));
   if (Number.isFinite(declaredLength) && declaredLength > maximumBytes) {
@@ -104,7 +161,7 @@ function apiPreflight(request: Request, allowedMethod: string) {
   });
 }
 
-async function proxyVlsuApi(request: Request) {
+async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutionContext) {
   const sourceUrl = new URL(request.url);
   const apiPath = sourceUrl.pathname.replace(/^\/vlsu-api\/?/, "").replace(/\/+$/, "");
   const allowedMethod = allowedVlsuRoutes.get(apiPath);
@@ -126,35 +183,57 @@ async function proxyVlsuApi(request: Request) {
 
   const targetUrl = new URL(`${API_ORIGIN}/${apiPath}`);
   targetUrl.search = sourceUrl.search;
+  const cache = env.EDGE_CACHE ?? defaultEdgeCache();
+  const cacheKey = edgeCacheRequest(sourceUrl, apiPath, body);
+  const cachedPromise = cache?.match(cacheKey).catch(() => undefined);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  let timedOut = false;
+  const timeout = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, UPSTREAM_TIMEOUT_MS);
+  const freshPromise = fetch(targetUrl, {
+    method: allowedMethod,
+    headers: allowedMethod === "POST"
+      ? { "Content-Type": request.headers.get("Content-Type") || "application/json" }
+      : undefined,
+    body,
+    signal: controller.signal
+  }).finally(() => clearTimeout(timeout));
+  const cached = await cachedPromise;
+
+  if (cached) {
+    const quickFresh = await Promise.race([
+      freshPromise.then((response) => response, () => null),
+      wait(EDGE_FRESH_WAIT_MS)
+    ]);
+    if (quickFresh?.ok) {
+      const cacheWrite = storeEdgeResponse(cache, cacheKey, quickFresh.clone());
+      if (context) context.waitUntil(cacheWrite);
+      else void cacheWrite.catch(() => undefined);
+      return apiResponse(quickFresh, "live");
+    }
+
+    const backgroundRefresh = freshPromise
+      .then((response) => storeEdgeResponse(cache, cacheKey, response))
+      .catch(() => undefined);
+    if (context) context.waitUntil(backgroundRefresh);
+    else void backgroundRefresh;
+    return apiResponse(cached, "edge-cache");
+  }
 
   try {
-    const upstream = await fetch(targetUrl, {
-      method: allowedMethod,
-      headers: allowedMethod === "POST"
-        ? { "Content-Type": request.headers.get("Content-Type") || "application/json" }
-        : undefined,
-      body,
-      signal: controller.signal
-    });
-
-    const headers = new Headers(upstream.headers);
-    headers.delete("Access-Control-Allow-Origin");
-    headers.delete("Access-Control-Allow-Credentials");
-    headers.set("Cache-Control", "no-store");
-
-    return new Response(upstream.body, {
-      status: upstream.status,
-      statusText: upstream.statusText,
-      headers
-    });
+    const upstream = await freshPromise;
+    if (upstream.ok) {
+      const cacheWrite = storeEdgeResponse(cache, cacheKey, upstream.clone());
+      if (context) context.waitUntil(cacheWrite);
+      else void cacheWrite.catch(() => undefined);
+    }
+    return apiResponse(upstream, "live");
   } catch {
-    return controller.signal.aborted
+    return timedOut
       ? jsonResponse({ error: "VLSU API timed out" }, 504)
       : jsonResponse({ error: "VLSU API unavailable" }, 502);
-  } finally {
-    clearTimeout(timeout);
   }
 }
 
@@ -273,18 +352,20 @@ function healthResponse(request: Request, env: Env) {
 }
 
 const worker = {
-  async fetch(request: Request, env: Env) {
+  async fetch(request: Request, env: Env, context?: WorkerExecutionContext) {
     const url = new URL(request.url);
     let response: Response;
 
     if (url.pathname.startsWith("/vlsu-api/")) {
-      response = await proxyVlsuApi(request);
+      response = await proxyVlsuApi(request, env, context);
     } else if (url.pathname === "/app-api/classify") {
       response = await classifyNote(request, env);
     } else if (url.pathname === "/app-api/health") {
       response = healthResponse(request, env);
     } else if (url.pathname.startsWith("/app-api/")) {
       response = jsonResponse({ error: "App API route not found" }, 404);
+    } else if (url.pathname === "/index.html") {
+      response = await env.ASSETS.fetch(new Request(new URL("/", request.url).toString(), request));
     } else {
       response = await env.ASSETS.fetch(request);
     }

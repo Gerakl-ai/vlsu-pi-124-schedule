@@ -17,6 +17,11 @@
       (() => {
         const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
         document.documentElement.dataset.standalone = standalone ? "true" : "false";
+        const initialViewportHeight = Math.round(window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight);
+        if (initialViewportHeight > 0) {
+          document.documentElement.style.setProperty("--app-viewport-height", `${initialViewportHeight}px`);
+          document.documentElement.style.setProperty("--visual-viewport-height", `${initialViewportHeight}px`);
+        }
         const allowed = new Set(["ember", "obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
         const themeSchema = "2026-08-ember";
         let theme = "ember";
@@ -90,16 +95,6 @@
         --launch-accent: #c9602d;
         --launch-signal: #2f7d78;
         --launch-status: var(--launch-bg);
-      }
-
-      @media (display-mode: standalone) {
-        :root {
-          --app-viewport-height: 100vh;
-        }
-      }
-
-      :root[data-standalone="true"] {
-        --app-viewport-height: 100vh;
       }
 
       :root[data-theme="ember"] {
