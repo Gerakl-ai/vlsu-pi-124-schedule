@@ -733,6 +733,7 @@ export function App() {
   const nextLabel = next ? `${next.start}, ${next.subject}` : isSelectedToday ? "Сегодня новых пар нет" : "В этот день новых пар нет";
   const displayLessons = todayLessons;
   const isLoading = status === "loading" && !schedule;
+  const isScheduleUnavailable = status === "error-without-cache" && !schedule;
   const hasLoadedLessons = Boolean(schedule?.allLessons.length);
   const lightHero = themeId === "custom"
     ? customTheme.mode === "light"
@@ -769,11 +770,13 @@ export function App() {
             <small>свайп</small>
           </div>
           {tabMotion.id > 0 && <span key={tabMotion.id} className={`tab-motion-veil ${tabMotion.direction}`} aria-hidden="true" />}
-          {status === "error-without-cache" && activeTab !== "notes" && <ErrorBanner />}
-
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
-          {!isLoading && activeTab === "today" && (
+          {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
+            <ScheduleUnavailableView onRetry={() => refreshSchedule()} />
+          )}
+
+          {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
             <TodayView
               key={selectedDateKey}
               heroSubject={heroSubject}
@@ -810,7 +813,7 @@ export function App() {
             />
           )}
 
-          {!isLoading && activeTab === "week" && (
+          {!isLoading && !isScheduleUnavailable && activeTab === "week" && (
             <WeekView
               lessons={schedule?.allLessons ?? []}
               weekMode={weekMode}
@@ -2024,11 +2027,19 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ErrorBanner() {
+function ScheduleUnavailableView({ onRetry }: { onRetry: () => void }) {
   return (
-    <div className="banner error">
-      <CloudOff size={18} />
-      ВлГУ временно не ответил. Можно обновить ещё раз или открыть сохранённые данные.
-    </div>
+    <section className="schedule-unavailable" role="status" aria-live="polite">
+      <span className="schedule-unavailable-icon" aria-hidden="true"><CloudOff size={27} /></span>
+      <span className="schedule-unavailable-copy">
+        <small>Источник временно недоступен</small>
+        <strong>ВлГУ не ответил</strong>
+        <p>На этом устройстве ещё нет сохранённой копии расписания. Записи и настройки продолжают работать.</p>
+      </span>
+      <button type="button" onClick={onRetry}>
+        <RefreshCw size={17} />
+        Повторить
+      </button>
+    </section>
   );
 }

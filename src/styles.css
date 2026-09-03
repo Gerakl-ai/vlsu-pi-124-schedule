@@ -3303,6 +3303,86 @@ button.day-title > svg {
   -webkit-line-clamp: 2;
 }
 
+.schedule-unavailable {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(var(--accent-rgb), 0.24);
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), transparent 48%),
+    var(--panel);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), var(--shadow-soft);
+}
+
+.schedule-unavailable-icon {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  color: var(--coral);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.08);
+}
+
+.schedule-unavailable-copy {
+  min-width: 0;
+}
+
+.schedule-unavailable-copy small,
+.schedule-unavailable-copy strong {
+  display: block;
+}
+
+.schedule-unavailable-copy small {
+  color: var(--coral);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.schedule-unavailable-copy strong {
+  margin-top: 3px;
+  font-size: 20px;
+  line-height: 1.15;
+}
+
+.schedule-unavailable-copy p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.schedule-unavailable button {
+  grid-column: 1 / -1;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  border: 1px solid rgba(var(--accent-rgb), 0.3);
+  border-radius: 8px;
+  background: rgba(var(--accent-rgb), 0.12);
+  cursor: pointer;
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.schedule-unavailable button:active {
+  transform: scale(0.985);
+  background: rgba(var(--accent-rgb), 0.2);
+}
+
 .skeleton-hero,
 .skeleton-list {
   overflow: hidden;

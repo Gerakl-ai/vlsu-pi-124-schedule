@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v58";
+const CACHE_NAME = "lad-pi-124-v59";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
