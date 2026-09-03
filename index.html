@@ -363,6 +363,12 @@
         </div>
       </div>
     </div>
+    <script>
+      window.setTimeout(() => {
+        const message = document.querySelector(".launch-screen .launch-card p");
+        if (message) message.textContent = "Открываем сохранённое расписание…";
+      }, 800);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

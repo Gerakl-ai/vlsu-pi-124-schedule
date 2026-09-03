@@ -1,4 +1,15 @@
-import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type PointerEvent as ReactPointerEvent
+} from "react";
 import {
   Activity,
   Bell,
@@ -48,6 +59,12 @@ import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule, normalizeCach
 import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
+  adjacentTab,
+  isLongScreenSwipe,
+  resolveScreenSwipe,
+  SCREEN_SWIPE_EDGE_PX
+} from "./lib/screenGestures";
+import {
   currentDayIndex,
   addDays,
   dateForWeekDay,
@@ -79,6 +96,23 @@ const CACHED_SCHEDULE = readScheduleCache();
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
 const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
+const TAB_GESTURE_LABELS: Record<AppTab, string> = {
+  today: "Сегодня",
+  week: "Неделя",
+  notes: "Записи",
+  settings: "Настройки"
+};
+const SCREEN_SWIPE_BLOCK_SELECTOR = [
+  "input",
+  "textarea",
+  "select",
+  "[contenteditable='true']",
+  "[data-screen-swipe='ignore']",
+  ".note-swipe-shell",
+  ".space-rail",
+  ".rich-toolbar",
+  ".rich-palette"
+].join(",");
 type NotesViewComponent = typeof import("./features/notes/NotesView")["NotesView"];
 const LazySmartCalendarSheet = lazy(async () => ({ default: (await import("./features/notes/SmartCalendarSheet")).SmartCalendarSheet }));
 
@@ -87,6 +121,21 @@ const loadNotesView = () => {
   notesViewPromise ??= import("./features/notes/NotesView").then((module) => module.NotesView);
   return notesViewPromise;
 };
+
+interface ActiveScreenGesture {
+  pointerId: number;
+  startX: number;
+  startY: number;
+  viewportWidth: number;
+  deltaX: number;
+  deltaY: number;
+  axis: "pending" | "horizontal" | "vertical";
+  blocked: boolean;
+}
+
+function screenSwipeBlocked(target: EventTarget | null) {
+  return target instanceof Element && Boolean(target.closest(SCREEN_SWIPE_BLOCK_SELECTOR));
+}
 
 function MotionScene() {
   return (
@@ -266,6 +315,7 @@ export function App() {
     date.setHours(0, 0, 0, 0);
     return date;
   });
+  const [dayMotionDirection, setDayMotionDirection] = useState<"forward" | "backward" | null>(null);
   const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled() && readAiConsent());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
@@ -274,6 +324,9 @@ export function App() {
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
   const refreshInFlightRef = useRef(false);
+  const screenGestureRef = useRef<ActiveScreenGesture | null>(null);
+  const gestureFeedbackRef = useRef<HTMLDivElement>(null);
+  const suppressGestureClickUntilRef = useRef(0);
 
   const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
@@ -535,6 +588,11 @@ export function App() {
     commitTab();
   }, [NotesView, activeTab]);
 
+  const shiftSelectedDay = useCallback((offset: -1 | 1) => {
+    setDayMotionDirection(offset > 0 ? "forward" : "backward");
+    setSelectedDate((date) => addDays(date, offset));
+  }, []);
+
   const openLessonComposer = useCallback((lesson: LessonSlot, date: Date, intent: "note" | "homework") => {
     setComposerRequest({
       id: Date.now(),
@@ -551,9 +609,120 @@ export function App() {
   const showScheduleDate = useCallback((date: Date) => {
     const nextDate = new Date(date);
     nextDate.setHours(0, 0, 0, 0);
+    setDayMotionDirection(nextDate.getTime() >= selectedDate.getTime() ? "forward" : "backward");
     setSelectedDate(nextDate);
     navigateToTab("today");
-  }, [navigateToTab]);
+  }, [navigateToTab, selectedDate]);
+
+  const hideGestureFeedback = useCallback(() => {
+    const feedback = gestureFeedbackRef.current;
+    if (!feedback) return;
+    feedback.dataset.visible = "false";
+    feedback.style.setProperty("--gesture-progress", "0");
+  }, []);
+
+  function previewScreenGesture(gesture: ActiveScreenGesture) {
+    const feedback = gestureFeedbackRef.current;
+    if (!feedback || gesture.blocked || gesture.axis !== "horizontal") {
+      hideGestureFeedback();
+      return;
+    }
+
+    const { deltaX, startX, viewportWidth } = gesture;
+    const fromLeftEdge = startX <= SCREEN_SWIPE_EDGE_PX && deltaX > 0;
+    const fromRightEdge = startX >= viewportWidth - SCREEN_SWIPE_EDGE_PX && deltaX < 0;
+    const tab = adjacentTab(activeTab, deltaX);
+    const tabIntent = Boolean(tab) && (fromLeftEdge || fromRightEdge || isLongScreenSwipe(deltaX, viewportWidth));
+    const dayIntent = activeTab === "today" && !tabIntent;
+    if (!tabIntent && !dayIntent) {
+      hideGestureFeedback();
+      return;
+    }
+
+    const label = feedback.querySelector<HTMLElement>("[data-gesture-label]");
+    if (label) {
+      label.textContent = tabIntent && tab
+        ? TAB_GESTURE_LABELS[tab]
+        : deltaX < 0 ? "Следующий день" : "Предыдущий день";
+    }
+    feedback.dataset.visible = "true";
+    feedback.dataset.side = deltaX < 0 ? "right" : "left";
+    feedback.dataset.kind = tabIntent ? "tab" : "day";
+    const targetDistance = tabIntent ? Math.max(150, viewportWidth * 0.42) : 92;
+    const progress = Math.min(1, Math.abs(deltaX) / targetDistance);
+    const side = deltaX < 0 ? 1 : -1;
+    feedback.style.setProperty("--gesture-progress", String(progress));
+    feedback.style.setProperty("--gesture-alpha", String(0.44 + progress * 0.56));
+    feedback.style.setProperty("--gesture-border-alpha", String(0.16 + progress * 0.42));
+    feedback.style.setProperty("--gesture-shadow-alpha", String(0.08 + progress * 0.18));
+    feedback.style.setProperty("--gesture-offset", `${side * (14 - progress * 18)}px`);
+    feedback.style.setProperty("--gesture-scale", String(0.92 + progress * 0.08));
+    feedback.style.setProperty("--gesture-glow", `${progress * 26}px`);
+    feedback.style.setProperty("--gesture-icon-glow", `${progress * 15}px`);
+  }
+
+  function beginScreenGesture(event: ReactPointerEvent<HTMLDivElement>) {
+    if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    screenGestureRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX - rect.left,
+      startY: event.clientY,
+      viewportWidth: rect.width,
+      deltaX: 0,
+      deltaY: 0,
+      axis: "pending",
+      blocked: screenSwipeBlocked(event.target)
+    };
+  }
+
+  function moveScreenGesture(event: ReactPointerEvent<HTMLDivElement>) {
+    const gesture = screenGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    gesture.deltaX = event.clientX - rect.left - gesture.startX;
+    gesture.deltaY = event.clientY - gesture.startY;
+
+    if (gesture.axis === "pending" && Math.max(Math.abs(gesture.deltaX), Math.abs(gesture.deltaY)) >= 9) {
+      gesture.axis = Math.abs(gesture.deltaX) > Math.abs(gesture.deltaY) * 1.08 ? "horizontal" : "vertical";
+    }
+    if (gesture.axis === "horizontal" && !gesture.blocked) {
+      if (event.cancelable) event.preventDefault();
+      previewScreenGesture(gesture);
+    } else if (gesture.axis === "vertical") {
+      hideGestureFeedback();
+    }
+  }
+
+  function finishScreenGesture(event: ReactPointerEvent<HTMLDivElement>) {
+    const gesture = screenGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    screenGestureRef.current = null;
+    hideGestureFeedback();
+    if (gesture.axis !== "horizontal" || gesture.blocked) return;
+
+    if (Math.abs(gesture.deltaX) > 18) suppressGestureClickUntilRef.current = performance.now() + 320;
+    const action = resolveScreenSwipe({
+      activeTab,
+      startX: gesture.startX,
+      viewportWidth: gesture.viewportWidth,
+      deltaX: gesture.deltaX,
+      deltaY: gesture.deltaY
+    });
+    if (action?.kind === "tab") navigateToTab(action.tab);
+    if (action?.kind === "day") shiftSelectedDay(action.offset);
+  }
+
+  function cancelScreenGesture() {
+    screenGestureRef.current = null;
+    hideGestureFeedback();
+  }
+
+  function suppressClickAfterGesture(event: ReactMouseEvent<HTMLDivElement>) {
+    if (performance.now() >= suppressGestureClickUntilRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+  }
 
   useLayoutEffect(() => {
     const container = contentScrollRef.current;
@@ -584,7 +753,21 @@ export function App() {
           onThemeOpen={() => setThemeSheetOpen(true)}
         />
 
-        <div className="content-scroll" ref={contentScrollRef} data-active-tab={activeTab}>
+        <div
+          className="content-scroll"
+          ref={contentScrollRef}
+          data-active-tab={activeTab}
+          onPointerDownCapture={beginScreenGesture}
+          onPointerMoveCapture={moveScreenGesture}
+          onPointerUpCapture={finishScreenGesture}
+          onPointerCancelCapture={cancelScreenGesture}
+          onClickCapture={suppressClickAfterGesture}
+        >
+          <div className="screen-swipe-feedback" ref={gestureFeedbackRef} data-visible="false" aria-hidden="true">
+            <span className="screen-swipe-arrow"><ChevronRight size={18} /></span>
+            <strong data-gesture-label />
+            <small>свайп</small>
+          </div>
           {tabMotion.id > 0 && <span key={tabMotion.id} className={`tab-motion-veil ${tabMotion.direction}`} aria-hidden="true" />}
           {status === "error-without-cache" && activeTab !== "notes" && <ErrorBanner />}
 
@@ -592,6 +775,7 @@ export function App() {
 
           {!isLoading && activeTab === "today" && (
             <TodayView
+              key={selectedDateKey}
               heroSubject={heroSubject}
               heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
               lightHero={lightHero}
@@ -620,7 +804,8 @@ export function App() {
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
               onOpenCalendar={() => setCalendarOpen(true)}
-              onDateChange={setSelectedDate}
+              onShiftDate={shiftSelectedDay}
+              motionDirection={dayMotionDirection}
               onCreateLessonNote={openLessonComposer}
             />
           )}
@@ -790,7 +975,8 @@ function TodayView({
   onToggleNote,
   onOpenNotes,
   onOpenCalendar,
-  onDateChange,
+  onShiftDate,
+  motionDirection,
   onCreateLessonNote
 }: {
   heroSubject: string;
@@ -821,10 +1007,10 @@ function TodayView({
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
   onOpenCalendar: () => void;
-  onDateChange: (date: Date) => void;
+  onShiftDate: (offset: -1 | 1) => void;
+  motionDirection: "forward" | "backward" | null;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
-  const dateSwipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
   const sigilLabel = heroMode === "current" ? "Пара" : heroMode === "next" ? "Старт" : heroMode === "done" ? "Готово" : heroMode === "free" ? "Свободно" : "ВлГУ";
@@ -866,27 +1052,13 @@ function TodayView({
   const dateEyebrow = isSelectedToday ? "Сегодня" : isSelectedPast ? "Прошедший день" : "Выбранный день";
 
   function moveDay(offset: number) {
-    onDateChange(addDays(selectedDate, offset));
-  }
-
-  function finishDateSwipe(clientX: number, clientY: number) {
-    const start = dateSwipeStartRef.current;
-    dateSwipeStartRef.current = null;
-    if (!start) return;
-    const deltaX = clientX - start.x;
-    const deltaY = clientY - start.y;
-    if (Math.abs(deltaX) < 44 || Math.abs(deltaX) < Math.abs(deltaY) * 1.2) return;
-    moveDay(deltaX < 0 ? 1 : -1);
+    onShiftDate(offset > 0 ? 1 : -1);
   }
 
   return (
-    <div className="view-stack today-view">
+    <div className={`view-stack today-view ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
       <div className="today-primary">
-        <div
-          className="today-date-navigator"
-          onTouchStart={(event) => { const touch = event.touches[0]; dateSwipeStartRef.current = touch ? { x: touch.clientX, y: touch.clientY } : null; }}
-          onTouchEnd={(event) => { const touch = event.changedTouches[0]; if (touch) finishDateSwipe(touch.clientX, touch.clientY); }}
-        >
+        <div className="today-date-navigator">
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
           <button
             className="today-date-launch"

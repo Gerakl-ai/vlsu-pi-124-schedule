@@ -573,10 +573,98 @@ select,
   overscroll-behavior-y: none;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 .content-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.screen-swipe-feedback {
+  --gesture-progress: 0;
+  --gesture-alpha: 0;
+  --gesture-border-alpha: .16;
+  --gesture-shadow-alpha: .08;
+  --gesture-offset: 14px;
+  --gesture-scale: .92;
+  --gesture-glow: 0px;
+  --gesture-icon-glow: 0px;
+  position: sticky;
+  z-index: 48;
+  top: calc(50% - 22px);
+  width: max-content;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -44px;
+  padding: 0 12px 0 9px;
+  color: var(--text);
+  border: 1px solid rgba(var(--accent-rgb), var(--gesture-border-alpha));
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--theme-panel-solid) 88%, transparent);
+  box-shadow:
+    0 14px 36px rgba(0, 0, 0, var(--gesture-shadow-alpha)),
+    0 0 var(--gesture-glow) rgba(var(--accent-rgb), .22),
+    inset 0 1px 0 rgba(255,255,255,.1);
+  opacity: 0;
+  transform: translate3d(var(--gesture-offset), 0, 0) scale(var(--gesture-scale));
+  transition: opacity .14s ease, border-color .14s ease, box-shadow .14s ease;
+  pointer-events: none;
+  backdrop-filter: blur(18px) saturate(1.16);
+  will-change: transform, opacity;
+}
+
+.screen-swipe-feedback[data-side="left"] {
+  margin-left: -8px;
+  margin-right: auto;
+}
+
+.screen-swipe-feedback[data-side="right"] {
+  margin-right: -8px;
+  margin-left: auto;
+}
+
+.screen-swipe-feedback[data-visible="true"] {
+  opacity: var(--gesture-alpha);
+}
+
+.screen-swipe-feedback[data-kind="tab"] {
+  color: var(--cyan);
+}
+
+.screen-swipe-feedback[data-kind="day"] {
+  color: var(--signal);
+}
+
+.screen-swipe-feedback[data-side="left"] .screen-swipe-arrow {
+  transform: rotate(180deg);
+}
+
+.screen-swipe-arrow {
+  width: 25px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), .13);
+  box-shadow: 0 0 var(--gesture-icon-glow) rgba(var(--accent-rgb), .34);
+}
+
+.screen-swipe-feedback strong {
+  max-width: 132px;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.screen-swipe-feedback small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
 }
 
 .tab-motion-veil {
@@ -649,6 +737,24 @@ select,
 .today-primary,
 .today-detail-scroll {
   display: contents;
+}
+
+.today-view.day-motion-forward {
+  animation: day-view-forward .34s cubic-bezier(.2,.82,.2,1) both;
+}
+
+.today-view.day-motion-backward {
+  animation: day-view-backward .34s cubic-bezier(.2,.82,.2,1) both;
+}
+
+@keyframes day-view-forward {
+  from { opacity: .72; transform: translate3d(14px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes day-view-backward {
+  from { opacity: .72; transform: translate3d(-14px, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 .today-date-navigator {

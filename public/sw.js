@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v55";
+const CACHE_NAME = "lad-pi-124-v56";
 const APP_SHELL = [
   "/",
   "/index.html",
@@ -79,15 +79,24 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
+    const refreshShell = (async () => {
+      const preloaded = await event.preloadResponse;
+      const response = preloaded || await fetch(request, { cache: "no-store" });
+      if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+      const cache = await caches.open(CACHE_NAME);
+      await cache.put("/index.html", response.clone());
+      return response;
+    })();
+    event.waitUntil(refreshShell.then(() => undefined).catch(() => undefined));
     event.respondWith(
       (async () => {
+        const cachedShell = (await caches.match("/index.html")) || (await caches.match("/"));
+
+        // A controlled PWA must never wait for a slow route before showing its local app shell.
+        if (cachedShell) return cachedShell;
+
         try {
-          const preloaded = await event.preloadResponse;
-          const response = preloaded || await fetch(request, { cache: "no-store" });
-          if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
-          const cache = await caches.open(CACHE_NAME);
-          await cache.put("/index.html", response.clone());
-          return response;
+          return await refreshShell;
         } catch {
           return (await caches.match("/index.html")) || Response.error();
         }

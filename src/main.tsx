@@ -87,7 +87,7 @@ createRoot(document.getElementById("root")!).render(
 );
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
-  window.addEventListener("load", () => {
+  const registerServiceWorker = () => {
     const hadController = Boolean(navigator.serviceWorker.controller);
     let refreshing = false;
     if (hadController) {
@@ -103,7 +103,13 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
       .catch(() => {
         // PWA registration is progressive enhancement; the app still works online.
       });
-  });
+  };
+
+  if (document.readyState === "complete") {
+    window.setTimeout(registerServiceWorker, 0);
+  } else {
+    window.addEventListener("load", registerServiceWorker, { once: true });
+  }
 }
 
 if ("serviceWorker" in navigator && import.meta.env.DEV) {
