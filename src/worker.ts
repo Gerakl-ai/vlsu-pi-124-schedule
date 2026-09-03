@@ -6,6 +6,11 @@ interface WorkerVersionMetadata {
   timestamp: string;
 }
 
+interface KvNamespace {
+  get(key: string): Promise<string | null>;
+  put(key: string, value: string): Promise<void>;
+}
+
 interface Env {
   ASSETS: {
     fetch(request: Request): Promise<Response>;
@@ -15,6 +20,7 @@ interface Env {
   };
   CF_VERSION_METADATA?: WorkerVersionMetadata;
   EDGE_CACHE?: Pick<Cache, "match" | "put">;
+  SCHEDULE_SNAPSHOT?: KvNamespace;
 }
 
 interface WorkerExecutionContext {
@@ -25,6 +31,7 @@ const API_ORIGIN = "https://abiturient-api.vlsu.ru/api";
 const UPSTREAM_TIMEOUT_MS = 8_500;
 const EDGE_FRESH_WAIT_MS = 900;
 const EDGE_CACHE_SECONDS = 30 * 24 * 60 * 60;
+const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BODY_BYTES = 16_384;
 const MAX_CLASSIFICATION_BODY_BYTES = 32_768;
 
@@ -107,7 +114,18 @@ function edgeCacheRequest(sourceUrl: URL, apiPath: string, body?: string) {
   return new Request(key, { method: "GET" });
 }
 
-function apiResponse(response: Response, source: "live" | "edge-cache") {
+interface GlobalSnapshotRecord {
+  version: 1;
+  storedAt: string;
+  contentType: string;
+  body: string;
+}
+
+function globalSnapshotKey(sourceUrl: URL, apiPath: string, body?: string) {
+  return `v1:${apiPath}:${cacheBodyFingerprint(`${sourceUrl.searchParams.toString()}|${body ?? ""}`)}`;
+}
+
+function apiResponse(response: Response, source: "live" | "edge-cache" | "global-snapshot") {
   const headers = new Headers(response.headers);
   headers.delete("Access-Control-Allow-Origin");
   headers.delete("Access-Control-Allow-Credentials");
@@ -120,16 +138,75 @@ function apiResponse(response: Response, source: "live" | "edge-cache") {
   });
 }
 
-async function storeEdgeResponse(cache: Pick<Cache, "put"> | undefined, key: Request, response: Response) {
+async function storeEdgeResponse(cache: Pick<Cache, "put"> | undefined, key: Request, response: Response, storedAt?: string) {
   if (!cache || !response.ok) return;
   const headers = new Headers(response.headers);
   headers.delete("Set-Cookie");
   headers.set("Cache-Control", `public, max-age=${EDGE_CACHE_SECONDS}`);
+  headers.set("X-Lad-Snapshot-At", storedAt ?? headers.get("X-Lad-Snapshot-At") ?? new Date().toISOString());
   await cache.put(key, new Response(response.body, {
     status: response.status,
     statusText: response.statusText,
     headers
   }));
+}
+
+async function readGlobalSnapshot(kv: KvNamespace | undefined, key: string) {
+  if (!kv) return undefined;
+  const raw = await kv.get(key);
+  if (!raw) return undefined;
+
+  try {
+    const record = JSON.parse(raw) as Partial<GlobalSnapshotRecord>;
+    if (record.version !== 1
+      || typeof record.storedAt !== "string"
+      || Number.isNaN(new Date(record.storedAt).getTime())
+      || typeof record.contentType !== "string"
+      || typeof record.body !== "string") return undefined;
+    JSON.parse(record.body);
+    return new Response(record.body, {
+      headers: {
+        "Content-Type": record.contentType,
+        "X-Lad-Snapshot-At": record.storedAt
+      }
+    });
+  } catch {
+    return undefined;
+  }
+}
+
+async function storeGlobalSnapshot(kv: KvNamespace | undefined, key: string, response: Response, storedAt: string) {
+  if (!kv || !response.ok) return;
+  const body = await response.text();
+  if (new TextEncoder().encode(body).byteLength > MAX_SNAPSHOT_BYTES) return;
+  try {
+    JSON.parse(body);
+  } catch {
+    return;
+  }
+
+  const record: GlobalSnapshotRecord = {
+    version: 1,
+    storedAt,
+    contentType: response.headers.get("Content-Type") || "application/json; charset=utf-8",
+    body
+  };
+  await kv.put(key, JSON.stringify(record));
+}
+
+async function storeSuccessfulResponse(
+  cache: Pick<Cache, "put"> | undefined,
+  edgeKey: Request,
+  kv: KvNamespace | undefined,
+  snapshotKey: string,
+  response: Response
+) {
+  if (!response.ok) return;
+  const storedAt = new Date().toISOString();
+  await Promise.all([
+    storeEdgeResponse(cache, edgeKey, response.clone(), storedAt),
+    storeGlobalSnapshot(kv, snapshotKey, response.clone(), storedAt)
+  ]);
 }
 
 function wait(milliseconds: number) {
@@ -185,6 +262,7 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
   targetUrl.search = sourceUrl.search;
   const cache = env.EDGE_CACHE ?? defaultEdgeCache();
   const cacheKey = edgeCacheRequest(sourceUrl, apiPath, body);
+  const snapshotKey = globalSnapshotKey(sourceUrl, apiPath, body);
   const cachedPromise = cache?.match(cacheKey).catch(() => undefined);
   const controller = new AbortController();
   let timedOut = false;
@@ -203,29 +281,67 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
   const cached = await cachedPromise;
 
   if (cached) {
+    const cachedAt = cached.headers.get("X-Lad-Snapshot-At")
+      ?? cached.headers.get("Date")
+      ?? new Date().toISOString();
+    const globalSeed = storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, cached.clone(), cachedAt)
+      .catch(() => undefined);
     const quickFresh = await Promise.race([
       freshPromise.then((response) => response, () => null),
       wait(EDGE_FRESH_WAIT_MS)
     ]);
     if (quickFresh?.ok) {
-      const cacheWrite = storeEdgeResponse(cache, cacheKey, quickFresh.clone());
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, quickFresh.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
       return apiResponse(quickFresh, "live");
     }
 
     const backgroundRefresh = freshPromise
-      .then((response) => storeEdgeResponse(cache, cacheKey, response))
+      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, response))
       .catch(() => undefined);
-    if (context) context.waitUntil(backgroundRefresh);
-    else void backgroundRefresh;
+    if (context) {
+      context.waitUntil(globalSeed);
+      context.waitUntil(backgroundRefresh);
+    } else {
+      void globalSeed;
+      void backgroundRefresh;
+    }
     return apiResponse(cached, "edge-cache");
+  }
+
+  const globalSnapshot = await readGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey).catch(() => undefined);
+  if (globalSnapshot) {
+    const quickFresh = await Promise.race([
+      freshPromise.then((response) => response, () => null),
+      wait(EDGE_FRESH_WAIT_MS)
+    ]);
+    if (quickFresh?.ok) {
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, quickFresh.clone());
+      if (context) context.waitUntil(cacheWrite);
+      else void cacheWrite.catch(() => undefined);
+      return apiResponse(quickFresh, "live");
+    }
+
+    const snapshotAt = globalSnapshot.headers.get("X-Lad-Snapshot-At") ?? undefined;
+    const edgeSeed = storeEdgeResponse(cache, cacheKey, globalSnapshot.clone(), snapshotAt);
+    const backgroundRefresh = freshPromise
+      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, response))
+      .catch(() => undefined);
+    if (context) {
+      context.waitUntil(edgeSeed);
+      context.waitUntil(backgroundRefresh);
+    } else {
+      void edgeSeed.catch(() => undefined);
+      void backgroundRefresh;
+    }
+    return apiResponse(globalSnapshot, "global-snapshot");
   }
 
   try {
     const upstream = await freshPromise;
     if (upstream.ok) {
-      const cacheWrite = storeEdgeResponse(cache, cacheKey, upstream.clone());
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, upstream.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
     }
@@ -347,7 +463,8 @@ function healthResponse(request: Request, env: Env) {
     release: RELEASE_CHANNEL,
     workerVersion: version?.id ?? null,
     workerTag: version?.tag ?? null,
-    deployedAt: version?.timestamp ?? null
+    deployedAt: version?.timestamp ?? null,
+    globalSnapshot: Boolean(env.SCHEDULE_SNAPSHOT)
   });
 }
 

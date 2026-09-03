@@ -9,6 +9,12 @@
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   },
+  "kv_namespaces": [
+    {
+      "binding": "SCHEDULE_SNAPSHOT",
+      "id": "34c2a9c8d5ec433ba9a6c62eb0ce8f7a"
+    }
+  ],
   "observability": {
     "enabled": false
   },

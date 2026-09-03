@@ -12,6 +12,16 @@ function createEdgeCache() {
   };
 }
 
+function createSnapshotKv() {
+  const entries = new Map<string, string>();
+  return {
+    get: vi.fn(async (key: string) => entries.get(key) ?? null),
+    put: vi.fn(async (key: string, value: string) => {
+      entries.set(key, value);
+    })
+  };
+}
+
 function createEnv() {
   return {
     ASSETS: {
@@ -88,6 +98,7 @@ describe("Cloudflare worker", () => {
   it("falls back to the last successful edge copy when VLSU is unavailable", async () => {
     const edgeCache = createEdgeCache();
     const env = { ...createEnv(), EDGE_CACHE: edgeCache };
+    const snapshotKv = createSnapshotKv();
     const request = () => new Request("https://app.example/vlsu-api/student/GetGroupCurrentInfo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -101,11 +112,42 @@ describe("Cloudflare worker", () => {
     await Promise.all(waitUntil.splice(0));
     expect(live.headers.get("X-Lad-Data-Source")).toBe("live");
 
+    Object.assign(env, { SCHEDULE_SNAPSHOT: snapshotKv });
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
     const cached = await worker.fetch(request(), env, context);
     expect(cached.status).toBe(200);
     expect(cached.headers.get("X-Lad-Data-Source")).toBe("edge-cache");
     expect(await cached.json()).toEqual({ CurrentWeekType: 1 });
+    await Promise.all(waitUntil.splice(0));
+    expect(snapshotKv.put).toHaveBeenCalledOnce();
+    vi.unstubAllGlobals();
+  });
+
+  it("serves a global KV snapshot in a new edge location when VLSU is unavailable", async () => {
+    const snapshotKv = createSnapshotKv();
+    const request = () => new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Nrec: "group-id", WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+    });
+    const firstWaitUntil: Promise<unknown>[] = [];
+    const firstEnv = { ...createEnv(), EDGE_CACHE: createEdgeCache(), SCHEDULE_SNAPSHOT: snapshotKv };
+
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest([{ type: "Lessons", name: "Понедельник" }])));
+    const live = await worker.fetch(request(), firstEnv, { waitUntil: (promise) => firstWaitUntil.push(promise) });
+    await Promise.all(firstWaitUntil);
+    expect(live.headers.get("X-Lad-Data-Source")).toBe("live");
+    expect(snapshotKv.put).toHaveBeenCalledOnce();
+
+    const secondWaitUntil: Promise<unknown>[] = [];
+    const secondEnv = { ...createEnv(), EDGE_CACHE: createEdgeCache(), SCHEDULE_SNAPSHOT: snapshotKv };
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    const snapshot = await worker.fetch(request(), secondEnv, { waitUntil: (promise) => secondWaitUntil.push(promise) });
+    expect(snapshot.status).toBe(200);
+    expect(snapshot.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
+    expect(snapshot.headers.get("X-Lad-Snapshot-At")).toBeTruthy();
+    expect(await snapshot.json()).toEqual([{ type: "Lessons", name: "Понедельник" }]);
+    await Promise.all(secondWaitUntil);
     vi.unstubAllGlobals();
   });
 });

@@ -64,6 +64,10 @@ interface ParsedLesson {
   variants: LessonVariant[];
 }
 
+interface RequestMetadata {
+  snapshotAt?: string;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object";
 }
@@ -106,7 +110,7 @@ export function decodeApiPayload(payload: unknown) {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+async function request<T>(path: string, init?: RequestInit, metadata?: RequestMetadata): Promise<T> {
   let lastError: unknown;
 
   for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
@@ -126,6 +130,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       });
 
       if (!response.ok) throw new ApiResponseError(path, response.status);
+      const snapshotAt = response.headers.get("X-Lad-Snapshot-At");
+      if (metadata && snapshotAt && !Number.isNaN(new Date(snapshotAt).getTime())) {
+        if (!metadata.snapshotAt || snapshotAt < metadata.snapshotAt) metadata.snapshotAt = snapshotAt;
+      }
       return decodeApiPayload(await response.json()) as T;
     } catch (error) {
       lastError = error;
@@ -150,16 +158,16 @@ function unwrapArrayPayload<T>(payload: unknown, label: string): T[] {
   throw new Error(`VLSU API returned an invalid ${label} payload`);
 }
 
-async function resolveGroupNrec() {
+async function resolveGroupNrec(metadata?: RequestMetadata) {
   try {
-    const institutes = unwrapArrayPayload<InstituteDto>(await request<unknown>("/catalogs/GetInstitutes"), "institutes");
+    const institutes = unwrapArrayPayload<InstituteDto>(await request<unknown>("/catalogs/GetInstitutes", undefined, metadata), "institutes");
     const institute = institutes.find((item) => item.Text === INSTITUTE_NAME);
     if (!institute) return FALLBACK_NREC;
 
     const groups = await request<GroupDto[] | GroupsResponse>("/student/GetStudGroups", {
       method: "POST",
       body: JSON.stringify({ Institut: institute.Value, WFormed: 0 })
-    });
+    }, metadata);
 
     const list = Array.isArray(groups) ? groups : groups.value ?? [];
     return list.find((group) => group.Name === GROUP_NAME && group.Course === "2 курс")?.Nrec ?? FALLBACK_NREC;
@@ -168,11 +176,11 @@ async function resolveGroupNrec() {
   }
 }
 
-async function fetchCurrentInfo(nrec: string): Promise<CurrentInfo> {
+async function fetchCurrentInfo(nrec: string, metadata?: RequestMetadata): Promise<CurrentInfo> {
   const payload = await request<unknown>("/student/GetGroupCurrentInfo", {
     method: "POST",
     body: JSON.stringify(nrec)
-  });
+  }, metadata);
   if (!isRecord(payload)
     || typeof payload.CurrentLesson !== "string"
     || (payload.CurrentWeekType !== 1 && payload.CurrentWeekType !== 2)
@@ -366,11 +374,11 @@ export function normalizeCachedSchedule(state: ScheduleState): ScheduleState {
   };
 }
 
-async function fetchSchedule(nrec: string) {
+async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
   const payload = await request<unknown>("/student/GetGroupSchedule", {
     method: "POST",
     body: JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
-  });
+  }, metadata);
   const days = unwrapArrayPayload<ScheduleDayDto | ExamSessionDto>(payload, "schedule");
   if (days.some((day) => !isScheduleDay(day) && !isExamSession(day))) {
     throw new Error("VLSU API returned an invalid schedule item");
@@ -380,8 +388,12 @@ async function fetchSchedule(nrec: string) {
 }
 
 export async function loadSchedule(): Promise<ScheduleState> {
+  const metadata: RequestMetadata = {};
   const fetchState = async (groupNrec: string) => {
-    const [currentInfo, allLessons] = await Promise.all([fetchCurrentInfo(groupNrec), fetchSchedule(groupNrec)]);
+    const [currentInfo, allLessons] = await Promise.all([
+      fetchCurrentInfo(groupNrec, metadata),
+      fetchSchedule(groupNrec, metadata)
+    ]);
     return { groupNrec, currentInfo, allLessons };
   };
 
@@ -389,13 +401,13 @@ export async function loadSchedule(): Promise<ScheduleState> {
   try {
     resolved = await fetchState(FALLBACK_NREC);
   } catch (initialError) {
-    const discoveredNrec = await resolveGroupNrec();
+    const discoveredNrec = await resolveGroupNrec(metadata);
     if (discoveredNrec === FALLBACK_NREC) throw initialError;
     resolved = await fetchState(discoveredNrec);
   }
   const state = {
     ...resolved,
-    fetchedAt: new Date().toISOString()
+    fetchedAt: metadata.snapshotAt ?? new Date().toISOString()
   };
   writeScheduleCache(state);
   return state;
