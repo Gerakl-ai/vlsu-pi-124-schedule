@@ -28,6 +28,7 @@ interface WorkerExecutionContext {
 }
 
 const API_ORIGIN = "https://abiturient-api.vlsu.ru/api";
+const SCHEDULE_GROUP_NREC = "7936a2a43b11b20b01d30f5b00c73166";
 const UPSTREAM_TIMEOUT_MS = 8_500;
 const EDGE_FRESH_WAIT_MS = 900;
 const EDGE_CACHE_SECONDS = 30 * 24 * 60 * 60;
@@ -207,6 +208,41 @@ async function storeSuccessfulResponse(
     storeEdgeResponse(cache, edgeKey, response.clone(), storedAt),
     storeGlobalSnapshot(kv, snapshotKey, response.clone(), storedAt)
   ]);
+}
+
+async function refreshGlobalScheduleSnapshots(env: Env) {
+  if (!env.SCHEDULE_SNAPSHOT) return;
+
+  const targets = [
+    {
+      apiPath: "student/GetGroupCurrentInfo",
+      body: JSON.stringify(SCHEDULE_GROUP_NREC)
+    },
+    {
+      apiPath: "student/GetGroupSchedule",
+      body: JSON.stringify({ Nrec: SCHEDULE_GROUP_NREC, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+    }
+  ];
+
+  await Promise.allSettled(targets.map(async ({ apiPath, body }) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+    try {
+      const response = await fetch(`${API_ORIGIN}/${apiPath}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body,
+        signal: controller.signal
+      });
+      if (!response.ok) return;
+
+      const sourceUrl = new URL(`https://snapshot.internal/vlsu-api/${apiPath}`);
+      const snapshotKey = globalSnapshotKey(sourceUrl, apiPath, body);
+      await storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, response, new Date().toISOString());
+    } finally {
+      clearTimeout(timeout);
+    }
+  }));
 }
 
 function wait(milliseconds: number) {
@@ -469,6 +505,10 @@ function healthResponse(request: Request, env: Env) {
 }
 
 const worker = {
+  scheduled(_controller: { cron: string; scheduledTime: number }, env: Env, context: WorkerExecutionContext) {
+    context.waitUntil(refreshGlobalScheduleSnapshots(env));
+  },
+
   async fetch(request: Request, env: Env, context?: WorkerExecutionContext) {
     const url = new URL(request.url);
     let response: Response;

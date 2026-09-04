@@ -150,6 +150,49 @@ describe("Cloudflare worker", () => {
     await Promise.all(secondWaitUntil);
     vi.unstubAllGlobals();
   });
+
+  it("refreshes the PI-124 global snapshots from the scheduled handler", async () => {
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
+    const waitUntil: Promise<unknown>[] = [];
+    const currentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "PI-124", CurrentSemester: 4 };
+    const schedule = [{ type: "Lessons", name: "Monday" }];
+
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+    worker.scheduled(
+      { cron: "*/15 * * * *", scheduledTime: Date.now() },
+      env,
+      { waitUntil: (promise) => waitUntil.push(promise) }
+    );
+    await Promise.all(waitUntil);
+
+    expect(snapshotKv.put).toHaveBeenCalledTimes(2);
+
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    const currentResponse = await worker.fetch(new Request("https://app.example/vlsu-api/student/GetGroupCurrentInfo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify("7936a2a43b11b20b01d30f5b00c73166")
+    }), { ...env, EDGE_CACHE: createEdgeCache() });
+    const scheduleResponse = await worker.fetch(new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Nrec: "7936a2a43b11b20b01d30f5b00c73166",
+        WeekType: 0,
+        WeekDays: "1,2,3,4,5,6"
+      })
+    }), { ...env, EDGE_CACHE: createEdgeCache() });
+
+    expect(currentResponse.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
+    expect(scheduleResponse.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
+    expect(await currentResponse.json()).toEqual(currentInfo);
+    expect(await scheduleResponse.json()).toEqual(schedule);
+    vi.unstubAllGlobals();
+  });
 });
 
 function jsonResponseForTest(payload: unknown) {
