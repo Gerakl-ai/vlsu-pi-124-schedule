@@ -499,8 +499,9 @@ select,
 
 .sync-line {
   grid-column: 1 / -1;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
   gap: 12px;
   color: #8e99aa;
   font-size: 10.5px;
@@ -522,6 +523,8 @@ select,
   gap: 6px;
   text-align: right;
   color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
 .sync-status::before {
@@ -3958,6 +3961,20 @@ button.day-title > svg {
     background: var(--theme-frame);
     transform: translateZ(0);
     contain: layout paint;
+  }
+
+  .sync-line {
+    display: flex;
+    min-height: 14px;
+    justify-content: flex-end;
+  }
+
+  .sync-line > span:first-child {
+    display: none;
+  }
+
+  .day-motion-rail {
+    display: none;
   }
 }
 

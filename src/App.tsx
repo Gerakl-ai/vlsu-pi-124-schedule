@@ -80,7 +80,8 @@ import {
   minutesUntilStart,
   nowMinutes,
   selectDayLessons,
-  weekModeForDate
+  weekModeForDate,
+  weekModeFromSnapshot
 } from "./lib/time";
 
 const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"];
@@ -257,12 +258,13 @@ function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date)
 }
 
 function syncStatusText(status: ApiStatus, refreshedAt?: string) {
-  const updatedText = refreshedAt ? `Обновлено ${formatUpdatedAt(refreshedAt)}` : "Кэш пуст";
+  const updatedAt = refreshedAt ? formatUpdatedAt(refreshedAt) : "";
+  const updatedText = updatedAt ? `Обновлено ${updatedAt}` : "Кэш пуст";
 
   if (status === "loading") return "Подключение к ВлГУ";
   if (status === "refreshing") return refreshedAt ? `${updatedText} · синхронизация` : "Синхронизация";
   if (status === "updated") return "Расписание обновлено";
-  if (status === "stale") return refreshedAt ? `Нет связи · ${updatedText}` : "Нет связи с ВлГУ";
+  if (status === "stale") return updatedAt ? `Офлайн · ${updatedAt}` : "ВлГУ не отвечает";
   if (status === "error-without-cache") return "Не удалось загрузить данные";
 
   return updatedText;
@@ -328,10 +330,12 @@ export function App() {
   const gestureFeedbackRef = useRef<HTMLDivElement>(null);
   const suppressGestureClickUntilRef = useRef(0);
 
-  const currentWeek = schedule ? activeWeekMode(schedule.currentInfo.currentWeekType) : "numerator";
+  const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
+  const currentWeek = schedule
+    ? weekModeFromSnapshot(activeWeekMode(schedule.currentInfo.currentWeekType), schedule.weekTypeAsOf ?? schedule.fetchedAt, nowDate)
+    : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
-  const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
   const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled);
   const openNotes = useMemo(() => smartNotes.notes.filter((note) => note.status === "open"), [smartNotes.notes]);
   const focusNote = useMemo(() => {
@@ -941,7 +945,11 @@ function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh
 
       <div className="sync-line">
         <span>{INSTITUTE_NAME}</span>
-        <span className={`sync-status sync-status-${status}`} aria-live="polite">
+        <span
+          className={`sync-status sync-status-${status}`}
+          aria-live="polite"
+          title={status === "stale" ? "ВлГУ временно не отвечает. Показано последнее сохранённое расписание." : undefined}
+        >
           {syncStatusText(status, refreshedAt)}
         </span>
       </div>

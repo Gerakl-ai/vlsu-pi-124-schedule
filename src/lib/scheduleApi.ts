@@ -18,6 +18,16 @@ const PAIR_TIMES = [
   ["19:20", "20:50"]
 ] as const;
 
+const DAY_INDEX_BY_NAME: Record<string, number> = {
+  "понедельник": 1,
+  "вторник": 2,
+  "среда": 3,
+  "четверг": 4,
+  "пятница": 5,
+  "суббота": 6,
+  "воскресенье": 7
+};
+
 interface InstituteDto {
   Value: string;
   Text: string;
@@ -130,9 +140,11 @@ async function request<T>(path: string, init?: RequestInit, metadata?: RequestMe
       });
 
       if (!response.ok) throw new ApiResponseError(path, response.status);
-      const snapshotAt = response.headers.get("X-Lad-Snapshot-At");
-      if (metadata && snapshotAt && !Number.isNaN(new Date(snapshotAt).getTime())) {
-        if (!metadata.snapshotAt || snapshotAt < metadata.snapshotAt) metadata.snapshotAt = snapshotAt;
+      const snapshotAt = response.headers.get("X-Lad-Snapshot-At")
+        ?? response.headers.get("Date")
+        ?? new Date().toISOString();
+      if (metadata && !Number.isNaN(new Date(snapshotAt).getTime())) {
+        metadata.snapshotAt = snapshotAt;
       }
       return decodeApiPayload(await response.json()) as T;
     } catch (error) {
@@ -273,6 +285,10 @@ function dayIndexFromDate(date: Date) {
   return day === 0 ? 7 : day;
 }
 
+function dayIndexFromScheduleName(name: string, fallback: number) {
+  return DAY_INDEX_BY_NAME[name.trim().toLocaleLowerCase("ru-RU")] ?? fallback;
+}
+
 function endTimeForStart(start: string) {
   const pair = PAIR_TIMES.find(([pairStart]) => pairStart === start);
   if (pair) return pair[1];
@@ -344,6 +360,7 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
   const lessons: LessonSlot[] = [];
 
   classDays.forEach((day, index) => {
+    const dayIndex = dayIndexFromScheduleName(day.name, index + 1);
     PAIR_TIMES.forEach((_, pairOffset) => {
       const pairIndex = pairOffset + 1;
       const numerator = (day[`n${pairIndex}`] || "").trim();
@@ -352,12 +369,12 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
       if (!numerator && !denominator) return;
 
       if (numerator && denominator && numerator === denominator) {
-        lessons.push(createLesson(day, index + 1, pairIndex, numerator, "all"));
+        lessons.push(createLesson(day, dayIndex, pairIndex, numerator, "all"));
         return;
       }
 
-      if (numerator) lessons.push(createLesson(day, index + 1, pairIndex, numerator, normalizeWeekMode("n")));
-      if (denominator) lessons.push(createLesson(day, index + 1, pairIndex, denominator, normalizeWeekMode("z")));
+      if (numerator) lessons.push(createLesson(day, dayIndex, pairIndex, numerator, normalizeWeekMode("n")));
+      if (denominator) lessons.push(createLesson(day, dayIndex, pairIndex, denominator, normalizeWeekMode("z")));
     });
   });
 
@@ -367,6 +384,7 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
 export function normalizeCachedSchedule(state: ScheduleState): ScheduleState {
   return {
     ...state,
+    weekTypeAsOf: state.weekTypeAsOf ?? state.fetchedAt,
     allLessons: state.allLessons.map((lesson) => ({
       ...lesson,
       ...parseLessonText(lesson.rawText)
@@ -388,26 +406,30 @@ async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
 }
 
 export async function loadSchedule(): Promise<ScheduleState> {
-  const metadata: RequestMetadata = {};
   const fetchState = async (groupNrec: string) => {
+    const currentInfoMetadata: RequestMetadata = {};
+    const scheduleMetadata: RequestMetadata = {};
     const [currentInfo, allLessons] = await Promise.all([
-      fetchCurrentInfo(groupNrec, metadata),
-      fetchSchedule(groupNrec, metadata)
+      fetchCurrentInfo(groupNrec, currentInfoMetadata),
+      fetchSchedule(groupNrec, scheduleMetadata)
     ]);
-    return { groupNrec, currentInfo, allLessons };
+    return { groupNrec, currentInfo, allLessons, currentInfoMetadata, scheduleMetadata };
   };
 
   let resolved;
   try {
     resolved = await fetchState(FALLBACK_NREC);
   } catch (initialError) {
-    const discoveredNrec = await resolveGroupNrec(metadata);
+    const discoveredNrec = await resolveGroupNrec();
     if (discoveredNrec === FALLBACK_NREC) throw initialError;
     resolved = await fetchState(discoveredNrec);
   }
-  const state = {
-    ...resolved,
-    fetchedAt: metadata.snapshotAt ?? new Date().toISOString()
+  const { currentInfoMetadata, scheduleMetadata, ...scheduleState } = resolved;
+  const now = new Date().toISOString();
+  const state: ScheduleState = {
+    ...scheduleState,
+    fetchedAt: scheduleMetadata.snapshotAt ?? now,
+    weekTypeAsOf: currentInfoMetadata.snapshotAt ?? now
   };
   writeScheduleCache(state);
   return state;

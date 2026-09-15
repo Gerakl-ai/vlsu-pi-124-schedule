@@ -54,6 +54,7 @@ export interface ScheduleState {
   currentInfo: CurrentInfo;
   allLessons: LessonSlot[];
   fetchedAt: string;
+  weekTypeAsOf?: string;
 }
 
 export interface ReminderSettings {

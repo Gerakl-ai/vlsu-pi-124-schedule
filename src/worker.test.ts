@@ -151,6 +151,27 @@ describe("Cloudflare worker", () => {
     vi.unstubAllGlobals();
   });
 
+  it("does not overwrite resilient caches with an empty successful schedule response", async () => {
+    const edgeCache = createEdgeCache();
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), EDGE_CACHE: edgeCache, SCHEDULE_SNAPSHOT: snapshotKv };
+    const request = new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Nrec: "group-id", WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+    });
+    const waitUntil: Promise<unknown>[] = [];
+
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest("")));
+    const response = await worker.fetch(request, env, { waitUntil: (promise) => waitUntil.push(promise) });
+    await Promise.all(waitUntil);
+
+    expect(response.status).toBe(200);
+    expect(edgeCache.put).not.toHaveBeenCalled();
+    expect(snapshotKv.put).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it("refreshes the PI-124 global snapshots from the scheduled handler", async () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };

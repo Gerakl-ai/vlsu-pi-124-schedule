@@ -44,6 +44,13 @@ export function weekModeForDate(date: Date, currentMode: WeekMode, baseDate = ne
   return currentMode === "numerator" ? "denominator" : "numerator";
 }
 
+export function weekModeFromSnapshot(currentMode: WeekMode, snapshotAt: string | undefined, targetDate = new Date()): WeekMode {
+  if (!snapshotAt) return currentMode;
+  const snapshotDate = new Date(snapshotAt);
+  if (Number.isNaN(snapshotDate.getTime())) return currentMode;
+  return weekModeForDate(targetDate, currentMode, snapshotDate);
+}
+
 export function hasDatedLessons(lessons: LessonSlot[]) {
   return lessons.some((lesson) => Boolean(lesson.date));
 }

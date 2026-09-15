@@ -2,6 +2,8 @@
 
 Mobile-first PWA для расписания ПИ-124, ИИТЭ, ВлГУ и личных умных заметок.
 
+План превращения персональной версии в открытый мультигрупповой продукт: [docs/VLSU-PRODUCT-ROADMAP.md](docs/VLSU-PRODUCT-ROADMAP.md).
+
 ## Возможности
 
 - живое расписание ВлГУ с cache-first запуском и offline reload;

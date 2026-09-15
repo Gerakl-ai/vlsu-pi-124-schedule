@@ -68,7 +68,7 @@ describe("normalizeSchedule", () => {
     const lessons = normalizeSchedule([day]);
     expect(lessons).toHaveLength(1);
     expect(lessons[0]).toMatchObject({
-      dayIndex: 1,
+      dayIndex: 5,
       pairIndex: 1,
       weekMode: "all",
       subject: "Основы frontend разработки / Алгоритмизация и программирование"
@@ -85,6 +85,7 @@ describe("normalizeSchedule", () => {
     };
 
     const lessons = normalizeSchedule([day]);
+    expect(lessons.map((lesson) => lesson.dayIndex)).toEqual([2, 2]);
     expect(lessons.map((lesson) => lesson.weekMode)).toEqual(["numerator", "denominator"]);
   });
 
@@ -128,5 +129,6 @@ describe("normalizeSchedule", () => {
 
     expect(cached.allLessons[0].subject).toBe("Основы frontend разработки / Алгоритмизация и программирование");
     expect(cached.allLessons[0].variants).toHaveLength(2);
+    expect(cached.weekTypeAsOf).toBe("2026-07-17T00:00:00.000Z");
   });
 });

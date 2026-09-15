@@ -139,6 +139,47 @@ function apiResponse(response: Response, source: "live" | "edge-cache" | "global
   });
 }
 
+function decodeSnapshotPayload(body: string): unknown {
+  let payload: unknown = JSON.parse(body);
+  if (typeof payload === "string") {
+    const trimmed = payload.trim();
+    if (trimmed.startsWith("[") || trimmed.startsWith("{")) payload = JSON.parse(trimmed);
+  }
+  if (payload && typeof payload === "object" && "value" in payload) {
+    const value = (payload as { value?: unknown }).value;
+    if (Array.isArray(value)) return value;
+  }
+  return payload;
+}
+
+function isUsefulVlsuPayload(apiPath: string, payload: unknown) {
+  if (apiPath === "student/GetGroupCurrentInfo") {
+    return Boolean(payload)
+      && typeof payload === "object"
+      && [1, 2].includes((payload as { CurrentWeekType?: number }).CurrentWeekType ?? 0);
+  }
+
+  if (apiPath === "student/GetGroupSchedule") {
+    return Array.isArray(payload)
+      && payload.some((item) => item && typeof item === "object" && ["Lessons", "ExamSession"].includes((item as { type?: string }).type ?? ""));
+  }
+
+  if (apiPath === "catalogs/GetInstitutes" || apiPath === "student/GetStudGroups") {
+    return Array.isArray(payload) && payload.length > 0;
+  }
+
+  return false;
+}
+
+async function isUsefulSnapshotResponse(apiPath: string, response: Response) {
+  if (!response.ok) return false;
+  try {
+    return isUsefulVlsuPayload(apiPath, decodeSnapshotPayload(await response.text()));
+  } catch {
+    return false;
+  }
+}
+
 async function storeEdgeResponse(cache: Pick<Cache, "put"> | undefined, key: Request, response: Response, storedAt?: string) {
   if (!cache || !response.ok) return;
   const headers = new Headers(response.headers);
@@ -176,12 +217,12 @@ async function readGlobalSnapshot(kv: KvNamespace | undefined, key: string) {
   }
 }
 
-async function storeGlobalSnapshot(kv: KvNamespace | undefined, key: string, response: Response, storedAt: string) {
+async function storeGlobalSnapshot(kv: KvNamespace | undefined, key: string, response: Response, storedAt: string, apiPath: string) {
   if (!kv || !response.ok) return;
   const body = await response.text();
   if (new TextEncoder().encode(body).byteLength > MAX_SNAPSHOT_BYTES) return;
   try {
-    JSON.parse(body);
+    if (!isUsefulVlsuPayload(apiPath, decodeSnapshotPayload(body))) return;
   } catch {
     return;
   }
@@ -200,13 +241,14 @@ async function storeSuccessfulResponse(
   edgeKey: Request,
   kv: KvNamespace | undefined,
   snapshotKey: string,
+  apiPath: string,
   response: Response
 ) {
-  if (!response.ok) return;
+  if (!await isUsefulSnapshotResponse(apiPath, response.clone())) return;
   const storedAt = new Date().toISOString();
   await Promise.all([
     storeEdgeResponse(cache, edgeKey, response.clone(), storedAt),
-    storeGlobalSnapshot(kv, snapshotKey, response.clone(), storedAt)
+    storeGlobalSnapshot(kv, snapshotKey, response.clone(), storedAt, apiPath)
   ]);
 }
 
@@ -238,7 +280,7 @@ async function refreshGlobalScheduleSnapshots(env: Env) {
 
       const sourceUrl = new URL(`https://snapshot.internal/vlsu-api/${apiPath}`);
       const snapshotKey = globalSnapshotKey(sourceUrl, apiPath, body);
-      await storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, response, new Date().toISOString());
+      await storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, response, new Date().toISOString(), apiPath);
     } finally {
       clearTimeout(timeout);
     }
@@ -314,27 +356,30 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
     body,
     signal: controller.signal
   }).finally(() => clearTimeout(timeout));
-  const cached = await cachedPromise;
+  const cachedCandidate = await cachedPromise;
+  const cached = cachedCandidate && await isUsefulSnapshotResponse(apiPath, cachedCandidate.clone())
+    ? cachedCandidate
+    : undefined;
 
   if (cached) {
     const cachedAt = cached.headers.get("X-Lad-Snapshot-At")
       ?? cached.headers.get("Date")
       ?? new Date().toISOString();
-    const globalSeed = storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, cached.clone(), cachedAt)
+    const globalSeed = storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, cached.clone(), cachedAt, apiPath)
       .catch(() => undefined);
     const quickFresh = await Promise.race([
-      freshPromise.then((response) => response, () => null),
+      freshPromise.then(async (response) => await isUsefulSnapshotResponse(apiPath, response.clone()) ? response : null, () => null),
       wait(EDGE_FRESH_WAIT_MS)
     ]);
     if (quickFresh?.ok) {
-      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, quickFresh.clone());
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, quickFresh.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
       return apiResponse(quickFresh, "live");
     }
 
     const backgroundRefresh = freshPromise
-      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, response))
+      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, response))
       .catch(() => undefined);
     if (context) {
       context.waitUntil(globalSeed);
@@ -346,14 +391,17 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
     return apiResponse(cached, "edge-cache");
   }
 
-  const globalSnapshot = await readGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey).catch(() => undefined);
+  const globalSnapshotCandidate = await readGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey).catch(() => undefined);
+  const globalSnapshot = globalSnapshotCandidate && await isUsefulSnapshotResponse(apiPath, globalSnapshotCandidate.clone())
+    ? globalSnapshotCandidate
+    : undefined;
   if (globalSnapshot) {
     const quickFresh = await Promise.race([
-      freshPromise.then((response) => response, () => null),
+      freshPromise.then(async (response) => await isUsefulSnapshotResponse(apiPath, response.clone()) ? response : null, () => null),
       wait(EDGE_FRESH_WAIT_MS)
     ]);
     if (quickFresh?.ok) {
-      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, quickFresh.clone());
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, quickFresh.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
       return apiResponse(quickFresh, "live");
@@ -362,7 +410,7 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
     const snapshotAt = globalSnapshot.headers.get("X-Lad-Snapshot-At") ?? undefined;
     const edgeSeed = storeEdgeResponse(cache, cacheKey, globalSnapshot.clone(), snapshotAt);
     const backgroundRefresh = freshPromise
-      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, response))
+      .then((response) => storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, response))
       .catch(() => undefined);
     if (context) {
       context.waitUntil(edgeSeed);
@@ -376,8 +424,8 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
 
   try {
     const upstream = await freshPromise;
-    if (upstream.ok) {
-      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, upstream.clone());
+    if (upstream.ok && await isUsefulSnapshotResponse(apiPath, upstream.clone())) {
+      const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, upstream.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
     }
