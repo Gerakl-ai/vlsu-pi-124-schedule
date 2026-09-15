@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { weekModeForDate, weekModeFromSnapshot } from "./time";
+import { selectedWeekModeForDate, weekModeForDate, weekModeFromSnapshot } from "./time";
 
 describe("weekModeForDate", () => {
   const base = new Date("2026-09-02T12:00:00");
@@ -33,5 +33,19 @@ describe("weekModeFromSnapshot", () => {
 
   it("falls back to the reported type for legacy invalid timestamps", () => {
     expect(weekModeFromSnapshot("denominator", "invalid", new Date("2026-09-15T11:44:00"))).toBe("denominator");
+  });
+});
+
+describe("selectedWeekModeForDate", () => {
+  const now = new Date("2026-09-15T12:00:00");
+  const nextWeek = new Date("2026-09-22T12:00:00");
+
+  it("alternates the official current mode when navigating to another week", () => {
+    expect(selectedWeekModeForDate(nextWeek, "numerator", "current", now)).toBe("denominator");
+  });
+
+  it("keeps an explicit numerator or denominator selection stable", () => {
+    expect(selectedWeekModeForDate(nextWeek, "numerator", "numerator", now)).toBe("numerator");
+    expect(selectedWeekModeForDate(nextWeek, "numerator", "denominator", now)).toBe("denominator");
   });
 });

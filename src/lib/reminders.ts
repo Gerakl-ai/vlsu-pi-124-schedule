@@ -1,7 +1,7 @@
 import type { LessonSlot, NotificationCapability, ReminderSettings, WeekMode } from "../types";
 import { currentDayIndex, minutesFromTime, nowMinutes, selectDayLessons } from "./time";
 
-const REMINDER_TIMER_KEY = "pi124.reminder.timer";
+const REMINDER_TIMER_KEY = "lad.reminder.timer.v2";
 const NOTIFICATION_TIMEOUT_MS = 1800;
 
 function isIOSDevice() {
@@ -132,7 +132,7 @@ async function activeServiceWorkerRegistration() {
   return ready;
 }
 
-export async function sendLocalNotification(title: string, body: string, tag = "pi124-test") {
+export async function sendLocalNotification(title: string, body: string, tag = "lad-test") {
   if (typeof Notification === "undefined") {
     throw new Error("Notification API is not available");
   }
@@ -161,9 +161,9 @@ export async function sendLocalNotification(title: string, body: string, tag = "
 
 export async function sendTestNotification() {
   await sendLocalNotification(
-    "ПИ-124: тест уведомлений",
+    "Лад ВлГУ: тест уведомлений",
     "Если ты видишь это сообщение, локальные уведомления работают.",
-    "pi124-test-now"
+    "lad-test-now"
   );
 }
 
@@ -194,7 +194,7 @@ export function scheduleNextReminder(
     sendLocalNotification(
       `Через ${settings.minutesBefore} мин: ${target.subject}`,
       `${target.start}-${target.end}${target.room ? `, ${target.room}` : ""}`,
-      `pi124-${target.id}`
+      `lad-${target.id}`
     ).catch(() => onScheduled?.("Не удалось отправить напоминание. Проверь разрешения браузера."));
   }, Math.max(0, delayMs));
 

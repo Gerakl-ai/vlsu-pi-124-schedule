@@ -1,10 +1,48 @@
-import { describe, expect, it } from "vitest";
-import { decodeApiPayload, normalizeCachedSchedule, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { decodeApiPayload, loadGroups, loadInstitutes, normalizeCachedSchedule, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
 
 const subgroupSlot = [
   "109-3, лб, Аджамиех С.М., Основы frontend разработки",
   "111-3, лб, Старовойтов Е.А., Алгоритмизация и программирование"
 ].join("\n");
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe("VLSU catalogs", () => {
+  it("normalizes institutes from the public catalog", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
+      { Value: "iite-id", Text: "Институт информационных технологий и электроники" },
+      { Value: "gi-id", Text: "Гуманитарный институт" }
+    ]), { status: 200, headers: { "Content-Type": "application/json" } })));
+
+    const institutes = await loadInstitutes();
+
+    expect(institutes).toHaveLength(2);
+    expect(institutes.find((item) => item.id === "iite-id")).toMatchObject({
+      name: "Институт информационных технологий и электроники",
+      shortName: "ИИТЭ"
+    });
+  });
+
+  it("normalizes and naturally sorts groups for an institute", async () => {
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ value: [
+      { Nrec: "b", Name: "ПИ-124", Course: "3 курс" },
+      { Nrec: "a", Name: "ПИ-99", Course: "4 курс" }
+    ] }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const groups = await loadGroups("iite-id");
+
+    expect(groups.map((group) => group.name)).toEqual(["ПИ-99", "ПИ-124"]);
+    expect(groups[1]).toMatchObject({ nrec: "b", course: "3 курс" });
+    expect(fetchMock).toHaveBeenCalledWith("/vlsu-api/student/GetStudGroups", expect.objectContaining({
+      method: "POST",
+      body: JSON.stringify({ Institut: "iite-id", WFormed: 0 })
+    }));
+  });
+});
 
 describe("decodeApiPayload", () => {
   it("unwraps JSON that the upstream API encoded as a string", () => {

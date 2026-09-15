@@ -76,7 +76,7 @@ function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, we
   const classEvents = lessonsForDate(lessons, date, weekMode).map((lesson) => ({
     id: `lesson-${lesson.id}-${dateKeyFromDate(date)}`,
     title: lesson.subject,
-    detail: [lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "Пара ПИ-124",
+    detail: [lesson.kind, lesson.teacher].filter(Boolean).join(" · ") || "Пара",
     start: timeOnDate(date, lesson.start),
     end: timeOnDate(date, lesson.end),
     location: lesson.room,
@@ -156,7 +156,7 @@ function buildIcs(events: CalendarEvent[], name: string) {
   const stamp = formatUtc(new Date());
   const rows = events.flatMap((event) => [
     "BEGIN:VEVENT",
-    `UID:${escapeIcs(event.id)}@lad-pi124`,
+    `UID:${escapeIcs(event.id)}@lad-vlsu`,
     `DTSTAMP:${stamp}`,
     `DTSTART:${formatUtc(event.start)}`,
     `DTEND:${formatUtc(event.end)}`,
@@ -168,7 +168,7 @@ function buildIcs(events: CalendarEvent[], name: string) {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Lad PI-124//Calendar//RU",
+    "PRODID:-//Lad VLSU//Calendar//RU",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     `X-WR-CALNAME:${escapeIcs(name)}`,

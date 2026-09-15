@@ -51,6 +51,15 @@ export function weekModeFromSnapshot(currentMode: WeekMode, snapshotAt: string |
   return weekModeForDate(targetDate, currentMode, snapshotDate);
 }
 
+export function selectedWeekModeForDate(
+  date: Date,
+  currentMode: WeekMode,
+  override: WeekMode | "current",
+  baseDate = new Date()
+): WeekMode {
+  return override === "current" ? weekModeForDate(date, currentMode, baseDate) : override;
+}
+
 export function hasDatedLessons(lessons: LessonSlot[]) {
   return lessons.some((lesson) => Boolean(lesson.date));
 }

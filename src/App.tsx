@@ -18,6 +18,7 @@ import {
   BookCheck,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -45,6 +46,9 @@ import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/n
 import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./features/notes/notePreferences";
 import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
+import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
+import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
+import { readGroupScheduleCache, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
 import {
   applyTheme,
@@ -55,8 +59,8 @@ import {
   type CustomTheme,
   type ThemeId
 } from "./features/themes/theme";
-import { activeWeekMode, GROUP_NAME, INSTITUTE_NAME, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
-import { readReminderSettings, readScheduleCache, writeReminderSettings } from "./lib/storage";
+import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
+import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
   adjacentTab,
@@ -80,6 +84,7 @@ import {
   minutesUntilStart,
   nowMinutes,
   selectDayLessons,
+  selectedWeekModeForDate,
   weekModeForDate,
   weekModeFromSnapshot
 } from "./lib/time";
@@ -88,12 +93,12 @@ const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Ч
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const WEEK_DATE_FORMATTER = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
 const REMINDER_OPTIONS = [5, 10, 15, 30];
-const BRAND_MARK = "/icons/icon-192.png";
 const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
 const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const STARTUP_NETWORK_BUDGET_MS = 1_000;
-const CACHED_SCHEDULE = readScheduleCache();
+const INITIAL_GROUP = readSelectedGroup();
+const CACHED_SCHEDULE = INITIAL_GROUP ? readGroupScheduleCache(INITIAL_GROUP) : null;
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
 const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
@@ -171,7 +176,7 @@ interface NextStudyDay {
 
 function parseCurrentInfoLesson(text: string) {
   const match = text.match(/"(.+?)"\s*\((.+?)\)/);
-  if (!match) return { subject: "Расписание загружено", room: "ПИ-124" };
+  if (!match) return { subject: "Расписание загружено", room: "Группа" };
   return { subject: match[1], room: match[2] };
 }
 
@@ -297,6 +302,7 @@ function tabScrollContainer(tab: AppTab, outer: HTMLElement | null) {
 }
 
 export function App() {
+  const [selectedGroup, setSelectedGroup] = useState<GroupProfile | null>(INITIAL_GROUP);
   const [schedule, setSchedule] = useState<ScheduleState | null>(INITIAL_SCHEDULE);
   const [status, setStatus] = useState<ApiStatus>(() => (INITIAL_SCHEDULE ? "hydrating-from-cache" : "loading"));
   const [activeTab, setActiveTab] = useState<AppTab>(initialAppTab);
@@ -309,6 +315,7 @@ export function App() {
   const [themeId, setThemeId] = useState<ThemeId>(() => readTheme());
   const [customTheme, setCustomTheme] = useState<CustomTheme>(() => readCustomTheme());
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
+  const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
@@ -325,7 +332,9 @@ export function App() {
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
-  const refreshInFlightRef = useRef(false);
+  const selectedGroupRef = useRef<GroupProfile | null>(selectedGroup);
+  const refreshInFlightGroupRef = useRef<string | null>(null);
+  const refreshSequenceRef = useRef(0);
   const screenGestureRef = useRef<ActiveScreenGesture | null>(null);
   const gestureFeedbackRef = useRef<HTMLDivElement>(null);
   const suppressGestureClickUntilRef = useRef(0);
@@ -354,7 +363,7 @@ export function App() {
   const todayDateKey = dateKeyFromDate(nowDate);
   const isSelectedToday = selectedDateKey === todayDateKey;
   const isSelectedPast = selectedDateKey < todayDateKey;
-  const selectedWeekMode = weekModeForDate(selectedDate, weekMode, nowDate);
+  const selectedWeekMode = selectedWeekModeForDate(selectedDate, currentWeek, weekOverride, nowDate);
   const { todayLessons, current, next } = useMemo(() => {
     const allLessons = schedule?.allLessons ?? [];
     const selectedLessons = selectDayLessons(allLessons, currentDayIndex(selectedDate), selectedWeekMode, selectedDate);
@@ -372,7 +381,11 @@ export function App() {
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
   const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
-  const heroRoom = heroLesson ? heroLesson.room ?? "Аудитория уточняется" : dayCompleted || freeStudyDay ? "ПИ-124" : heroFallback?.room ?? "ИИТЭ";
+  const heroRoom = heroLesson
+    ? heroLesson.room ?? "Аудитория уточняется"
+    : dayCompleted || freeStudyDay
+      ? selectedGroup?.name ?? "Группа"
+      : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
   const heroStart = heroLesson?.start ?? todayLessons[0]?.start ?? "08:30";
   const heroEnd = heroLesson?.end ?? todayLessons[todayLessons.length - 1]?.end ?? "10:00";
   const heroTime = freeStudyDay ? "без пар" : `${heroStart}-${heroEnd}`;
@@ -389,24 +402,30 @@ export function App() {
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
   const refreshSchedule = useCallback(async () => {
-    if (refreshInFlightRef.current) return;
-    refreshInFlightRef.current = true;
+    const group = selectedGroupRef.current;
+    if (!group) return;
+    if (refreshInFlightGroupRef.current === group.nrec) return;
+    refreshInFlightGroupRef.current = group.nrec;
+    const requestSequence = ++refreshSequenceRef.current;
     const currentSchedule = scheduleRef.current;
     const hasCache = Boolean(currentSchedule);
     setStatus(hasCache ? "refreshing" : "loading");
     let settled = false;
     const startupBudget = window.setTimeout(() => {
       if (settled) return;
-      setStatus(hasCache ? "stale" : "error-without-cache");
+      if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
+      if (hasCache) setStatus("stale");
     }, STARTUP_NETWORK_BUDGET_MS);
 
     try {
-      const loaded = await loadSchedule();
+      const loaded = await loadSchedule(group);
+      if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
       const changed = scheduleContentSignature(currentSchedule) !== scheduleContentSignature(loaded);
       scheduleRef.current = loaded;
       setSchedule(loaded);
       setStatus(changed && hasCache ? "updated" : "ready");
     } catch {
+      if (requestSequence !== refreshSequenceRef.current || selectedGroupRef.current?.nrec !== group.nrec) return;
       if (!currentSchedule) {
         setStatus("error-without-cache");
         return;
@@ -416,9 +435,27 @@ export function App() {
     } finally {
       settled = true;
       window.clearTimeout(startupBudget);
-      refreshInFlightRef.current = false;
+      if (refreshInFlightGroupRef.current === group.nrec) refreshInFlightGroupRef.current = null;
     }
   }, []);
+
+  function selectGroup(group: GroupProfile) {
+    const cached = readGroupScheduleCache(group);
+    const normalizedCache = cached ? normalizeCachedSchedule(cached) : null;
+    selectedGroupRef.current = group;
+    refreshSequenceRef.current += 1;
+    scheduleRef.current = normalizedCache;
+    writeSelectedGroup(group);
+    setSelectedGroup(group);
+    setSchedule(normalizedCache);
+    setStatus(normalizedCache ? "hydrating-from-cache" : "loading");
+    setWeekOverride("current");
+    setGroupPickerOpen(false);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    setSelectedDate(today);
+    window.setTimeout(() => void refreshSchedule(), 0);
+  }
 
   function showNotice(message: string, lockMs = 0) {
     if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
@@ -430,9 +467,14 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (!selectedGroup) return;
     const timer = window.setTimeout(() => refreshSchedule(), 0);
     return () => window.clearTimeout(timer);
-  }, [refreshSchedule]);
+  }, [refreshSchedule, selectedGroup]);
+
+  useEffect(() => {
+    document.title = selectedGroup ? `${selectedGroup.name} · Лад ВлГУ` : "Лад ВлГУ";
+  }, [selectedGroup]);
 
   useEffect(() => {
     const refreshIfNeeded = () => {
@@ -745,17 +787,19 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <section className="phone-frame" aria-label="ПИ-124 расписание">
+      <section className="phone-frame" aria-label={`${selectedGroup?.name ?? "ВлГУ"} расписание`}>
         <div className="ambient-grid" />
         <div className="light-sweep" />
         <MotionScene />
         <Header
+          group={selectedGroup}
           currentWeek={currentWeek}
           isSessionSchedule={isSessionSchedule}
           status={status}
           refreshedAt={schedule?.fetchedAt}
           onRefresh={() => refreshSchedule()}
           onThemeOpen={() => setThemeSheetOpen(true)}
+          onGroupOpen={() => setGroupPickerOpen(true)}
         />
 
         <div
@@ -905,32 +949,45 @@ export function App() {
           onCustomChange={updateCustomTheme}
           onSelect={selectTheme}
         />
+        <GroupPickerSheet
+          open={groupPickerOpen}
+          selectedGroup={selectedGroup}
+          onClose={() => selectedGroup && setGroupPickerOpen(false)}
+          onSelect={selectGroup}
+        />
       </section>
     </main>
   );
 }
 
 interface HeaderProps {
+  group: GroupProfile | null;
   currentWeek: WeekMode;
   isSessionSchedule: boolean;
   status: ApiStatus;
   refreshedAt?: string;
   onRefresh: () => void;
   onThemeOpen: () => void;
+  onGroupOpen: () => void;
 }
 
-function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen }: HeaderProps) {
+function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
   const isBusy = status === "loading" || status === "refreshing";
+  const badge = groupBadgeParts(group?.name ?? "ВлГУ");
 
   return (
     <header className="topbar" data-sync-status={status}>
-      <div className="brand">
-        <img className="brand-mark" src={BRAND_MARK} alt="" aria-hidden="true" />
+      <button className="brand brand-button" type="button" onClick={onGroupOpen} aria-label={group ? `Сменить группу. Сейчас ${group.name}` : "Выбрать группу"}>
+        <span className="brand-mark group-brand-mark" data-visual={group?.visualKey ?? "institute-0"} aria-hidden="true">
+          <strong>{badge.prefix}</strong>
+          {badge.suffix && <small>{badge.suffix}</small>}
+        </span>
         <div>
-          <h1>{GROUP_NAME}</h1>
-          <p>ИИТЭ</p>
+          <h1>{group?.name ?? "Выберите группу"}</h1>
+          <p>{group?.instituteShortName ?? "ВлГУ"}</p>
         </div>
-      </div>
+        <ChevronDown className="brand-chevron" size={17} />
+      </button>
 
       <div className="header-actions">
         <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
@@ -944,7 +1001,7 @@ function Header({ currentWeek, isSessionSchedule, status, refreshedAt, onRefresh
       </div>
 
       <div className="sync-line">
-        <span>{INSTITUTE_NAME}</span>
+        <span>{group?.instituteName ?? "Владимирский государственный университет"}</span>
         <span
           className={`sync-status sync-status-${status}`}
           aria-live="polite"
@@ -1957,7 +2014,7 @@ function SettingsView({
           </label>
           <details className="privacy-details">
             <summary>Данные и статус приложения</summary>
-            <p>Неофициальное приложение ПИ-124. Расписание загружается из публичного API ВлГУ через технический прокси; заметки и вложения сервер приложения не хранит.</p>
+            <p>Неофициальное приложение для студентов ВлГУ. Расписание загружается из публичного API через технический прокси; заметки и вложения сервер приложения не хранит.</p>
             <p>При обычном открытии Cloudflare технически обрабатывает сетевой запрос. Облачное уточнение по умолчанию выключено.</p>
           </details>
           <div className="backup-actions">

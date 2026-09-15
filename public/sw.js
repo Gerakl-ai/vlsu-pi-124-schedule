@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-pi-124-v62";
+const CACHE_NAME = "lad-vlsu-v63";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -152,7 +152,7 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "Лад · ПИ-124", body: "Проверьте ближайшую пару.", tag: "lad-schedule-push", url: "/" };
+  let payload = { title: "Лад ВлГУ", body: "Проверьте ближайшую пару.", tag: "lad-schedule-push", url: "/" };
   try {
     if (event.data) payload = { ...payload, ...event.data.json() };
   } catch {

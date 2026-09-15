@@ -128,7 +128,7 @@ describe("Cloudflare worker", () => {
     const request = () => new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ Nrec: "group-id", WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+      body: JSON.stringify({ Nrec: "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", WeekType: 0, WeekDays: "1,2,3,4,5,6" })
     });
     const firstWaitUntil: Promise<unknown>[] = [];
     const firstEnv = { ...createEnv(), EDGE_CACHE: createEdgeCache(), SCHEDULE_SNAPSHOT: snapshotKv };
@@ -137,7 +137,8 @@ describe("Cloudflare worker", () => {
     const live = await worker.fetch(request(), firstEnv, { waitUntil: (promise) => firstWaitUntil.push(promise) });
     await Promise.all(firstWaitUntil);
     expect(live.headers.get("X-Lad-Data-Source")).toBe("live");
-    expect(snapshotKv.put).toHaveBeenCalledOnce();
+    expect(snapshotKv.put).toHaveBeenCalledTimes(2);
+    expect(snapshotKv.put).toHaveBeenCalledWith("v2:active-groups", expect.any(String));
 
     const secondWaitUntil: Promise<unknown>[] = [];
     const secondEnv = { ...createEnv(), EDGE_CACHE: createEdgeCache(), SCHEDULE_SNAPSHOT: snapshotKv };
@@ -172,12 +173,18 @@ describe("Cloudflare worker", () => {
     vi.unstubAllGlobals();
   });
 
-  it("refreshes the PI-124 global snapshots from the scheduled handler", async () => {
+  it("refreshes snapshots for groups registered by schedule traffic", async () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
     const waitUntil: Promise<unknown>[] = [];
     const currentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "PI-124", CurrentSemester: 4 };
     const schedule = [{ type: "Lessons", name: "Monday" }];
+
+    await snapshotKv.put("v2:active-groups", JSON.stringify([{
+      nrec: "7936a2a43b11b20b01d30f5b00c73166",
+      lastSeenAt: new Date().toISOString()
+    }]));
+    snapshotKv.put.mockClear();
 
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input instanceof Request ? input.url : input);

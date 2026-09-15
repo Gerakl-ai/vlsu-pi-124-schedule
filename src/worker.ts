@@ -28,13 +28,16 @@ interface WorkerExecutionContext {
 }
 
 const API_ORIGIN = "https://abiturient-api.vlsu.ru/api";
-const SCHEDULE_GROUP_NREC = "7936a2a43b11b20b01d30f5b00c73166";
 const UPSTREAM_TIMEOUT_MS = 8_500;
 const EDGE_FRESH_WAIT_MS = 900;
 const EDGE_CACHE_SECONDS = 30 * 24 * 60 * 60;
 const MAX_SNAPSHOT_BYTES = 5 * 1024 * 1024;
 const MAX_PROXY_BODY_BYTES = 16_384;
 const MAX_CLASSIFICATION_BODY_BYTES = 32_768;
+const ACTIVE_GROUPS_KEY = "v2:active-groups";
+const MAX_ACTIVE_GROUPS = 48;
+const REFRESH_BATCH_SIZE = 4;
+const ACTIVE_GROUP_MAX_AGE_MS = 45 * 24 * 60 * 60 * 1000;
 
 const allowedVlsuRoutes = new Map<string, "GET" | "POST">([
   ["catalogs/GetInstitutes", "GET"],
@@ -49,6 +52,11 @@ interface ClassificationRequest {
   text?: string;
   subjects?: Array<{ key?: string; label?: string; aliases?: string[] }>;
   spaces?: string[];
+}
+
+interface ActiveGroupRecord {
+  nrec: string;
+  lastSeenAt: string;
 }
 
 function isSameOriginRequest(request: Request) {
@@ -252,17 +260,67 @@ async function storeSuccessfulResponse(
   ]);
 }
 
-async function refreshGlobalScheduleSnapshots(env: Env) {
-  if (!env.SCHEDULE_SNAPSHOT) return;
+function groupNrecFromScheduleBody(body?: string) {
+  if (!body) return null;
+  try {
+    const payload = JSON.parse(body) as { Nrec?: unknown };
+    return typeof payload.Nrec === "string" && /^[a-f\d]{32}$/i.test(payload.Nrec) ? payload.Nrec : null;
+  } catch {
+    return null;
+  }
+}
 
+async function registerActiveGroup(kv: KvNamespace | undefined, nrec: string | null) {
+  if (!kv || !nrec) return;
+  let records: ActiveGroupRecord[] = [];
+  try {
+    const raw = await kv.get(ACTIVE_GROUPS_KEY);
+    const parsed = raw ? JSON.parse(raw) as unknown : [];
+    if (Array.isArray(parsed)) {
+      records = parsed.filter((item): item is ActiveGroupRecord => Boolean(item)
+        && typeof item === "object"
+        && typeof (item as ActiveGroupRecord).nrec === "string"
+        && typeof (item as ActiveGroupRecord).lastSeenAt === "string"
+        && Date.now() - Date.parse((item as ActiveGroupRecord).lastSeenAt) <= ACTIVE_GROUP_MAX_AGE_MS);
+    }
+  } catch {
+    records = [];
+  }
+
+  const now = new Date().toISOString();
+  const next = [{ nrec, lastSeenAt: now }, ...records.filter((item) => item.nrec !== nrec)]
+    .slice(0, MAX_ACTIVE_GROUPS);
+  await kv.put(ACTIVE_GROUPS_KEY, JSON.stringify(next));
+}
+
+async function readActiveGroups(kv: KvNamespace | undefined) {
+  if (!kv) return [];
+  try {
+    const raw = await kv.get(ACTIVE_GROUPS_KEY);
+    const parsed = raw ? JSON.parse(raw) as unknown : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is ActiveGroupRecord => Boolean(item)
+        && typeof item === "object"
+        && typeof (item as ActiveGroupRecord).nrec === "string"
+        && /^[a-f\d]{32}$/i.test((item as ActiveGroupRecord).nrec)
+        && typeof (item as ActiveGroupRecord).lastSeenAt === "string"
+        && Date.now() - Date.parse((item as ActiveGroupRecord).lastSeenAt) <= ACTIVE_GROUP_MAX_AGE_MS)
+      .slice(0, MAX_ACTIVE_GROUPS);
+  } catch {
+    return [];
+  }
+}
+
+async function refreshGroupSnapshots(env: Env, nrec: string) {
   const targets = [
     {
       apiPath: "student/GetGroupCurrentInfo",
-      body: JSON.stringify(SCHEDULE_GROUP_NREC)
+      body: JSON.stringify(nrec)
     },
     {
       apiPath: "student/GetGroupSchedule",
-      body: JSON.stringify({ Nrec: SCHEDULE_GROUP_NREC, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+      body: JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
     }
   ];
 
@@ -285,6 +343,15 @@ async function refreshGlobalScheduleSnapshots(env: Env) {
       clearTimeout(timeout);
     }
   }));
+}
+
+async function refreshGlobalScheduleSnapshots(env: Env) {
+  if (!env.SCHEDULE_SNAPSHOT) return;
+  const groups = await readActiveGroups(env.SCHEDULE_SNAPSHOT);
+  for (let offset = 0; offset < groups.length; offset += REFRESH_BATCH_SIZE) {
+    const batch = groups.slice(offset, offset + REFRESH_BATCH_SIZE);
+    await Promise.allSettled(batch.map((group) => refreshGroupSnapshots(env, group.nrec)));
+  }
 }
 
 function wait(milliseconds: number) {
@@ -341,6 +408,12 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
   const cache = env.EDGE_CACHE ?? defaultEdgeCache();
   const cacheKey = edgeCacheRequest(sourceUrl, apiPath, body);
   const snapshotKey = globalSnapshotKey(sourceUrl, apiPath, body);
+  const requestedGroupNrec = apiPath === "student/GetGroupSchedule" ? groupNrecFromScheduleBody(body) : null;
+  const trackGroup = () => {
+    const tracking = registerActiveGroup(env.SCHEDULE_SNAPSHOT, requestedGroupNrec).catch(() => undefined);
+    if (context) context.waitUntil(tracking);
+    else void tracking;
+  };
   const cachedPromise = cache?.match(cacheKey).catch(() => undefined);
   const controller = new AbortController();
   let timedOut = false;
@@ -372,6 +445,7 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
       wait(EDGE_FRESH_WAIT_MS)
     ]);
     if (quickFresh?.ok) {
+      trackGroup();
       const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, quickFresh.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
@@ -388,6 +462,7 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
       void globalSeed;
       void backgroundRefresh;
     }
+    trackGroup();
     return apiResponse(cached, "edge-cache");
   }
 
@@ -401,6 +476,7 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
       wait(EDGE_FRESH_WAIT_MS)
     ]);
     if (quickFresh?.ok) {
+      trackGroup();
       const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, quickFresh.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);
@@ -419,12 +495,14 @@ async function proxyVlsuApi(request: Request, env: Env, context?: WorkerExecutio
       void edgeSeed.catch(() => undefined);
       void backgroundRefresh;
     }
+    trackGroup();
     return apiResponse(globalSnapshot, "global-snapshot");
   }
 
   try {
     const upstream = await freshPromise;
     if (upstream.ok && await isUsefulSnapshotResponse(apiPath, upstream.clone())) {
+      trackGroup();
       const cacheWrite = storeSuccessfulResponse(cache, cacheKey, env.SCHEDULE_SNAPSHOT, snapshotKey, apiPath, upstream.clone());
       if (context) context.waitUntil(cacheWrite);
       else void cacheWrite.catch(() => undefined);

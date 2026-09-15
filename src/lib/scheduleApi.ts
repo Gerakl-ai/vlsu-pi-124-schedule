@@ -1,10 +1,14 @@
 import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleState, WeekMode } from "../types";
-import { writeScheduleCache } from "./storage";
+import { writeGroupScheduleCache } from "../features/groups/groupStorage";
+import {
+  instituteShortName,
+  instituteVisualKey,
+  type GroupOption,
+  type GroupProfile,
+  type InstituteOption
+} from "../features/groups/groupTypes";
 
 const API_BASE = "/vlsu-api";
-const INSTITUTE_NAME = "Институт информационных технологий и электроники";
-const GROUP_NAME = "ПИ-124";
-const FALLBACK_NREC = "7936a2a43b11b20b01d30f5b00c73166";
 const REQUEST_TIMEOUT_MS = 8_000;
 const REQUEST_RETRIES = 0;
 
@@ -170,22 +174,29 @@ function unwrapArrayPayload<T>(payload: unknown, label: string): T[] {
   throw new Error(`VLSU API returned an invalid ${label} payload`);
 }
 
-async function resolveGroupNrec(metadata?: RequestMetadata) {
-  try {
-    const institutes = unwrapArrayPayload<InstituteDto>(await request<unknown>("/catalogs/GetInstitutes", undefined, metadata), "institutes");
-    const institute = institutes.find((item) => item.Text === INSTITUTE_NAME);
-    if (!institute) return FALLBACK_NREC;
+export async function loadInstitutes(): Promise<InstituteOption[]> {
+  const payload = await request<unknown>("/catalogs/GetInstitutes");
+  return unwrapArrayPayload<InstituteDto>(payload, "institutes")
+    .filter((item) => typeof item.Value === "string" && typeof item.Text === "string" && item.Value && item.Text)
+    .map((item) => ({
+      id: item.Value,
+      name: item.Text.trim(),
+      shortName: instituteShortName(item.Text),
+      visualKey: instituteVisualKey(item.Value, item.Text)
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ru"));
+}
 
-    const groups = await request<GroupDto[] | GroupsResponse>("/student/GetStudGroups", {
-      method: "POST",
-      body: JSON.stringify({ Institut: institute.Value, WFormed: 0 })
-    }, metadata);
-
-    const list = Array.isArray(groups) ? groups : groups.value ?? [];
-    return list.find((group) => group.Name === GROUP_NAME && group.Course === "2 курс")?.Nrec ?? FALLBACK_NREC;
-  } catch {
-    return FALLBACK_NREC;
-  }
+export async function loadGroups(instituteId: string): Promise<GroupOption[]> {
+  const groups = await request<GroupDto[] | GroupsResponse>("/student/GetStudGroups", {
+    method: "POST",
+    body: JSON.stringify({ Institut: instituteId, WFormed: 0 })
+  });
+  const list = Array.isArray(groups) ? groups : groups.value ?? [];
+  return list
+    .filter((group) => typeof group.Nrec === "string" && typeof group.Name === "string" && group.Nrec && group.Name)
+    .map((group) => ({ nrec: group.Nrec, name: group.Name.trim(), course: group.Course?.trim() || undefined }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ru", { numeric: true }));
 }
 
 async function fetchCurrentInfo(nrec: string, metadata?: RequestMetadata): Promise<CurrentInfo> {
@@ -405,7 +416,7 @@ async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
   return normalizeSchedule(days);
 }
 
-export async function loadSchedule(): Promise<ScheduleState> {
+export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> {
   const fetchState = async (groupNrec: string) => {
     const currentInfoMetadata: RequestMetadata = {};
     const scheduleMetadata: RequestMetadata = {};
@@ -416,14 +427,7 @@ export async function loadSchedule(): Promise<ScheduleState> {
     return { groupNrec, currentInfo, allLessons, currentInfoMetadata, scheduleMetadata };
   };
 
-  let resolved;
-  try {
-    resolved = await fetchState(FALLBACK_NREC);
-  } catch (initialError) {
-    const discoveredNrec = await resolveGroupNrec();
-    if (discoveredNrec === FALLBACK_NREC) throw initialError;
-    resolved = await fetchState(discoveredNrec);
-  }
+  const resolved = await fetchState(group.nrec);
   const { currentInfoMetadata, scheduleMetadata, ...scheduleState } = resolved;
   const now = new Date().toISOString();
   const state: ScheduleState = {
@@ -431,7 +435,7 @@ export async function loadSchedule(): Promise<ScheduleState> {
     fetchedAt: scheduleMetadata.snapshotAt ?? now,
     weekTypeAsOf: currentInfoMetadata.snapshotAt ?? now
   };
-  writeScheduleCache(state);
+  writeGroupScheduleCache(state);
   return state;
 }
 
@@ -443,4 +447,4 @@ export function lessonAppliesToWeek(lesson: LessonSlot, weekMode: WeekMode) {
   return lesson.weekMode === "all" || lesson.weekMode === weekMode;
 }
 
-export { PAIR_TIMES, GROUP_NAME, INSTITUTE_NAME };
+export { PAIR_TIMES };

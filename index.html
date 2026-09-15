@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#f5eee5" />
-    <meta name="description" content="Лад: расписание и умные записи ПИ-124, ИИТЭ, ВлГУ" />
+    <meta name="description" content="Лад ВлГУ: расписание и личные записи для студентов" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -68,11 +68,6 @@
           root.setProperty("--launch-accent", custom.accent);
           root.setProperty("--launch-signal", custom.signal);
         }
-        const heroPreload = document.createElement("link");
-        heroPreload.rel = "preload";
-        heroPreload.as = "image";
-        heroPreload.href = lightMode ? "/images/hero-porcelain-campus.jpg" : "/images/hero-obsidian-campus.jpg";
-        document.head.appendChild(heroPreload);
         document.querySelector('meta[name="theme-color"]').setAttribute("content", chromeColor);
         document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", lightMode ? "default" : "black-translucent");
       })();
@@ -340,17 +335,17 @@
         to { transform: translateX(138%); }
       }
     </style>
-    <title>Лад · ПИ-124</title>
+    <title>Лад ВлГУ</title>
   </head>
   <body>
     <div id="root">
-      <div class="launch-screen" aria-label="Загрузка расписания ПИ-124">
+      <div class="launch-screen" aria-label="Загрузка расписания ВлГУ">
         <div class="launch-card">
           <div class="launch-brand">
             <div class="launch-icon"></div>
             <div>
-              <strong>ПИ-124</strong>
-              <span>ЛАД · ИИТЭ / ВлГУ</span>
+              <strong>Лад</strong>
+              <span>РАСПИСАНИЕ ВлГУ</span>
             </div>
           </div>
           <div class="launch-line"></div>
