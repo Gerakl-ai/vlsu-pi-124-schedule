@@ -47,8 +47,9 @@ import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./
 import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
+import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
-import { readGroupScheduleCache, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
+import { readGroupScheduleCache, readKnownGroup, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
 import {
   applyTheme,
@@ -97,7 +98,8 @@ const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
 const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
 const MIN_STUDY_WINDOW = 20;
 const STARTUP_NETWORK_BUDGET_MS = 1_000;
-const INITIAL_GROUP = readSelectedGroup();
+const INITIAL_GROUP_LINK = parseGroupLink(window.location.search);
+const INITIAL_GROUP = (INITIAL_GROUP_LINK ? readKnownGroup(INITIAL_GROUP_LINK.nrec, INITIAL_GROUP_LINK.instituteId) : null) ?? readSelectedGroup();
 const CACHED_SCHEDULE = INITIAL_GROUP ? readGroupScheduleCache(INITIAL_GROUP) : null;
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
@@ -338,6 +340,7 @@ export function App() {
   const screenGestureRef = useRef<ActiveScreenGesture | null>(null);
   const gestureFeedbackRef = useRef<HTMLDivElement>(null);
   const suppressGestureClickUntilRef = useRef(0);
+  const groupLinkHandledRef = useRef(false);
 
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
   const currentWeek = schedule
@@ -345,7 +348,7 @@ export function App() {
     : "numerator";
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
-  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled);
+  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled, selectedGroup);
   const openNotes = useMemo(() => smartNotes.notes.filter((note) => note.status === "open"), [smartNotes.notes]);
   const focusNote = useMemo(() => {
     return [...openNotes].sort((a, b) => {
@@ -446,6 +449,7 @@ export function App() {
     refreshSequenceRef.current += 1;
     scheduleRef.current = normalizedCache;
     writeSelectedGroup(group);
+    syncGroupLink(group);
     setSelectedGroup(group);
     setSchedule(normalizedCache);
     setStatus(normalizedCache ? "hydrating-from-cache" : "loading");
@@ -475,6 +479,25 @@ export function App() {
   useEffect(() => {
     document.title = selectedGroup ? `${selectedGroup.name} · Лад ВлГУ` : "Лад ВлГУ";
   }, [selectedGroup]);
+
+  useEffect(() => {
+    if (groupLinkHandledRef.current || !INITIAL_GROUP_LINK) return;
+    groupLinkHandledRef.current = true;
+    if (selectedGroupRef.current?.nrec === INITIAL_GROUP_LINK.nrec) return;
+    let active = true;
+    void resolveGroupLink(INITIAL_GROUP_LINK)
+      .then((group) => {
+        if (!active) return;
+        if (group) selectGroup(group);
+        else setGroupPickerOpen(true);
+      })
+      .catch(() => {
+        if (active) setGroupPickerOpen(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     const refreshIfNeeded = () => {
@@ -640,9 +663,11 @@ export function App() {
   }, []);
 
   const openLessonComposer = useCallback((lesson: LessonSlot, date: Date, intent: "note" | "homework") => {
+    const group = selectedGroupRef.current;
+    if (!group) return;
     setComposerRequest({
       id: Date.now(),
-      lessonContext: createLessonNoteContext(lesson, date, intent)
+      lessonContext: createLessonNoteContext(lesson, date, intent, "lesson", group)
     });
     navigateToTab("notes");
   }, [navigateToTab]);
@@ -851,6 +876,7 @@ export function App() {
               isSelectedPast={isSelectedPast}
               now={nowDate}
               notes={openNotes}
+              groupNrec={selectedGroup?.nrec}
               focusNote={focusNote}
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
@@ -868,6 +894,7 @@ export function App() {
               weekOverride={weekOverride}
               setWeekOverride={setWeekOverride}
               notes={openNotes}
+              groupNrec={selectedGroup?.nrec}
               onToggleNote={smartNotes.toggleNote}
               onOpenCalendar={() => setCalendarOpen(true)}
               onSelectDate={showScheduleDate}
@@ -1039,6 +1066,7 @@ function TodayView({
   isSelectedPast,
   now,
   notes,
+  groupNrec,
   focusNote,
   onToggleNote,
   onOpenNotes,
@@ -1071,6 +1099,7 @@ function TodayView({
   isSelectedPast: boolean;
   now: Date;
   notes: SmartNote[];
+  groupNrec?: string;
   focusNote?: SmartNote;
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
@@ -1230,6 +1259,7 @@ function TodayView({
           isSelectedToday={isSelectedToday}
           isSelectedPast={isSelectedPast}
           notes={notes}
+          groupNrec={groupNrec}
           onToggleNote={onToggleNote}
           onCreateLessonNote={onCreateLessonNote}
         />
@@ -1348,6 +1378,7 @@ function Timeline({
   isSelectedToday,
   isSelectedPast,
   notes,
+  groupNrec,
   onToggleNote,
   onCreateLessonNote
 }: {
@@ -1359,6 +1390,7 @@ function Timeline({
   isSelectedToday: boolean;
   isSelectedPast: boolean;
   notes: SmartNote[];
+  groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
@@ -1407,7 +1439,7 @@ function Timeline({
           isPast={isSelectedPast || (isSelectedToday && lessonTimingState(lesson, now) === "past")}
           isExpanded={expandedId === lesson.id}
           onToggle={() => setExpandedId((value) => (value === lesson.id ? null : lesson.id))}
-          linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate)}
+          linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate, groupNrec)}
           onToggleNote={onToggleNote}
           onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
           index={index}
@@ -1546,6 +1578,7 @@ function WeekView({
   weekOverride,
   setWeekOverride,
   notes,
+  groupNrec,
   onToggleNote,
   onOpenCalendar,
   onSelectDate,
@@ -1556,6 +1589,7 @@ function WeekView({
   weekOverride: WeekMode | "current";
   setWeekOverride: (mode: WeekMode | "current") => void;
   notes: SmartNote[];
+  groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
   onSelectDate: (date: Date) => void;
@@ -1563,7 +1597,7 @@ function WeekView({
 }) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
   if (hasDatedLessons(lessons)) {
-    return <SessionScheduleView lessons={lessons} notes={notes} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
+    return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
   }
 
   const dayLoads = buildWeekLoads(lessons, weekMode);
@@ -1632,7 +1666,7 @@ function WeekView({
               </button>
               {day.lessons.length ? (
                 day.lessons.map((lesson) => {
-                  const linkedNotes = notesLinkedToLesson(lesson, notes, day.date);
+                  const linkedNotes = notesLinkedToLesson(lesson, notes, day.date, groupNrec);
                   const expanded = expandedLessonId === `${dateKeyFromDate(day.date)}-${lesson.id}`;
                   return (
                     <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>
@@ -1674,9 +1708,10 @@ function WeekView({
   );
 }
 
-function SessionScheduleView({ lessons, notes, onToggleNote, onOpenCalendar, onCreateLessonNote }: {
+function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCalendar, onCreateLessonNote }: {
   lessons: LessonSlot[];
   notes: SmartNote[];
+  groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onOpenCalendar: () => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
@@ -1741,7 +1776,7 @@ function SessionScheduleView({ lessons, notes, onToggleNote, onOpenCalendar, onC
             </div>
             {group.lessons.map((lesson) => {
               const lessonDate = lesson.date ? new Date(`${lesson.date}T00:00:00`) : new Date();
-              const linkedNotes = notesLinkedToLesson(lesson, notes, lessonDate);
+              const linkedNotes = notesLinkedToLesson(lesson, notes, lessonDate, groupNrec);
               const expanded = expandedLessonId === lesson.id;
               return (
                 <article className={`mini-lesson ${expanded ? "expanded" : ""}`} key={lesson.id}>

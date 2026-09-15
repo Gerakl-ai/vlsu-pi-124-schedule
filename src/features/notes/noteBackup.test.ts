@@ -23,8 +23,13 @@ const manualDeadlineNote: SmartNote = {
 describe("notes backup", () => {
   it("preserves manual deadline metadata in the current version", () => {
     const backup = createNotesBackup([manualDeadlineNote]);
-    expect(backup.version).toBe(4);
+    expect(backup.version).toBe(5);
     expect(parseNotesBackup(JSON.stringify(backup))).toEqual([manualDeadlineNote]);
+  });
+
+  it("preserves the group scope of a study note", () => {
+    const scoped = { ...manualDeadlineNote, subjectKey: "database", groupNrec: "group-a", groupName: "ПИ-124" };
+    expect(parseNotesBackup(JSON.stringify(createNotesBackup([scoped])))).toEqual([scoped]);
   });
 
   it("still accepts a version 2 backup", () => {

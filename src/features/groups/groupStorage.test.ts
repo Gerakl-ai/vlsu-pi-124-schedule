@@ -1,7 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ScheduleState } from "../../types";
 import { LEGACY_PI124_GROUP } from "./groupTypes";
-import { readGroupScheduleCache, readSelectedGroup, writeGroupScheduleCache, writeSelectedGroup } from "./groupStorage";
+import {
+  readFavoriteGroups,
+  readGroupScheduleCache,
+  readKnownGroup,
+  readRecentGroups,
+  readSelectedGroup,
+  toggleFavoriteGroup,
+  writeGroupScheduleCache,
+  writeSelectedGroup
+} from "./groupStorage";
 
 function storageMock() {
   const values = new Map<string, string>();
@@ -49,5 +58,16 @@ describe("group storage", () => {
     expect(readSelectedGroup()).toEqual(other);
     expect(readGroupScheduleCache(other)?.currentInfo.name).toBe("ИВТ-101");
     expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toBeNull();
+  });
+
+  it("keeps recent and favorite groups as full offline profiles", () => {
+    const other = { ...LEGACY_PI124_GROUP, id: "other", nrec: "other", name: "ИВТ-101" };
+    writeSelectedGroup(other);
+    toggleFavoriteGroup(other);
+
+    expect(readRecentGroups()).toEqual([other]);
+    expect(readFavoriteGroups()).toEqual([other]);
+    expect(readKnownGroup("other", other.instituteId)).toEqual(other);
+    expect(toggleFavoriteGroup(other)).toEqual([]);
   });
 });

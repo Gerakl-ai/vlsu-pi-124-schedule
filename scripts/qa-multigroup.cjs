@@ -76,10 +76,17 @@ async function rect(page, selector) {
   await page.getByRole("button", { name: /ИИТЭ.*Институт информационных технологий/i }).click();
   const search = page.locator(".group-picker-search input");
   await search.fill("ПИ-124");
+  await page.getByRole("button", { name: "Добавить ПИ-124 в избранное", exact: true }).click();
   await page.getByRole("button", { name: /ПИ-124.*3 курс/i }).click();
   await page.waitForFunction(() => document.title.startsWith("ПИ-124"));
   await page.waitForTimeout(1300);
   await page.screenshot({ path: path.join(outputDir, "02-today-402x874.png"), fullPage: false });
+
+  const selectedUrl = new URL(page.url());
+  await page.getByRole("button", { name: /Сменить группу.*ПИ-124/i }).click();
+  const favoriteGroupCount = await page.locator(".favorite-groups .group-picker-row").count();
+  await page.screenshot({ path: path.join(outputDir, "02-favorites-402x874.png"), fullPage: false });
+  await page.getByRole("button", { name: "Закрыть выбор группы" }).click();
 
   const mobile402 = {
     nav: await rect(page, ".bottom-nav"),
@@ -122,6 +129,11 @@ async function rect(page, selector) {
 
   const result = {
     firstRun,
+    deepLink: {
+      group: selectedUrl.searchParams.get("group"),
+      institute: selectedUrl.searchParams.get("institute"),
+      favoriteGroupCount
+    },
     mobile402,
     mobile430,
     landscape,

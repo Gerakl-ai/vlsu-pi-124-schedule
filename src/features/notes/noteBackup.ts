@@ -1,6 +1,6 @@
 import type { NoteKind, NoteStatus, SmartNote } from "./noteTypes";
 
-const BACKUP_VERSION = 4;
+const BACKUP_VERSION = 5;
 const NOTE_KINDS = new Set<NoteKind>(["note", "task", "homework", "wish", "idea"]);
 const NOTE_STATUSES = new Set<NoteStatus>(["open", "done"]);
 
@@ -39,6 +39,8 @@ function isOptionalLessonContext(value: unknown) {
   if (value === undefined) return true;
   if (!isRecord(value)) return false;
   return typeof value.lessonId === "string"
+    && isOptionalString(value.groupNrec)
+    && isOptionalString(value.groupName)
     && typeof value.date === "string"
     && typeof value.start === "string"
     && Array.isArray(value.subjectKeys)
@@ -71,6 +73,8 @@ function isSmartNote(value: unknown): value is SmartNote {
     isOptionalDateString(value.completedAt) &&
     isOptionalString(value.subjectKey) &&
     isOptionalString(value.subjectLabel) &&
+    isOptionalString(value.groupNrec) &&
+    isOptionalString(value.groupName) &&
     isOptionalDateString(value.dueAt) &&
     isOptionalString(value.dueLabel) &&
     isOptionalLessonContext(value.lessonContext)
@@ -102,7 +106,7 @@ export function downloadNotesBackup(notes: SmartNote[]) {
 
 export function parseNotesBackup(raw: string): SmartNote[] {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
+  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
     throw new Error("Unsupported notes backup");
   }
   if (!parsed.notes.every(isSmartNote)) throw new Error("Invalid notes backup");

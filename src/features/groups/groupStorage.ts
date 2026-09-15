@@ -11,6 +11,8 @@ const SELECTED_GROUP_KEY = "lad.selected-group.v2";
 const SCHEDULE_CACHE_PREFIX = "lad.schedule.v2";
 const INSTITUTE_CACHE_KEY = "lad.catalog.institutes.v1";
 const GROUP_CACHE_PREFIX = "lad.catalog.groups.v1";
+const FAVORITE_GROUPS_KEY = "lad.favorite-groups.v1";
+const RECENT_GROUPS_KEY = "lad.recent-groups.v1";
 const LEGACY_SCHEDULE_CACHE_KEY = "pi124.schedule.cache";
 
 interface CatalogCache<T> {
@@ -52,6 +54,55 @@ export function readSelectedGroup(): GroupProfile | null {
 
 export function writeSelectedGroup(group: GroupProfile) {
   writeJson(SELECTED_GROUP_KEY, group);
+  rememberRecentGroup(group);
+}
+
+function validGroupList(key: string) {
+  const groups = readJson<unknown[]>(key);
+  return Array.isArray(groups) ? groups.filter(isGroupProfile) : [];
+}
+
+export function readFavoriteGroups(): GroupProfile[] {
+  return validGroupList(FAVORITE_GROUPS_KEY);
+}
+
+export function toggleFavoriteGroup(group: GroupProfile): GroupProfile[] {
+  const favorites = readFavoriteGroups();
+  const next = favorites.some((item) => item.nrec === group.nrec)
+    ? favorites.filter((item) => item.nrec !== group.nrec)
+    : [group, ...favorites].slice(0, 12);
+  writeJson(FAVORITE_GROUPS_KEY, next);
+  return next;
+}
+
+export function readRecentGroups(): GroupProfile[] {
+  return validGroupList(RECENT_GROUPS_KEY);
+}
+
+export function rememberRecentGroup(group: GroupProfile) {
+  const next = [group, ...readRecentGroups().filter((item) => item.nrec !== group.nrec)].slice(0, 6);
+  writeJson(RECENT_GROUPS_KEY, next);
+}
+
+export function readKnownGroup(nrec: string, instituteId?: string): GroupProfile | null {
+  const selected = readJson<unknown>(SELECTED_GROUP_KEY);
+  const known = [selected, ...readFavoriteGroups(), ...readRecentGroups()]
+    .find((item): item is GroupProfile => isGroupProfile(item)
+      && item.nrec === nrec
+      && (!instituteId || item.instituteId === instituteId));
+  if (known) return known;
+
+  if (!instituteId) return null;
+  const institute = readInstituteCatalog()?.items.find((item) => item.id === instituteId);
+  const group = readGroupCatalog(instituteId)?.items.find((item) => item.nrec === nrec);
+  return institute && group ? {
+    ...group,
+    id: group.nrec,
+    instituteId: institute.id,
+    instituteName: institute.name,
+    instituteShortName: institute.shortName,
+    visualKey: institute.visualKey
+  } : null;
 }
 
 export function readGroupScheduleCache(group: GroupProfile): ScheduleState | null {

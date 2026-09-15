@@ -6,17 +6,22 @@ import {
   ChevronRight,
   RefreshCw,
   Search,
+  Share2,
+  Star,
   UsersRound,
   WifiOff,
   X
 } from "lucide-react";
 import { loadGroups, loadInstitutes } from "../../lib/scheduleApi";
 import {
+  readFavoriteGroups,
   readGroupCatalog,
   readInstituteCatalog,
   writeGroupCatalog,
+  toggleFavoriteGroup,
   writeInstituteCatalog
 } from "./groupStorage";
+import { groupLinkUrl } from "./groupLinks";
 import {
   LEGACY_PI124_GROUP,
   toGroupProfile,
@@ -50,6 +55,8 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   const [activeInstitute, setActiveInstitute] = useState<InstituteOption | null>(null);
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<CatalogStatus>("idle");
+  const [favoriteGroups, setFavoriteGroups] = useState<GroupProfile[]>(() => readFavoriteGroups());
+  const [shareState, setShareState] = useState<"idle" | "done" | "error">("idle");
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +64,8 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
     setQuery("");
     setActiveInstitute(null);
     setGroups([]);
+    setFavoriteGroups(readFavoriteGroups());
+    setShareState("idle");
 
     const cached = readInstituteCatalog();
     if (cached?.items.length) {
@@ -129,6 +138,24 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
   const canClose = Boolean(selectedGroup);
   const rows = activeInstitute ? filteredGroups : filteredInstitutes;
 
+  const toggleFavorite = (event: React.MouseEvent, group: GroupProfile) => {
+    event.stopPropagation();
+    setFavoriteGroups(toggleFavoriteGroup(group));
+  };
+
+  const shareSelectedGroup = async () => {
+    if (!selectedGroup) return;
+    const url = groupLinkUrl(selectedGroup, window.location.href);
+    try {
+      if (navigator.share) await navigator.share({ title: `${selectedGroup.name} · Лад ВлГУ`, url });
+      else await navigator.clipboard.writeText(url);
+      setShareState("done");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareState("error");
+    }
+  };
+
   return (
     <div className="group-picker-backdrop" role="presentation" data-first-run={!selectedGroup}>
       <section className="group-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="group-picker-title">
@@ -167,6 +194,24 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </div>
 
         <div className="group-picker-list" data-screen-swipe="ignore">
+          {!activeInstitute && !query && favoriteGroups.length > 0 && (
+            <section className="favorite-groups" aria-label="Избранные группы">
+              <strong className="favorite-groups-title"><Star size={13} fill="currentColor" /> Избранные</strong>
+              {favoriteGroups.map((group) => (
+                <div className="group-picker-row-wrap" key={`favorite-${group.nrec}`}>
+                  <button type="button" className="group-picker-row group-row" onClick={() => onSelect(group)}>
+                    <span className="group-badge"><UsersRound size={19} /></span>
+                    <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.instituteShortName}{group.course ? ` · ${group.course}` : ""}</small></span>
+                    {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
+                  </button>
+                  <button type="button" className="group-favorite-button active" onClick={(event) => toggleFavorite(event, group)} aria-label={`Убрать ${group.name} из избранного`} title="Убрать из избранного">
+                    <Star size={18} fill="currentColor" />
+                  </button>
+                </div>
+              ))}
+            </section>
+          )}
+
           {!activeInstitute && filteredInstitutes.map((institute) => (
             <button key={institute.id} type="button" className="group-picker-row" onClick={() => chooseInstitute(institute)}>
               <span className="institute-badge" data-visual={institute.visualKey}>{institute.shortName}</span>
@@ -177,12 +222,19 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
 
           {activeInstitute && filteredGroups.map((group) => {
             const isCurrent = selectedGroup?.nrec === group.nrec;
+            const profile = toGroupProfile(activeInstitute, group);
+            const isFavorite = favoriteGroups.some((item) => item.nrec === group.nrec);
             return (
-              <button key={group.nrec} type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
-                <span className="group-badge"><UsersRound size={19} /></span>
-                <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.course ?? activeInstitute.shortName}</small></span>
-                {isCurrent ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
-              </button>
+              <div className="group-picker-row-wrap" key={group.nrec}>
+                <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
+                  <span className="group-badge"><UsersRound size={19} /></span>
+                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.course ?? activeInstitute.shortName}</small></span>
+                  {isCurrent ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
+                </button>
+                <button type="button" className={`group-favorite-button ${isFavorite ? "active" : ""}`} onClick={(event) => toggleFavorite(event, profile)} aria-label={`${isFavorite ? "Убрать" : "Добавить"} ${group.name} ${isFavorite ? "из" : "в"} избранное`} title={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}>
+                  <Star size={18} fill={isFavorite ? "currentColor" : "none"} />
+                </button>
+              </div>
             );
           })}
 
@@ -199,8 +251,14 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
         </div>
 
         <footer className="group-picker-footer">
-          <span className={`catalog-dot catalog-${status}`} />
-          {status === "stale" ? "Показан сохранённый каталог" : status === "loading" ? "Загружаем каталог" : "Выбор сохранится на устройстве"}
+          <span className="group-picker-footer-status"><span className={`catalog-dot catalog-${status}`} />
+            {shareState === "done" ? "Ссылка скопирована" : shareState === "error" ? "Не удалось поделиться" : status === "stale" ? "Показан сохранённый каталог" : status === "loading" ? "Загружаем каталог" : "Выбор сохранится на устройстве"}
+          </span>
+          {selectedGroup && (
+            <button type="button" className="group-share-button" onClick={shareSelectedGroup} aria-label={`Поделиться расписанием группы ${selectedGroup.name}`} title="Поделиться группой">
+              <Share2 size={16} />
+            </button>
+          )}
         </footer>
       </section>
     </div>

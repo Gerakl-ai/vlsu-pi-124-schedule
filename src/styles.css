@@ -3765,6 +3765,61 @@ button.day-title > svg {
   transition: background-color 160ms ease, transform 160ms ease;
 }
 
+.group-picker-row-wrap {
+  position: relative;
+  border-bottom: 1px solid var(--theme-panel-border);
+}
+
+.group-picker-row-wrap .group-picker-row {
+  padding-right: 48px;
+  border-bottom: 0;
+}
+
+.group-favorite-button {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--muted);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 160ms ease, background-color 160ms ease, transform 160ms ease;
+}
+
+.group-favorite-button:hover,
+.group-favorite-button.active {
+  color: var(--cyan);
+  background: rgba(var(--accent-rgb), .1);
+}
+
+.group-favorite-button:active {
+  transform: translateY(-50%) scale(.9);
+}
+
+.favorite-groups {
+  margin: 0 0 8px;
+  padding: 4px 0 8px;
+  border-bottom: 1px solid var(--theme-panel-border);
+}
+
+.favorite-groups-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 7px;
+  color: var(--cyan);
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .group-picker-row:hover {
   background: rgba(var(--accent-rgb), .07);
 }
@@ -3863,13 +3918,34 @@ button.day-title > svg {
   min-height: 38px;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
   gap: 7px;
   padding: 8px 16px;
   color: var(--muted);
   border-top: 1px solid var(--theme-panel-border);
   font-size: 10px;
   font-weight: 750;
+}
+
+.group-picker-footer-status {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.group-share-button {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  color: var(--cyan);
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 50%;
+  background: rgba(var(--accent-rgb), .08);
+  cursor: pointer;
 }
 
 .catalog-dot {

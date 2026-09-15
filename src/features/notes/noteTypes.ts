@@ -4,6 +4,8 @@ export type ClassificationSource = "local" | "ai";
 export type LessonLinkScope = "lesson" | "subject";
 
 export interface LessonNoteContext {
+  groupNrec?: string;
+  groupName?: string;
   lessonId: string;
   date: string;
   start: string;
@@ -76,5 +78,7 @@ export interface SmartNote extends NoteClassification {
   completedAt?: string;
   classificationSource: ClassificationSource;
   classificationPending?: boolean;
+  groupNrec?: string;
+  groupName?: string;
   lessonContext?: LessonNoteContext;
 }

@@ -1,4 +1,5 @@
 import type { NoteDraft, NoteFolder, SmartNote } from "./noteTypes";
+import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
 
 const DB_NAME = "lad-personal";
 const DB_VERSION = 2;
@@ -123,12 +124,28 @@ export async function loadNotes(): Promise<SmartNote[]> {
   } catch {
     notes = fallbackNotes;
   }
-  const normalized = notes.map((note) => ({
-    ...note,
-    contentUpdatedAt: note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt
-  }));
+  const normalized = notes.map(normalizeStoredNote);
   writeFallback(NOTES_FALLBACK_KEY, normalized);
   return normalized;
+}
+
+export function normalizeStoredNote(note: SmartNote): SmartNote {
+  const hasStudyLink = Boolean(note.subjectKey || note.lessonContext);
+  const groupNrec = note.groupNrec ?? note.lessonContext?.groupNrec ?? (hasStudyLink ? LEGACY_PI124_GROUP.nrec : undefined);
+  const groupName = note.groupName ?? note.lessonContext?.groupName ?? (groupNrec === LEGACY_PI124_GROUP.nrec ? LEGACY_PI124_GROUP.name : undefined);
+  return {
+    ...note,
+    contentUpdatedAt: note.contentUpdatedAt ?? note.createdAt ?? note.updatedAt,
+    ...(groupNrec ? { groupNrec } : {}),
+    ...(groupName ? { groupName } : {}),
+    ...(note.lessonContext && groupNrec ? {
+      lessonContext: {
+        ...note.lessonContext,
+        groupNrec,
+        ...(groupName ? { groupName } : {})
+      }
+    } : {})
+  };
 }
 
 export async function storeNote(note: SmartNote): Promise<void> {

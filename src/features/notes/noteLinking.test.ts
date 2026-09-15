@@ -53,4 +53,10 @@ describe("lesson note linking", () => {
     const linked = { ...note(createLessonNoteContext(lesson, firstDate, "homework")), status: "done" as const };
     expect(noteMatchesLesson(linked, lesson, firstDate)).toBe(false);
   });
+
+  it("never exposes a subject note in another group", () => {
+    const linked = note(createLessonNoteContext(lesson, firstDate, "note", "subject", { nrec: "group-a", name: "ПИ-124" }));
+    expect(noteMatchesLesson(linked, lesson, firstDate, "group-a")).toBe(true);
+    expect(noteMatchesLesson(linked, lesson, firstDate, "group-b")).toBe(false);
+  });
 });
