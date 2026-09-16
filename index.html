@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Лад" />
-    <meta name="lad-release" content="2026.09.16.1" />
+    <meta name="lad-release" content="2026.09.16.2" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/icon-512.png" />
@@ -378,11 +378,11 @@
         let recoveryVisible = false;
 
         function showRecovery(reason) {
-          if (window.__ladBootComplete || recoveryVisible) return;
+          if (window.__ladBootComplete || recoveryVisible) return null;
           recoveryVisible = true;
           const card = document.querySelector(".launch-card");
           const message = card?.querySelector("p");
-          if (!card || !message) return;
+          if (!card || !message) return null;
           message.textContent = reason || "Не удалось открыть интерфейс. Расписание и записи остаются на устройстве.";
           const button = document.createElement("button");
           button.type = "button";
@@ -390,6 +390,7 @@
           button.textContent = "Восстановить приложение";
           button.addEventListener("click", () => recover(button, message));
           card.appendChild(button);
+          return { button, message };
         }
 
         async function recover(button, message) {
@@ -398,7 +399,8 @@
           try {
             const response = await fetch(`/index.html?lad-recovery=${Date.now()}`, { cache: "no-store" });
             const html = await response.text();
-            if (!response.ok || !html.includes(`name="lad-release" content="${release}"`)) {
+            const latestRelease = html.match(/name="lad-release" content="([^"]+)"/)?.[1];
+            if (!response.ok || !latestRelease) {
               throw new Error("release unavailable");
             }
             const registrations = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
@@ -407,7 +409,7 @@
               const names = await caches.keys();
               await Promise.all(names.filter((name) => name.startsWith("lad-vlsu-")).map((name) => caches.delete(name)));
             }
-            window.location.replace(`/?lad-recovered=${encodeURIComponent(release)}`);
+            window.location.replace(`/?lad-recovered=${encodeURIComponent(latestRelease)}`);
           } catch {
             message.textContent = "Свежая версия пока недоступна. Проверьте сеть и попробуйте ещё раз.";
             button.disabled = false;
@@ -420,7 +422,16 @@
           }
         }, true);
         window.addEventListener("unhandledrejection", () => showRecovery("Запуск прервался. Сохранённые данные не пострадали."));
-        window.setTimeout(() => showRecovery("Приложение запускается слишком долго. Можно безопасно восстановить файлы."), 6500);
+        window.setTimeout(() => {
+          const controls = showRecovery("Приложение запускается слишком долго. Восстанавливаем файлы интерфейса…");
+          if (!controls || !navigator.onLine) return;
+          const recoveryKey = `lad.auto-recovery:${release}`;
+          try {
+            if (sessionStorage.getItem(recoveryKey)) return;
+            sessionStorage.setItem(recoveryKey, "1");
+          } catch {}
+          recover(controls.button, controls.message);
+        }, 5000);
       })();
     </script>
     <script>

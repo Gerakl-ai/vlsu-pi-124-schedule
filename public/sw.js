@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-vlsu-v66";
+const CACHE_NAME = "lad-vlsu-v67";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
