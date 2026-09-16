@@ -9,6 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Лад" />
+    <meta name="lad-release" content="2026.09.16.1" />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/icon-512.png" />
@@ -290,6 +291,23 @@
         font-weight: 800;
       }
 
+      .launch-recovery {
+        min-height: 46px;
+        padding: 0 18px;
+        color: #fff;
+        border: 1px solid color-mix(in srgb, var(--launch-accent) 58%, transparent);
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--launch-accent), color-mix(in srgb, var(--launch-accent) 72%, var(--launch-signal)));
+        box-shadow: 0 12px 28px color-mix(in srgb, var(--launch-accent) 24%, transparent);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .launch-recovery:disabled {
+        opacity: 0.64;
+      }
+
       @media (orientation: landscape) and (max-height: 560px) {
         .launch-screen {
           padding: calc(12px + var(--safe-top)) calc(18px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(18px + var(--safe-left));
@@ -353,6 +371,58 @@
         </div>
       </div>
     </div>
+    <script>
+      window.__ladBootComplete = false;
+      (() => {
+        const release = document.querySelector('meta[name="lad-release"]')?.content || "unknown";
+        let recoveryVisible = false;
+
+        function showRecovery(reason) {
+          if (window.__ladBootComplete || recoveryVisible) return;
+          recoveryVisible = true;
+          const card = document.querySelector(".launch-card");
+          const message = card?.querySelector("p");
+          if (!card || !message) return;
+          message.textContent = reason || "Не удалось открыть интерфейс. Расписание и записи остаются на устройстве.";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "launch-recovery";
+          button.textContent = "Восстановить приложение";
+          button.addEventListener("click", () => recover(button, message));
+          card.appendChild(button);
+        }
+
+        async function recover(button, message) {
+          button.disabled = true;
+          message.textContent = "Проверяем свежую версию…";
+          try {
+            const response = await fetch(`/index.html?lad-recovery=${Date.now()}`, { cache: "no-store" });
+            const html = await response.text();
+            if (!response.ok || !html.includes(`name="lad-release" content="${release}"`)) {
+              throw new Error("release unavailable");
+            }
+            const registrations = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
+            await Promise.all(registrations.map((registration) => registration.unregister()));
+            if ("caches" in window) {
+              const names = await caches.keys();
+              await Promise.all(names.filter((name) => name.startsWith("lad-vlsu-")).map((name) => caches.delete(name)));
+            }
+            window.location.replace(`/?lad-recovered=${encodeURIComponent(release)}`);
+          } catch {
+            message.textContent = "Свежая версия пока недоступна. Проверьте сеть и попробуйте ещё раз.";
+            button.disabled = false;
+          }
+        }
+
+        window.addEventListener("error", (event) => {
+          if (event.target instanceof HTMLScriptElement || event.target instanceof HTMLLinkElement) {
+            showRecovery("Не загрузился файл приложения. Сохранённые данные не пострадали.");
+          }
+        }, true);
+        window.addEventListener("unhandledrejection", () => showRecovery("Запуск прервался. Сохранённые данные не пострадали."));
+        window.setTimeout(() => showRecovery("Приложение запускается слишком долго. Можно безопасно восстановить файлы."), 6500);
+      })();
+    </script>
     <script>
       window.setTimeout(() => {
         const message = document.querySelector(".launch-screen .launch-card p");

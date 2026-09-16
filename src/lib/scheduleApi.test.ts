@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { decodeApiPayload, loadGroups, loadInstitutes, normalizeCachedSchedule, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
+import { decodeApiPayload, loadGroups, loadInstitutes, normalizeCachedSchedule, normalizeGroupScheduleSnapshot, normalizeSchedule, parseLessonText, type ExamSessionDto, type ScheduleDayDto } from "./scheduleApi";
 
 const subgroupSlot = [
   "109-3, лб, Аджамиех С.М., Основы frontend разработки",
@@ -165,8 +165,64 @@ describe("normalizeSchedule", () => {
       }]
     });
 
-    expect(cached.allLessons[0].subject).toBe("Основы frontend разработки / Алгоритмизация и программирование");
-    expect(cached.allLessons[0].variants).toHaveLength(2);
-    expect(cached.weekTypeAsOf).toBe("2026-07-17T00:00:00.000Z");
+    expect(cached?.allLessons[0].subject).toBe("Основы frontend разработки / Алгоритмизация и программирование");
+    expect(cached?.allLessons[0].variants).toHaveLength(2);
+    expect(cached?.weekTypeAsOf).toBe("2026-07-17T00:00:00.000Z");
+    expect(cached?.source).toBe("device-cache");
+  });
+
+  it("rejects a partial legacy cache instead of crashing application startup", () => {
+    expect(normalizeCachedSchedule({
+      groupNrec: "group",
+      currentInfo: { currentWeekType: 1 },
+      fetchedAt: "2026-09-16T04:00:00.000Z"
+    })).toBeNull();
+  });
+});
+
+describe("schedule snapshot v2", () => {
+  const nrec = "7936a2a43b11b20b01d30f5b00c73166";
+  const snapshot = {
+    schemaVersion: 2,
+    group: { nrec, name: "ПИ-124, ИИТЭ" },
+    semester: 5,
+    currentInfo: {
+      CurrentLesson: "НЕИЗВЕСТНО",
+      CurrentWeekType: 1,
+      Name: "ПИ-124, ИИТЭ",
+      CurrentSemester: 5
+    },
+    schedule: [{
+      type: "Lessons",
+      name: "Понедельник",
+      n1: "111-3, лк, Шутов А.В., Базы данных",
+      z1: "111-3, пр, Шутов А.В., Алгоритмизация и программирование"
+    }],
+    weekType: 1,
+    weekTypeAsOf: "2026-09-16T04:00:00.000Z",
+    scheduleFetchedAt: "2026-09-16T04:00:00.000Z",
+    contentHash: "a".repeat(64),
+    source: "live",
+    ageSeconds: 0,
+    requestId: "request-1",
+    quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0, warnings: [] }
+  };
+
+  it("normalizes one atomic schedule and week-type payload", () => {
+    const state = normalizeGroupScheduleSnapshot(snapshot, nrec);
+
+    expect(state.currentInfo.currentWeekType).toBe(1);
+    expect(state.allLessons.map((lesson) => lesson.weekMode)).toEqual(["numerator", "denominator"]);
+    expect(state).toMatchObject({
+      schemaVersion: 2,
+      source: "live",
+      contentHash: "a".repeat(64),
+      requestId: "request-1"
+    });
+  });
+
+  it("rejects a snapshot whose semester or week type disagrees with current info", () => {
+    expect(() => normalizeGroupScheduleSnapshot({ ...snapshot, weekType: 2 }, nrec)).toThrow("inconsistent");
+    expect(() => normalizeGroupScheduleSnapshot({ ...snapshot, semester: 4 }, nrec)).toThrow("inconsistent");
   });
 });

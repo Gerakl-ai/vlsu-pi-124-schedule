@@ -86,6 +86,7 @@ import {
   nowMinutes,
   selectDayLessons,
   selectedWeekModeForDate,
+  vlsuWeekModeForDate,
   weekModeForDate,
   weekModeFromSnapshot
 } from "./lib/time";
@@ -343,9 +344,11 @@ export function App() {
   const groupLinkHandledRef = useRef(false);
 
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
-  const currentWeek = schedule
+  const reportedWeek = schedule
     ? weekModeFromSnapshot(activeWeekMode(schedule.currentInfo.currentWeekType), schedule.weekTypeAsOf ?? schedule.fetchedAt, nowDate)
     : "numerator";
+  const calendarWeek = vlsuWeekModeForDate(nowDate);
+  const currentWeek = schedule?.allLessons.some((lesson) => lesson.scheduleKind === "exam") ? reportedWeek : calendarWeek;
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
   const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled, selectedGroup);
@@ -1000,6 +1003,7 @@ interface HeaderProps {
 
 function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, onRefresh, onThemeOpen, onGroupOpen }: HeaderProps) {
   const isBusy = status === "loading" || status === "refreshing";
+  const connectionState = status === "stale" || status === "error-without-cache" ? "offline" : isBusy ? "syncing" : "ready";
   const badge = groupBadgeParts(group?.name ?? "ВлГУ");
 
   return (
@@ -1020,6 +1024,7 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
         <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
           <CalendarDays size={18} />
           <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
+          <i className={`week-chip-health ${connectionState}`} title={syncStatusText(status, refreshedAt)} aria-hidden="true" />
           <RefreshCw className={isBusy ? "spin" : ""} size={16} />
         </button>
         <button className="header-icon-button" type="button" onClick={onThemeOpen} aria-label="Сменить тему" title="Сменить тему" data-testid="open-theme-picker">
@@ -1894,6 +1899,15 @@ function SettingsView({
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
   const [cloudConsent, setCloudConsent] = useState(() => readAiConsent());
+  const scheduleSource = schedule?.source === "live"
+    ? "ВлГУ · проверено"
+    : schedule?.source === "global-snapshot"
+      ? "Резервный снимок"
+      : schedule?.source === "edge-cache"
+        ? "Edge-кэш"
+        : schedule
+          ? "Кэш устройства"
+          : "Нет данных";
 
   function updateCloudConsent(consented: boolean) {
     setCloudConsent(consented);
@@ -1982,6 +1996,7 @@ function SettingsView({
             <div>
               <span>Offline-кэш</span>
               <strong>{schedule ? `Есть данные от ${formatUpdatedAt(schedule.fetchedAt)}` : "Пока пусто"}</strong>
+              <small>{scheduleSource}{schedule?.contentHash ? ` · ${schedule.contentHash.slice(0, 8)}` : ""}</small>
             </div>
             {schedule ? <CheckCircle2 size={24} /> : <CloudOff size={24} />}
           </div>

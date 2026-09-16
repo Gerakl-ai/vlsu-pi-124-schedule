@@ -1,4 +1,4 @@
-const CACHE_NAME = "lad-vlsu-v64";
+const CACHE_NAME = "lad-vlsu-v66";
 const APP_SHELL = [
   "/",
   "/manifest.webmanifest",
@@ -14,6 +14,14 @@ function navigationSafeResponse(response) {
     statusText: response.statusText,
     headers: new Headers(response.headers)
   });
+}
+
+function validBuildAsset(response, pathname) {
+  if (!response?.ok) return false;
+  const contentType = response.headers.get("Content-Type") || "";
+  if (pathname.endsWith(".js")) return /javascript|ecmascript/i.test(contentType);
+  if (pathname.endsWith(".css")) return /text\/css/i.test(contentType);
+  return !/text\/html/i.test(contentType);
 }
 
 async function discoverBuildAssets() {
@@ -38,7 +46,11 @@ async function discoverBuildAssets() {
         if (!scriptResponse.ok) continue;
         const script = await scriptResponse.text();
         const nestedAssets = [...script.matchAll(/["'(]((?:\/?assets\/|\.\.?\/)[^"'()\s]+\.(?:js|css|png|jpg|jpeg|webp|svg))/g)]
-          .map((match) => new URL(match[1], new URL(asset, self.location.origin)).pathname)
+          .map((match) => {
+            const value = match[1];
+            if (value.startsWith("assets/")) return `/${value}`;
+            return new URL(value, new URL(asset, self.location.origin)).pathname;
+          })
           .filter((url) => url.startsWith("/assets/"));
         nestedAssets.forEach((url) => {
           if (assets.has(url)) return;
@@ -59,7 +71,14 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
       const buildAssets = await discoverBuildAssets();
-      await cache.addAll([...APP_SHELL, ...buildAssets]);
+      const resources = [...new Set([...APP_SHELL, ...buildAssets])];
+      await Promise.all(resources.map(async (resource) => {
+        const response = await fetch(resource, { cache: "no-store" });
+        if (!response.ok || (resource.startsWith("/assets/") && !validBuildAsset(response, resource))) {
+          throw new Error(`Cannot install ${resource}`);
+        }
+        await cache.put(resource, response);
+      }));
     })
   );
   self.skipWaiting();
@@ -86,27 +105,22 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
-    const refreshShell = (async () => {
-      const preloaded = await event.preloadResponse;
-      const response = preloaded || await fetch(request, { cache: "no-store" });
-      if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
-      const safeResponse = navigationSafeResponse(response);
-      const cache = await caches.open(CACHE_NAME);
-      await cache.put("/", safeResponse.clone());
-      return safeResponse;
-    })();
-    event.waitUntil(refreshShell.then(() => undefined).catch(() => undefined));
     event.respondWith(
       (async () => {
-        const cachedShell = await caches.match("/");
+        const cache = await caches.open(CACHE_NAME);
+        const cachedShell = await cache.match("/");
 
-        // A controlled PWA must never wait for a slow route before showing its local app shell.
+        // The release shell and its hashed assets are installed together. Replacing only
+        // index.html here would mix releases and can leave an installed PWA unbootable.
         if (cachedShell) return navigationSafeResponse(cachedShell);
 
         try {
-          return await refreshShell;
+          const preloaded = await event.preloadResponse;
+          const response = preloaded || await fetch(request, { cache: "no-store" });
+          if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
+          return navigationSafeResponse(response);
         } catch {
-          const fallback = await caches.match("/");
+          const fallback = await cache.match("/");
           return fallback ? navigationSafeResponse(fallback) : Response.error();
         }
       })()
@@ -117,11 +131,13 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(request).then(async (requestMatch) => {
       const cached = requestMatch || await caches.match(url.pathname);
-      const fresh = fetch(request)
+      const fresh = fetch(request, { cache: "no-store" })
         .then((response) => {
-          if (response.ok) {
+          if (validBuildAsset(response, url.pathname)) {
             const clone = response.clone();
             event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(url.pathname, clone)));
+          } else if (url.pathname.startsWith("/assets/")) {
+            throw new Error("Invalid build asset response");
           }
           return response;
         })

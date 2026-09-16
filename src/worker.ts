@@ -130,8 +130,122 @@ interface GlobalSnapshotRecord {
   body: string;
 }
 
+interface CurrentInfoPayload {
+  CurrentLesson: string;
+  CurrentWeekType: 1 | 2;
+  Name: string;
+  CurrentSemester: number;
+}
+
+interface GroupSnapshotQuality {
+  valid: true;
+  scheduleEntries: number;
+  lessonDays: number;
+  examEntries: number;
+  warnings: string[];
+}
+
+interface GroupScheduleSnapshotV2 {
+  schemaVersion: 2;
+  group: {
+    nrec: string;
+    name: string;
+  };
+  semester: number;
+  currentInfo: CurrentInfoPayload;
+  schedule: unknown[];
+  weekType: 1 | 2;
+  weekTypeAsOf: string;
+  scheduleFetchedAt: string;
+  storedAt: string;
+  contentHash: string;
+  quality: GroupSnapshotQuality;
+}
+
+type GroupSnapshotSource = "live" | "global-snapshot";
+
+const GROUP_SNAPSHOT_PREFIX = "snapshot:v2";
+const GROUP_SNAPSHOT_LATEST_PREFIX = "snapshot:v2:latest";
+
 function globalSnapshotKey(sourceUrl: URL, apiPath: string, body?: string) {
   return `v1:${apiPath}:${cacheBodyFingerprint(`${sourceUrl.searchParams.toString()}|${body ?? ""}`)}`;
+}
+
+function validGroupNrec(value: string) {
+  return /^[a-f\d]{32}$/i.test(value);
+}
+
+function groupSnapshotKey(nrec: string, semester: number) {
+  return `${GROUP_SNAPSHOT_PREFIX}:${nrec}:${semester}`;
+}
+
+function groupSnapshotLatestKey(nrec: string) {
+  return `${GROUP_SNAPSHOT_LATEST_PREFIX}:${nrec}`;
+}
+
+function requestId() {
+  return typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+}
+
+async function contentHash(value: unknown) {
+  const bytes = new TextEncoder().encode(JSON.stringify(value));
+  const digest = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function isCurrentInfoPayload(value: unknown): value is CurrentInfoPayload {
+  return Boolean(value)
+    && typeof value === "object"
+    && typeof (value as CurrentInfoPayload).CurrentLesson === "string"
+    && [1, 2].includes((value as CurrentInfoPayload).CurrentWeekType)
+    && typeof (value as CurrentInfoPayload).Name === "string"
+    && (value as CurrentInfoPayload).Name.trim().length > 0
+    && Number.isInteger((value as CurrentInfoPayload).CurrentSemester)
+    && (value as CurrentInfoPayload).CurrentSemester > 0;
+}
+
+function scheduleQuality(value: unknown): GroupSnapshotQuality | null {
+  if (!Array.isArray(value) || value.length === 0) return null;
+  const lessonDays = value.filter((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "Lessons" && typeof (item as { name?: unknown }).name === "string").length;
+  const examEntries = value.filter((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "ExamSession" && typeof (item as { name?: unknown }).name === "string").length;
+  if (lessonDays + examEntries !== value.length || lessonDays + examEntries === 0) return null;
+  return {
+    valid: true,
+    scheduleEntries: value.length,
+    lessonDays,
+    examEntries,
+    warnings: []
+  };
+}
+
+function isGroupSnapshotV2(value: unknown): value is GroupScheduleSnapshotV2 {
+  if (!value || typeof value !== "object") return false;
+  const snapshot = value as Partial<GroupScheduleSnapshotV2>;
+  const measuredQuality = scheduleQuality(snapshot.schedule);
+  return snapshot.schemaVersion === 2
+    && Boolean(snapshot.group)
+    && typeof snapshot.group?.nrec === "string"
+    && validGroupNrec(snapshot.group.nrec)
+    && typeof snapshot.group?.name === "string"
+    && Number.isInteger(snapshot.semester)
+    && isCurrentInfoPayload(snapshot.currentInfo)
+    && Array.isArray(snapshot.schedule)
+    && Boolean(measuredQuality)
+    && (snapshot.weekType === 1 || snapshot.weekType === 2)
+    && typeof snapshot.weekTypeAsOf === "string"
+    && !Number.isNaN(Date.parse(snapshot.weekTypeAsOf))
+    && typeof snapshot.scheduleFetchedAt === "string"
+    && !Number.isNaN(Date.parse(snapshot.scheduleFetchedAt))
+    && typeof snapshot.storedAt === "string"
+    && !Number.isNaN(Date.parse(snapshot.storedAt))
+    && typeof snapshot.contentHash === "string"
+    && /^[a-f\d]{64}$/i.test(snapshot.contentHash)
+    && snapshot.quality?.valid === true
+    && snapshot.quality.scheduleEntries === measuredQuality?.scheduleEntries
+    && snapshot.quality.lessonDays === measuredQuality?.lessonDays
+    && snapshot.quality.examEntries === measuredQuality?.examEntries;
 }
 
 function apiResponse(response: Response, source: "live" | "edge-cache" | "global-snapshot") {
@@ -244,6 +358,204 @@ async function storeGlobalSnapshot(kv: KvNamespace | undefined, key: string, res
   await kv.put(key, JSON.stringify(record));
 }
 
+async function buildGroupSnapshotV2(
+  nrec: string,
+  currentInfo: CurrentInfoPayload,
+  schedule: unknown[],
+  scheduleFetchedAt: string,
+  weekTypeAsOf: string
+): Promise<GroupScheduleSnapshotV2> {
+  const quality = scheduleQuality(schedule);
+  if (!quality) throw new Error("Invalid schedule payload");
+  const storedAt = new Date().toISOString();
+  return {
+    schemaVersion: 2,
+    group: { nrec, name: currentInfo.Name.trim() },
+    semester: currentInfo.CurrentSemester,
+    currentInfo,
+    schedule,
+    weekType: currentInfo.CurrentWeekType,
+    weekTypeAsOf,
+    scheduleFetchedAt,
+    storedAt,
+    contentHash: await contentHash({
+      groupNrec: nrec,
+      semester: currentInfo.CurrentSemester,
+      weekType: currentInfo.CurrentWeekType,
+      currentLesson: currentInfo.CurrentLesson,
+      schedule
+    }),
+    quality
+  };
+}
+
+async function readGroupSnapshotV2(kv: KvNamespace | undefined, key: string) {
+  if (!kv) return null;
+  try {
+    const raw = await kv.get(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as unknown;
+    return isGroupSnapshotV2(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+async function readLatestGroupSnapshotV2(kv: KvNamespace | undefined, nrec: string) {
+  if (!kv) return null;
+  try {
+    const key = await kv.get(groupSnapshotLatestKey(nrec));
+    if (!key || !key.startsWith(`${GROUP_SNAPSHOT_PREFIX}:${nrec}:`)) return null;
+    return readGroupSnapshotV2(kv, key);
+  } catch {
+    return null;
+  }
+}
+
+async function storeGroupSnapshotV2(kv: KvNamespace | undefined, snapshot: GroupScheduleSnapshotV2) {
+  if (!kv) return;
+  const key = groupSnapshotKey(snapshot.group.nrec, snapshot.semester);
+  const existing = await readGroupSnapshotV2(kv, key);
+  if (existing && Date.parse(existing.scheduleFetchedAt) > Date.parse(snapshot.scheduleFetchedAt)) return;
+  await kv.put(key, JSON.stringify(snapshot));
+  await kv.put(groupSnapshotLatestKey(snapshot.group.nrec), key);
+}
+
+async function migrateLegacyGroupSnapshot(kv: KvNamespace | undefined, nrec: string) {
+  if (!kv) return null;
+  const sourceUrl = (apiPath: string) => new URL(`https://snapshot.internal/vlsu-api/${apiPath}`);
+  const currentPath = "student/GetGroupCurrentInfo";
+  const schedulePath = "student/GetGroupSchedule";
+  const currentBody = JSON.stringify(nrec);
+  const scheduleBody = JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" });
+  const [currentResponse, scheduleResponse] = await Promise.all([
+    readGlobalSnapshot(kv, globalSnapshotKey(sourceUrl(currentPath), currentPath, currentBody)),
+    readGlobalSnapshot(kv, globalSnapshotKey(sourceUrl(schedulePath), schedulePath, scheduleBody))
+  ]);
+  if (!currentResponse || !scheduleResponse) return null;
+
+  try {
+    const currentInfo = decodeSnapshotPayload(await currentResponse.text());
+    const schedule = decodeSnapshotPayload(await scheduleResponse.text());
+    if (!isCurrentInfoPayload(currentInfo) || !Array.isArray(schedule) || !scheduleQuality(schedule)) return null;
+    const snapshot = await buildGroupSnapshotV2(
+      nrec,
+      currentInfo,
+      schedule,
+      scheduleResponse.headers.get("X-Lad-Snapshot-At") ?? new Date().toISOString(),
+      currentResponse.headers.get("X-Lad-Snapshot-At") ?? new Date().toISOString()
+    );
+    await storeGroupSnapshotV2(kv, snapshot);
+    return snapshot;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchGroupSnapshotV2(nrec: string) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+  const requestedAt = new Date().toISOString();
+  try {
+    const [currentResponse, scheduleResponse] = await Promise.all([
+      fetch(`${API_ORIGIN}/student/GetGroupCurrentInfo`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(nrec),
+        signal: controller.signal
+      }),
+      fetch(`${API_ORIGIN}/student/GetGroupSchedule`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" }),
+        signal: controller.signal
+      })
+    ]);
+    if (!currentResponse.ok || !scheduleResponse.ok) throw new Error("VLSU API request failed");
+    const [currentText, scheduleText] = await Promise.all([currentResponse.text(), scheduleResponse.text()]);
+    if (new TextEncoder().encode(currentText).byteLength + new TextEncoder().encode(scheduleText).byteLength > MAX_SNAPSHOT_BYTES) {
+      throw new Error("VLSU schedule payload is too large");
+    }
+    const currentInfo = decodeSnapshotPayload(currentText);
+    const schedule = decodeSnapshotPayload(scheduleText);
+    if (!isCurrentInfoPayload(currentInfo) || !Array.isArray(schedule) || !scheduleQuality(schedule)) {
+      throw new Error("VLSU schedule payload is invalid");
+    }
+    return buildGroupSnapshotV2(nrec, currentInfo, schedule, requestedAt, requestedAt);
+  } finally {
+    clearTimeout(timeout);
+    controller.abort();
+  }
+}
+
+function groupSnapshotResponse(snapshot: GroupScheduleSnapshotV2, source: GroupSnapshotSource, id: string) {
+  const ageSeconds = Math.max(0, Math.floor((Date.now() - Date.parse(snapshot.scheduleFetchedAt)) / 1000));
+  return jsonResponse({
+    ...snapshot,
+    source,
+    ageSeconds,
+    requestId: id
+  }, 200, {
+    "X-Lad-Data-Source": source,
+    "X-Lad-Snapshot-At": snapshot.scheduleFetchedAt,
+    "X-Lad-Snapshot-Age": String(ageSeconds),
+    "X-Lad-Content-Hash": snapshot.contentHash,
+    "X-Lad-Request-Id": id,
+    "X-Lad-Data-Quality": "valid"
+  });
+}
+
+async function getGroupScheduleSnapshot(request: Request, env: Env, context?: WorkerExecutionContext) {
+  const id = requestId();
+  if (request.method !== "GET" && request.method !== "HEAD") return methodNotAllowed("GET, HEAD");
+  if (!isSameOriginRequest(request)) return jsonResponse({ error: "Cross-origin request denied", requestId: id }, 403);
+  const match = new URL(request.url).pathname.match(/^\/app-api\/schedule\/([a-f\d]{32})\/?$/i);
+  if (!match) return jsonResponse({ error: "Invalid group identifier", requestId: id }, 400);
+  const nrec = match[1];
+
+  const cached = await readLatestGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, nrec)
+    ?? await migrateLegacyGroupSnapshot(env.SCHEDULE_SNAPSHOT, nrec);
+  const freshPromise = fetchGroupSnapshotV2(nrec);
+
+  if (cached) {
+    const quickFresh = await Promise.race([
+      freshPromise.catch(() => null),
+      wait(EDGE_FRESH_WAIT_MS)
+    ]);
+    if (quickFresh) {
+      await storeGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, quickFresh);
+      await registerActiveGroup(env.SCHEDULE_SNAPSHOT, nrec);
+      return groupSnapshotResponse(quickFresh, "live", id);
+    }
+
+    const backgroundRefresh = freshPromise
+      .then((snapshot) => storeGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, snapshot))
+      .catch(() => undefined);
+    const tracking = registerActiveGroup(env.SCHEDULE_SNAPSHOT, nrec).catch(() => undefined);
+    if (context) {
+      context.waitUntil(backgroundRefresh);
+      context.waitUntil(tracking);
+    } else {
+      void backgroundRefresh;
+      void tracking;
+    }
+    return groupSnapshotResponse(cached, "global-snapshot", id);
+  }
+
+  try {
+    const fresh = await freshPromise;
+    await Promise.all([
+      storeGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, fresh),
+      registerActiveGroup(env.SCHEDULE_SNAPSHOT, nrec)
+    ]);
+    return groupSnapshotResponse(fresh, "live", id);
+  } catch {
+    return jsonResponse({ error: "VLSU schedule is temporarily unavailable", requestId: id }, 503, {
+      "X-Lad-Request-Id": id
+    });
+  }
+}
+
 async function storeSuccessfulResponse(
   cache: Pick<Cache, "put"> | undefined,
   edgeKey: Request,
@@ -313,36 +625,12 @@ async function readActiveGroups(kv: KvNamespace | undefined) {
 }
 
 async function refreshGroupSnapshots(env: Env, nrec: string) {
-  const targets = [
-    {
-      apiPath: "student/GetGroupCurrentInfo",
-      body: JSON.stringify(nrec)
-    },
-    {
-      apiPath: "student/GetGroupSchedule",
-      body: JSON.stringify({ Nrec: nrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
-    }
-  ];
-
-  await Promise.allSettled(targets.map(async ({ apiPath, body }) => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
-    try {
-      const response = await fetch(`${API_ORIGIN}/${apiPath}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body,
-        signal: controller.signal
-      });
-      if (!response.ok) return;
-
-      const sourceUrl = new URL(`https://snapshot.internal/vlsu-api/${apiPath}`);
-      const snapshotKey = globalSnapshotKey(sourceUrl, apiPath, body);
-      await storeGlobalSnapshot(env.SCHEDULE_SNAPSHOT, snapshotKey, response, new Date().toISOString(), apiPath);
-    } finally {
-      clearTimeout(timeout);
-    }
-  }));
+  try {
+    const snapshot = await fetchGroupSnapshotV2(nrec);
+    await storeGroupSnapshotV2(env.SCHEDULE_SNAPSHOT, snapshot);
+  } catch {
+    // The last valid snapshot remains authoritative when VLSU is unavailable.
+  }
 }
 
 async function refreshGlobalScheduleSnapshots(env: Env) {
@@ -641,6 +929,8 @@ const worker = {
 
     if (url.pathname.startsWith("/vlsu-api/")) {
       response = await proxyVlsuApi(request, env, context);
+    } else if (url.pathname.startsWith("/app-api/schedule/")) {
+      response = await getGroupScheduleSnapshot(request, env, context);
     } else if (url.pathname === "/app-api/classify") {
       response = await classifyNote(request, env);
     } else if (url.pathname === "/app-api/health") {

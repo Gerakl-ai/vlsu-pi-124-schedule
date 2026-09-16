@@ -49,12 +49,28 @@ export interface CurrentInfo {
   semester: number;
 }
 
+export type ScheduleDataSource = "live" | "edge-cache" | "global-snapshot" | "device-cache";
+
+export interface ScheduleQuality {
+  valid: boolean;
+  scheduleEntries: number;
+  lessonDays: number;
+  examEntries: number;
+  warnings: string[];
+}
+
 export interface ScheduleState {
   groupNrec: string;
   currentInfo: CurrentInfo;
   allLessons: LessonSlot[];
   fetchedAt: string;
   weekTypeAsOf?: string;
+  schemaVersion?: number;
+  source?: ScheduleDataSource;
+  snapshotAgeSeconds?: number;
+  contentHash?: string;
+  requestId?: string;
+  quality?: ScheduleQuality;
 }
 
 export interface ReminderSettings {

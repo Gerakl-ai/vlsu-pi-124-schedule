@@ -633,6 +633,25 @@ select,
   font-weight: 900;
 }
 
+.week-chip-health {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 8px currentColor;
+}
+
+.week-chip-health.syncing {
+  color: var(--ice);
+  background: currentColor;
+}
+
+.week-chip-health.offline {
+  color: var(--warning);
+  background: currentColor;
+}
+
 .spin {
   animation: spin 0.9s linear infinite;
 }
@@ -4514,9 +4533,7 @@ button.day-title > svg {
   }
 
   .sync-line {
-    display: flex;
-    min-height: 14px;
-    justify-content: flex-end;
+    display: none;
   }
 
   .sync-line > span:first-child {

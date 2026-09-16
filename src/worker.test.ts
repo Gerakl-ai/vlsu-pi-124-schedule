@@ -36,6 +36,10 @@ function createEnv() {
 }
 
 describe("Cloudflare worker", () => {
+  const groupNrec = "7936a2a43b11b20b01d30f5b00c73166";
+  const currentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "ПИ-124", CurrentSemester: 5 };
+  const schedule = [{ type: "Lessons", name: "Понедельник" }];
+
   it("exposes verifiable deployment metadata", async () => {
     const response = await worker.fetch(new Request("https://app.example/app-api/health"), createEnv());
     const payload = await response.json() as Record<string, unknown>;
@@ -54,6 +58,59 @@ describe("Cloudflare worker", () => {
   it("does not expose an arbitrary upstream proxy", async () => {
     const response = await worker.fetch(new Request("https://app.example/vlsu-api/private/unknown"), createEnv());
     expect(response.status).toBe(404);
+  });
+
+  it("stores and serves an atomic version 2 group snapshot", async () => {
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+
+    const response = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const payload = await response.json() as Record<string, unknown>;
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("X-Lad-Data-Source")).toBe("live");
+    expect(response.headers.get("X-Lad-Content-Hash")).toMatch(/^[a-f\d]{64}$/);
+    expect(response.headers.get("X-Lad-Request-Id")).toBeTruthy();
+    expect(payload).toMatchObject({
+      schemaVersion: 2,
+      semester: 5,
+      weekType: 1,
+      source: "live",
+      group: { nrec: groupNrec, name: "ПИ-124" },
+      quality: { valid: true, scheduleEntries: 1, lessonDays: 1, examEntries: 0 }
+    });
+    expect(snapshotKv.put).toHaveBeenCalledWith(`snapshot:v2:${groupNrec}:5`, expect.any(String));
+    expect(snapshotKv.put).toHaveBeenCalledWith(`snapshot:v2:latest:${groupNrec}`, `snapshot:v2:${groupNrec}:5`);
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the last valid v2 snapshot when VLSU returns an empty HTTP 200", async () => {
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+    const first = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const firstPayload = await first.json() as { contentHash: string };
+    snapshotKv.put.mockClear();
+
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : []);
+    }));
+    const fallback = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const fallbackPayload = await fallback.json() as { source: string; contentHash: string; schedule: unknown[] };
+
+    expect(fallbackPayload.source).toBe("global-snapshot");
+    expect(fallbackPayload.contentHash).toBe(firstPayload.contentHash);
+    expect(fallbackPayload.schedule).toEqual(schedule);
+    expect(snapshotKv.put).not.toHaveBeenCalledWith(`snapshot:v2:${groupNrec}:5`, expect.any(String));
+    vi.unstubAllGlobals();
   });
 
   it("enforces the method of each VLSU endpoint", async () => {
@@ -177,8 +234,8 @@ describe("Cloudflare worker", () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
     const waitUntil: Promise<unknown>[] = [];
-    const currentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "PI-124", CurrentSemester: 4 };
-    const schedule = [{ type: "Lessons", name: "Monday" }];
+    const cronCurrentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "PI-124", CurrentSemester: 4 };
+    const cronSchedule = [{ type: "Lessons", name: "Monday" }];
 
     await snapshotKv.put("v2:active-groups", JSON.stringify([{
       nrec: "7936a2a43b11b20b01d30f5b00c73166",
@@ -188,7 +245,7 @@ describe("Cloudflare worker", () => {
 
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input instanceof Request ? input.url : input);
-      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? cronCurrentInfo : cronSchedule);
     }));
     worker.scheduled(
       { cron: "*/15 * * * *", scheduledTime: Date.now() },
@@ -200,25 +257,12 @@ describe("Cloudflare worker", () => {
     expect(snapshotKv.put).toHaveBeenCalledTimes(2);
 
     vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
-    const currentResponse = await worker.fetch(new Request("https://app.example/vlsu-api/student/GetGroupCurrentInfo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify("7936a2a43b11b20b01d30f5b00c73166")
-    }), { ...env, EDGE_CACHE: createEdgeCache() });
-    const scheduleResponse = await worker.fetch(new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        Nrec: "7936a2a43b11b20b01d30f5b00c73166",
-        WeekType: 0,
-        WeekDays: "1,2,3,4,5,6"
-      })
-    }), { ...env, EDGE_CACHE: createEdgeCache() });
+    const snapshotResponse = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const snapshot = await snapshotResponse.json() as { source: string; currentInfo: unknown; schedule: unknown };
 
-    expect(currentResponse.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
-    expect(scheduleResponse.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
-    expect(await currentResponse.json()).toEqual(currentInfo);
-    expect(await scheduleResponse.json()).toEqual(schedule);
+    expect(snapshot.source).toBe("global-snapshot");
+    expect(snapshot.currentInfo).toEqual(cronCurrentInfo);
+    expect(snapshot.schedule).toEqual(cronSchedule);
     vi.unstubAllGlobals();
   });
 });

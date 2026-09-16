@@ -80,6 +80,7 @@ createRoot(document.getElementById("root")!).render(
     </AppErrorBoundary>
   </React.StrictMode>
 );
+(window as typeof window & { __ladBootComplete?: boolean }).__ladBootComplete = true;
 
 if ("serviceWorker" in navigator && import.meta.env.PROD) {
   const registerServiceWorker = () => {

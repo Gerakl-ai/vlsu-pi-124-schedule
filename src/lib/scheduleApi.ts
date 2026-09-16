@@ -1,4 +1,4 @@
-import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleState, WeekMode } from "../types";
+import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleDataSource, ScheduleQuality, ScheduleState, WeekMode } from "../types";
 import { writeGroupScheduleCache } from "../features/groups/groupStorage";
 import {
   instituteShortName,
@@ -68,6 +68,22 @@ interface CurrentInfoDto {
   CurrentWeekType: 1 | 2;
   Name: string;
   CurrentSemester: number;
+}
+
+interface GroupScheduleSnapshotDto {
+  schemaVersion: 2;
+  group: { nrec: string; name: string };
+  semester: number;
+  currentInfo: CurrentInfoDto;
+  schedule: unknown[];
+  weekType: 1 | 2;
+  weekTypeAsOf: string;
+  scheduleFetchedAt: string;
+  contentHash: string;
+  source: ScheduleDataSource;
+  ageSeconds: number;
+  requestId: string;
+  quality: ScheduleQuality;
 }
 
 interface ParsedLesson {
@@ -204,6 +220,10 @@ async function fetchCurrentInfo(nrec: string, metadata?: RequestMetadata): Promi
     method: "POST",
     body: JSON.stringify(nrec)
   }, metadata);
+  return normalizeCurrentInfo(payload);
+}
+
+function normalizeCurrentInfo(payload: unknown): CurrentInfo {
   if (!isRecord(payload)
     || typeof payload.CurrentLesson !== "string"
     || (payload.CurrentWeekType !== 1 && payload.CurrentWeekType !== 2)
@@ -211,13 +231,11 @@ async function fetchCurrentInfo(nrec: string, metadata?: RequestMetadata): Promi
     || typeof payload.CurrentSemester !== "number") {
     throw new Error("VLSU API returned invalid current group information");
   }
-  const dto = payload as unknown as CurrentInfoDto;
-
   return {
-    currentLesson: dto.CurrentLesson,
-    currentWeekType: dto.CurrentWeekType,
-    name: dto.Name,
-    semester: dto.CurrentSemester
+    currentLesson: payload.CurrentLesson,
+    currentWeekType: payload.CurrentWeekType,
+    name: payload.Name,
+    semester: payload.CurrentSemester
   };
 }
 
@@ -392,11 +410,98 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
   return lessons;
 }
 
-export function normalizeCachedSchedule(state: ScheduleState): ScheduleState {
+export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: string): ScheduleState {
+  if (!isRecord(payload)
+    || payload.schemaVersion !== 2
+    || !isRecord(payload.group)
+    || payload.group.nrec !== expectedNrec
+    || typeof payload.group.name !== "string"
+    || typeof payload.semester !== "number"
+    || !Array.isArray(payload.schedule)
+    || (payload.weekType !== 1 && payload.weekType !== 2)
+    || typeof payload.weekTypeAsOf !== "string"
+    || Number.isNaN(Date.parse(payload.weekTypeAsOf))
+    || typeof payload.scheduleFetchedAt !== "string"
+    || Number.isNaN(Date.parse(payload.scheduleFetchedAt))
+    || typeof payload.contentHash !== "string"
+    || !/^[a-f\d]{64}$/i.test(payload.contentHash)
+    || !["live", "edge-cache", "global-snapshot"].includes(String(payload.source))
+    || typeof payload.ageSeconds !== "number"
+    || payload.ageSeconds < 0
+    || typeof payload.requestId !== "string"
+    || !isRecord(payload.quality)
+    || payload.quality.valid !== true) {
+    throw new Error("Schedule snapshot v2 is invalid");
+  }
+
+  const days = payload.schedule as Array<ScheduleDayDto | ExamSessionDto>;
+  if (days.length === 0 || days.some((day) => !isScheduleDay(day) && !isExamSession(day))) {
+    throw new Error("Schedule snapshot v2 contains invalid schedule data");
+  }
+  const lessonDays = days.filter(isScheduleDay).length;
+  const examEntries = days.filter(isExamSession).length;
+  if (payload.quality.scheduleEntries !== days.length
+    || payload.quality.lessonDays !== lessonDays
+    || payload.quality.examEntries !== examEntries
+    || !Array.isArray(payload.quality.warnings)) {
+    throw new Error("Schedule snapshot v2 quality metadata is inconsistent");
+  }
+  const currentInfo = normalizeCurrentInfo(payload.currentInfo);
+  if (currentInfo.semester !== payload.semester || currentInfo.currentWeekType !== payload.weekType) {
+    throw new Error("Schedule snapshot v2 metadata is inconsistent");
+  }
+
+  const quality = payload.quality as unknown as ScheduleQuality;
   return {
-    ...state,
-    weekTypeAsOf: state.weekTypeAsOf ?? state.fetchedAt,
-    allLessons: state.allLessons.map((lesson) => ({
+    schemaVersion: 2,
+    groupNrec: expectedNrec,
+    currentInfo,
+    allLessons: normalizeSchedule(days),
+    fetchedAt: payload.scheduleFetchedAt,
+    weekTypeAsOf: payload.weekTypeAsOf,
+    source: payload.source as ScheduleDataSource,
+    snapshotAgeSeconds: payload.ageSeconds,
+    contentHash: payload.contentHash,
+    requestId: payload.requestId,
+    quality
+  };
+}
+
+function isCachedLesson(value: unknown): value is LessonSlot {
+  if (!isRecord(value)) return false;
+  return typeof value.id === "string"
+    && typeof value.dayIndex === "number"
+    && typeof value.dayName === "string"
+    && typeof value.pairIndex === "number"
+    && typeof value.start === "string"
+    && typeof value.end === "string"
+    && typeof value.subject === "string"
+    && typeof value.rawText === "string"
+    && ["all", "numerator", "denominator"].includes(String(value.weekMode));
+}
+
+export function normalizeCachedSchedule(state: unknown): ScheduleState | null {
+  if (!isRecord(state)
+    || typeof state.groupNrec !== "string"
+    || !isRecord(state.currentInfo)
+    || typeof state.currentInfo.currentLesson !== "string"
+    || (state.currentInfo.currentWeekType !== 1 && state.currentInfo.currentWeekType !== 2)
+    || typeof state.currentInfo.name !== "string"
+    || typeof state.currentInfo.semester !== "number"
+    || !Array.isArray(state.allLessons)
+    || state.allLessons.some((lesson) => !isCachedLesson(lesson))
+    || typeof state.fetchedAt !== "string"
+    || Number.isNaN(Date.parse(state.fetchedAt))) {
+    return null;
+  }
+
+  const cached = state as unknown as ScheduleState;
+  return {
+    ...cached,
+    source: "device-cache",
+    weekTypeAsOf: cached.weekTypeAsOf ?? cached.fetchedAt,
+    snapshotAgeSeconds: Math.max(0, Math.floor((Date.now() - Date.parse(cached.fetchedAt)) / 1000)),
+    allLessons: cached.allLessons.map((lesson) => ({
       ...lesson,
       ...parseLessonText(lesson.rawText)
     }))
@@ -416,7 +521,33 @@ async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
   return normalizeSchedule(days);
 }
 
+async function fetchGroupScheduleSnapshot(nrec: string) {
+  const controller = new AbortController();
+  const timeout = globalThis.setTimeout(() => controller.abort("timeout"), REQUEST_TIMEOUT_MS + 1_500);
+  try {
+    const response = await fetch(`/app-api/schedule/${encodeURIComponent(nrec)}`, {
+      headers: { Accept: "application/json" },
+      signal: controller.signal
+    });
+    if (!response.ok) throw new ApiResponseError("/app-api/schedule", response.status);
+    return normalizeGroupScheduleSnapshot(await response.json(), nrec);
+  } finally {
+    globalThis.clearTimeout(timeout);
+  }
+}
+
 export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> {
+  if (import.meta.env.PROD) {
+    try {
+      const snapshot = await fetchGroupScheduleSnapshot(group.nrec);
+      writeGroupScheduleCache(snapshot);
+      return snapshot;
+    } catch (error) {
+      if (error instanceof ApiResponseError && error.status >= 500) throw error;
+      // Older Pages deployments do not expose the v2 endpoint yet.
+    }
+  }
+
   const fetchState = async (groupNrec: string) => {
     const currentInfoMetadata: RequestMetadata = {};
     const scheduleMetadata: RequestMetadata = {};
