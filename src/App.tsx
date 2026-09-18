@@ -1901,6 +1901,8 @@ function SettingsView({
   const [cloudConsent, setCloudConsent] = useState(() => readAiConsent());
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
+    : schedule?.source === "static-snapshot"
+    ? "Снимок ВлГУ"
     : schedule?.source === "global-snapshot"
       ? "Резервный снимок"
       : schedule?.source === "edge-cache"

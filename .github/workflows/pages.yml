@@ -1,0 +1,80 @@
+name: Публикация на GitHub Pages
+
+# Собирает приложение из main и кладёт рядом снимки расписания из ветки data.
+# Приложение и данные попадают на CDN одним артефактом, поэтому проксировать к
+# ВлГУ в момент открытия страницы больше не нужно.
+
+on:
+  push:
+    branches: [main]
+  # Снимки обновляются отдельным workflow; после них сайт пересобирается,
+  # чтобы свежее расписание доехало до пользователей.
+  workflow_run:
+    workflows: ["Снимок расписания ВлГУ"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Забрать приложение
+        uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.9.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Собрать приложение
+        env:
+          # Проектный сайт живёт в подкаталоге с именем репозитория.
+          # Для своего домена достаточно заменить это на "/".
+          PAGES_BASE: /${{ github.event.repository.name }}/
+        run: pnpm run build
+
+      - name: Добавить снимки расписания из ветки data
+        run: |
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch origin data --depth=1
+            git worktree add snapshot-data origin/data
+            mkdir -p dist/data
+            cp -r snapshot-data/data/. dist/data/
+            echo "Снимков расписания: $(find dist/data/schedule -name '*.json' 2>/dev/null | wc -l)"
+          else
+            echo "::warning::Ветки data ещё нет — сайт соберётся без снимков расписания."
+          fi
+
+      - name: Сделать SPA-маршруты рабочими
+        # Pages отдаёт 404.html для неизвестных путей. Копия index.html делает
+        # прямые ссылки вида /g/ПИ-124 рабочими без серверной маршрутизации.
+        run: cp dist/index.html dist/404.html
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -49,7 +49,7 @@ export interface CurrentInfo {
   semester: number;
 }
 
-export type ScheduleDataSource = "live" | "edge-cache" | "global-snapshot" | "device-cache";
+export type ScheduleDataSource = "live" | "edge-cache" | "global-snapshot" | "static-snapshot" | "device-cache";
 
 export interface ScheduleQuality {
   valid: boolean;

@@ -1,3 +1,25 @@
+/**
+ * Формы обучения ВлГУ. Приложение долго запрашивало только очную (WFormed: 0),
+ * поэтому заочники и очно-заочники не могли найти свою группу вообще.
+ */
+export const STUDY_FORM_KEYS = ["full-time", "extramural", "part-time"] as const;
+
+export type StudyFormKey = (typeof STUDY_FORM_KEYS)[number];
+
+export const STUDY_FORM_LABELS: Record<StudyFormKey, string> = {
+  "full-time": "Очная",
+  extramural: "Заочная",
+  "part-time": "Очно-заочная"
+};
+
+/** Короткая подпись для списка групп: очную не подписываем, она подразумевается. */
+export function studyFormLabel(forms: StudyFormKey[] | undefined) {
+  if (!forms || !forms.length) return undefined;
+  const meaningful = forms.filter((form) => form !== "full-time");
+  if (!meaningful.length) return undefined;
+  return meaningful.map((form) => STUDY_FORM_LABELS[form]).join(" · ");
+}
+
 export interface InstituteOption {
   id: string;
   name: string;
@@ -9,6 +31,7 @@ export interface GroupOption {
   nrec: string;
   name: string;
   course?: string;
+  forms?: StudyFormKey[];
 }
 
 export interface GroupProfile extends GroupOption {

@@ -1,0 +1,229 @@
+/**
+ * Чтение расписания из статических файлов, собранных GitHub Actions.
+ *
+ * API ВлГУ запрещает чтение с чужого домена, поэтому на статическом хостинге
+ * браузер не может обратиться к нему напрямую. Обход выполняется заранее на
+ * сервере (scripts/snapshot), а приложение читает готовые файлы с CDN.
+ *
+ * Формат описан в docs/DATA-PIPELINE.md.
+ */
+
+import type { CurrentInfo, LessonSlot, ScheduleState } from "../types";
+import type { GroupOption, InstituteOption, StudyFormKey } from "../features/groups/groupTypes";
+import { STUDY_FORM_KEYS } from "../features/groups/groupTypes";
+
+export const STATIC_SCHEMA_VERSION = 3;
+
+interface StaticGroup {
+  nrec: string;
+  name: string;
+  course: string | null;
+  forms: StudyFormKey[];
+}
+
+interface StaticInstitute {
+  id: string;
+  name: string;
+  shortName: string;
+  groupCount: number;
+  groups: StaticGroup[];
+}
+
+export interface StaticCatalog {
+  schemaVersion: number;
+  capturedAt: string;
+  instituteCount: number;
+  groupCount: number;
+  institutes: StaticInstitute[];
+}
+
+export interface StaticScheduleSnapshot {
+  schemaVersion: number;
+  group: {
+    nrec: string;
+    name: string;
+    course: string | null;
+    forms: StudyFormKey[];
+    instituteId: string;
+    instituteName: string;
+    instituteShortName: string;
+  };
+  semester: number | null;
+  schedule: unknown[];
+  quality: { valid: boolean; scheduleEntries: number; lessonDays: number; examEntries: number; warnings: string[] };
+  scheduleHash: string;
+  capturedAt: string;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object";
+}
+
+/** Pages может раздавать приложение из подкаталога, поэтому путь строится от BASE_URL. */
+export function staticDataUrl(relativePath: string) {
+  const base = import.meta.env.BASE_URL || "/";
+  return `${base.replace(/\/$/, "")}/data/${relativePath.replace(/^\//, "")}`;
+}
+
+async function fetchJson(url: string, signal?: AbortSignal): Promise<unknown> {
+  const response = await fetch(url, { headers: { Accept: "application/json" }, signal });
+  if (!response.ok) throw new Error(`Статические данные недоступны: ${url} (${response.status})`);
+  return response.json();
+}
+
+function isStudyForm(value: unknown): value is StudyFormKey {
+  return typeof value === "string" && (STUDY_FORM_KEYS as readonly string[]).includes(value);
+}
+
+function normalizeStaticGroup(value: unknown): StaticGroup | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.nrec !== "string" || !/^[a-f\d]{32}$/i.test(value.nrec)) return null;
+  if (typeof value.name !== "string" || !value.name.trim()) return null;
+  const forms = Array.isArray(value.forms) ? value.forms.filter(isStudyForm) : [];
+  return {
+    nrec: value.nrec,
+    name: value.name.trim(),
+    course: typeof value.course === "string" && value.course ? value.course : null,
+    forms
+  };
+}
+
+export function normalizeStaticCatalog(payload: unknown): StaticCatalog {
+  if (!isRecord(payload)
+    || payload.schemaVersion !== STATIC_SCHEMA_VERSION
+    || typeof payload.capturedAt !== "string"
+    || !Array.isArray(payload.institutes)) {
+    throw new Error("Каталог имеет неизвестный формат");
+  }
+
+  const institutes = payload.institutes
+    .map((item): StaticInstitute | null => {
+      if (!isRecord(item)) return null;
+      if (typeof item.id !== "string" || !item.id) return null;
+      if (typeof item.name !== "string" || !item.name.trim()) return null;
+      const groups = (Array.isArray(item.groups) ? item.groups : [])
+        .map(normalizeStaticGroup)
+        .filter((group): group is StaticGroup => group !== null);
+      return {
+        id: item.id,
+        name: item.name.trim(),
+        shortName: typeof item.shortName === "string" && item.shortName ? item.shortName : "ВлГУ",
+        groupCount: groups.length,
+        groups
+      };
+    })
+    .filter((item): item is StaticInstitute => item !== null);
+
+  if (!institutes.length) throw new Error("Каталог пуст");
+
+  return {
+    schemaVersion: STATIC_SCHEMA_VERSION,
+    capturedAt: payload.capturedAt,
+    instituteCount: institutes.length,
+    groupCount: institutes.reduce((sum, item) => sum + item.groups.length, 0),
+    institutes
+  };
+}
+
+let catalogPromise: Promise<StaticCatalog> | null = null;
+
+/** Каталог читается один раз за сессию: это один файл на весь университет. */
+export function loadStaticCatalog(signal?: AbortSignal): Promise<StaticCatalog> {
+  if (!catalogPromise) {
+    catalogPromise = fetchJson(staticDataUrl("catalog.json"), signal)
+      .then(normalizeStaticCatalog)
+      .catch((error) => {
+        catalogPromise = null;
+        throw error;
+      });
+  }
+  return catalogPromise;
+}
+
+export function resetStaticCatalogCache() {
+  catalogPromise = null;
+}
+
+export function catalogInstitutes(catalog: StaticCatalog): InstituteOption[] {
+  return catalog.institutes
+    .map((institute) => ({
+      id: institute.id,
+      name: institute.name,
+      shortName: institute.shortName,
+      visualKey: institute.id
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ru"));
+}
+
+export function catalogGroups(catalog: StaticCatalog, instituteId: string): GroupOption[] {
+  const institute = catalog.institutes.find((item) => item.id === instituteId);
+  if (!institute) return [];
+  return institute.groups
+    .map((group) => ({
+      nrec: group.nrec,
+      name: group.name,
+      course: group.course ?? undefined,
+      forms: group.forms
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name, "ru", { numeric: true }));
+}
+
+export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string): StaticScheduleSnapshot {
+  if (!isRecord(payload)
+    || payload.schemaVersion !== STATIC_SCHEMA_VERSION
+    || !isRecord(payload.group)
+    || payload.group.nrec !== expectedNrec
+    || typeof payload.group.name !== "string"
+    || !Array.isArray(payload.schedule)
+    || payload.schedule.length === 0
+    || typeof payload.scheduleHash !== "string"
+    || !/^[a-f\d]{64}$/i.test(payload.scheduleHash)
+    || typeof payload.capturedAt !== "string"
+    || Number.isNaN(Date.parse(payload.capturedAt))
+    || !isRecord(payload.quality)
+    || payload.quality.valid !== true) {
+    throw new Error("Снимок расписания имеет неизвестный формат");
+  }
+  return payload as unknown as StaticScheduleSnapshot;
+}
+
+/**
+ * Тип недели в снимке не хранится: он выводится из календаря, чтобы старый
+ * снимок не мог перевернуть неделю. Приложение считает неделю само
+ * (vlsuWeekModeForDate), сюда она приходит уже посчитанной.
+ */
+function currentInfoFromSnapshot(snapshot: StaticScheduleSnapshot, weekType: 1 | 2): CurrentInfo {
+  const institute = snapshot.group.instituteShortName;
+  return {
+    currentLesson: "",
+    currentWeekType: weekType,
+    name: institute ? `${snapshot.group.name}, ${institute}` : snapshot.group.name,
+    semester: snapshot.semester ?? 0
+  };
+}
+
+export function scheduleStateFromSnapshot(
+  snapshot: StaticScheduleSnapshot,
+  normalizeSchedule: (days: unknown[]) => LessonSlot[],
+  weekType: 1 | 2,
+  now = Date.now()
+): ScheduleState {
+  const capturedAtMs = Date.parse(snapshot.capturedAt);
+  return {
+    schemaVersion: STATIC_SCHEMA_VERSION,
+    groupNrec: snapshot.group.nrec,
+    currentInfo: currentInfoFromSnapshot(snapshot, weekType),
+    allLessons: normalizeSchedule(snapshot.schedule),
+    fetchedAt: snapshot.capturedAt,
+    weekTypeAsOf: snapshot.capturedAt,
+    source: "static-snapshot",
+    snapshotAgeSeconds: Math.max(0, Math.floor((now - capturedAtMs) / 1000)),
+    contentHash: snapshot.scheduleHash,
+    quality: snapshot.quality
+  };
+}
+
+export async function fetchStaticSnapshot(nrec: string, signal?: AbortSignal) {
+  const payload = await fetchJson(staticDataUrl(`schedule/${nrec}.json`), signal);
+  return normalizeStaticSnapshot(payload, nrec);
+}
