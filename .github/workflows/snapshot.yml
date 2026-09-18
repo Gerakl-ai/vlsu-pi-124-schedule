@@ -1,0 +1,116 @@
+name: Снимок расписания ВлГУ
+
+# Зачем этот workflow существует:
+# API ВлГУ запрещает чтение с чужого домена (CORS), поэтому статический сайт не
+# может обратиться к нему из браузера. Actions — сервер, ограничение на него не
+# распространяется: он обходит API заранее и складывает результат в ветку data.
+# Побочный и самый ценный эффект: каждое обновление расписания становится
+# публичным коммитом, который любой может открыть и сверить.
+
+on:
+  schedule:
+    # Каждые 30 минут. GitHub может задержать запуск в пиковые часы — это
+    # нормально и видно в data/status.json.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+    inputs:
+      institutes:
+        description: "Ограничить число институтов (для проверки)"
+        required: false
+        default: ""
+      catalog_only:
+        description: "Собрать только каталог, без расписаний"
+        type: boolean
+        required: false
+        default: false
+
+permissions:
+  contents: write
+
+# Два обхода одновременно только удвоили бы нагрузку на ВлГУ.
+concurrency:
+  group: vlsu-snapshot
+  cancel-in-progress: false
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Забрать код обхода
+        uses: actions/checkout@v4
+
+      - name: Забрать ветку data
+        run: |
+          git config --global user.name "lad-snapshot-bot"
+          git config --global user.email "noreply@github.com"
+          if git ls-remote --exit-code --heads origin data >/dev/null 2>&1; then
+            git fetch origin data --depth=1
+            git worktree add snapshot-data origin/data
+            git -C snapshot-data checkout -B data
+          else
+            echo "Ветки data ещё нет — создаю пустую."
+            git worktree add --detach snapshot-data
+            git -C snapshot-data checkout --orphan data
+            git -C snapshot-data rm -rf . >/dev/null 2>&1 || true
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Обойти API ВлГУ
+        id: build
+        run: |
+          ARGS="--out snapshot-data/data --concurrency 3 --delay 250"
+          if [ -n "${{ inputs.institutes }}" ]; then
+            ARGS="$ARGS --institutes ${{ inputs.institutes }}"
+          fi
+          if [ "${{ inputs.catalog_only }}" = "true" ]; then
+            ARGS="$ARGS --catalog-only"
+          fi
+          echo "Аргументы: $ARGS"
+          # Сбой расписания не должен ронять шаг: файлы на диске остаются
+          # прежними, а причина уже записана в status.json.
+          node scripts/snapshot/buildSnapshot.mjs $ARGS || echo "exit=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Зафиксировать изменения
+        run: |
+          cd snapshot-data
+          git add -A data
+          if git diff --cached --quiet; then
+            echo "Расписание не изменилось — коммит не нужен."
+            exit 0
+          fi
+          CHANGED=$(git diff --cached --name-only | wc -l)
+          git commit -m "data: снимок расписания ВлГУ ($CHANGED файлов)"
+          git push origin data
+
+      - name: Показать состояние обхода
+        if: always()
+        run: |
+          if [ -f snapshot-data/data/status.json ]; then
+            node -e "
+              const s = require('./snapshot-data/data/status.json');
+              console.log('институтов:', s.institutes, 'групп в каталоге:', s.groupsInCatalog);
+              console.log('расписаний получено:', s.scheduleOk, 'сбоев:', s.scheduleFailed);
+              console.log('длительность, с:', s.durationSeconds);
+              for (const f of (s.failures || []).slice(0, 15)) {
+                console.log(' ·', f.scope, f.group || f.institute || '', '—', f.reason);
+              }
+            "
+          fi
+
+      - name: Предупредить, если расписание недоступно целиком
+        if: always()
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = 'snapshot-data/data/status.json';
+            if (!fs.existsSync(path)) process.exit(0);
+            const s = JSON.parse(fs.readFileSync(path, 'utf8'));
+            if (s.scheduleAttempted > 0 && s.scheduleOk === 0) {
+              console.log('::warning::API расписания ВлГУ не отдал ни одной группы. Старые снимки сохранены.');
+            }
+          "
