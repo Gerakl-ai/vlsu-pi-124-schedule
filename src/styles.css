@@ -5452,3 +5452,123 @@ button.day-title > svg {
   border-left: 2px solid var(--accent);
   padding-left: 7px;
 }
+
+/* «Откуда данные»: свёрнута по умолчанию — на каждый день это лишний шум,
+   но по нажатию даёт проверить снимок до конкретного коммита. */
+.provenance-toggle {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.provenance-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 9px;
+  background: var(--theme-control);
+  color: var(--accent);
+}
+
+.provenance-toggle strong {
+  display: block;
+  font-size: 13px;
+}
+
+.provenance-toggle small {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.provenance-chevron {
+  transition: transform .18s ease;
+}
+
+.provenance-chevron.open {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .provenance-chevron { transition: none; }
+}
+
+.provenance-body {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-panel-border);
+  display: grid;
+  gap: 10px;
+}
+
+.provenance-facts {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.provenance-facts > div {
+  display: grid;
+  grid-template-columns: minmax(0, 88px) minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+}
+
+.provenance-facts dt {
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 750;
+}
+
+.provenance-facts dd {
+  margin: 0;
+  font-size: 11.5px;
+  font-weight: 700;
+}
+
+.provenance-hash {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .02em;
+}
+
+.provenance-links {
+  display: grid;
+  gap: 6px;
+}
+
+.provenance-links a {
+  color: var(--accent);
+  font-size: 11.5px;
+  font-weight: 750;
+}
+
+.provenance-note,
+.provenance-crawl p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 10.5px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.provenance-crawl strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 11.5px;
+}
+
+.provenance-failures {
+  color: var(--warning);
+}

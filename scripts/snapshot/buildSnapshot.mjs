@@ -265,7 +265,38 @@ async function buildGroupSnapshot(group, institute) {
     semester,
     schedule,
     quality,
-    scheduleHash: sha256(core)
+    scheduleHash: sha256(core),
+    provenance: buildProvenance()
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * Происхождение снимка
+ * ------------------------------------------------------------------ */
+
+/**
+ * Откуда взялись эти данные.
+ *
+ * Главная ценность сборки через Actions в том, что каждое обновление —
+ * публичный коммит. Но чтобы это было проверяемо, снимок обязан нести ссылку
+ * на себя: репозиторий, коммит и запуск обхода. Иначе «прозрачность» остаётся
+ * словами в README.
+ *
+ * Вне CI полей нет — и это честно: снимок, собранный вручную, ничем не
+ * подтверждён.
+ */
+export function buildProvenance(env = process.env) {
+  const repository = env.GITHUB_REPOSITORY;
+  const commit = env.GITHUB_SHA;
+  const runId = env.GITHUB_RUN_ID;
+  if (!repository || !commit) return null;
+
+  const server = env.GITHUB_SERVER_URL || "https://github.com";
+  return {
+    repository,
+    commit,
+    commitUrl: `${server}/${repository}/commit/${commit}`,
+    runUrl: runId ? `${server}/${repository}/actions/runs/${runId}` : null
   };
 }
 
@@ -280,6 +311,7 @@ async function main() {
 
   const report = {
     startedAt,
+    provenance: buildProvenance(),
     finishedAt: null,
     institutes: 0,
     groupsInCatalog: 0,
@@ -304,6 +336,7 @@ async function main() {
     toJsonFile({
       schemaVersion: SNAPSHOT_SCHEMA_VERSION,
       capturedAt: startedAt,
+      provenance: buildProvenance(),
       instituteCount: catalog.length,
       groupCount: report.groupsInCatalog,
       institutes: catalog

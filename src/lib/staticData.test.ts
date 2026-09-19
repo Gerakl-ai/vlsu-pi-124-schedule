@@ -8,6 +8,8 @@ import {
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
   resetStaticCatalogCache,
+  normalizeCrawlStatus,
+  normalizeProvenance,
   scheduleStateFromSnapshot,
   staticDataUrl
 } from "./staticData";
@@ -151,5 +153,65 @@ describe("учебная неделя ВлГУ", () => {
     const spy = vi.spyOn(Date, "now").mockReturnValue(Date.parse("2027-01-01T00:00:00Z"));
     expect(vlsuWeekModeForDate(new Date(2026, 8, 2))).toBe("numerator");
     spy.mockRestore();
+  });
+});
+
+describe("происхождение снимка", () => {
+  const valid = {
+    repository: "Gerakl-ai/vlsu-pi-124-schedule",
+    commit: "abc123",
+    commitUrl: "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/abc123",
+    runUrl: "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/1"
+  };
+
+  it("читает ссылку на коммит", () => {
+    expect(normalizeProvenance(valid)).toEqual(valid);
+  });
+
+  it("отвергает ссылку не по https", () => {
+    // Ссылка ведёт наружу по нажатию пользователя, поэтому схема проверяется.
+    expect(normalizeProvenance({ ...valid, commitUrl: "javascript:alert(1)" })).toBeNull();
+    expect(normalizeProvenance({ ...valid, commitUrl: "http://example.com" })).toBeNull();
+  });
+
+  it("переживает снимок без происхождения", () => {
+    // Снимок, собранный вручную, ссылок не имеет — это не ошибка.
+    expect(normalizeProvenance(undefined)).toBeNull();
+    expect(normalizeProvenance({ repository: "x" })).toBeNull();
+  });
+
+  it("отбрасывает недостоверную ссылку на запуск, сохраняя коммит", () => {
+    const result = normalizeProvenance({ ...valid, runUrl: "ftp://example.com" });
+    expect(result?.commitUrl).toBe(valid.commitUrl);
+    expect(result?.runUrl).toBeNull();
+  });
+});
+
+describe("отчёт об обходе", () => {
+  it("читает сводку и сбои", () => {
+    const status = normalizeCrawlStatus({
+      startedAt: "2026-09-18T16:31:59.322Z",
+      finishedAt: "2026-09-18T16:32:13.446Z",
+      institutes: 14,
+      groupsInCatalog: 966,
+      scheduleAttempted: 966,
+      scheduleOk: 940,
+      scheduleFailed: 26,
+      failures: [{ scope: "schedule", group: "ПИ-124", reason: "ВлГУ вернул пустой ответ" }]
+    });
+    expect(status.groupsInCatalog).toBe(966);
+    expect(status.scheduleFailed).toBe(26);
+    expect(status.failures[0].group).toBe("ПИ-124");
+  });
+
+  it("не падает на отчёте без необязательных полей", () => {
+    const status = normalizeCrawlStatus({ startedAt: "2026-09-18T16:31:59.322Z" });
+    expect(status.institutes).toBe(0);
+    expect(status.failures).toEqual([]);
+    expect(status.provenance).toBeNull();
+  });
+
+  it("отвергает отчёт без времени начала", () => {
+    expect(() => normalizeCrawlStatus({})).toThrow();
   });
 });

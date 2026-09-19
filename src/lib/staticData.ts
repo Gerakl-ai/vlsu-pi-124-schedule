@@ -54,6 +54,7 @@ export interface StaticScheduleSnapshot {
   quality: { valid: boolean; scheduleEntries: number; lessonDays: number; examEntries: number; warnings: string[] };
   scheduleHash: string;
   capturedAt: string;
+  provenance?: unknown;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -220,6 +221,7 @@ export function scheduleStateFromSnapshot(
     source: "static-snapshot",
     snapshotAgeSeconds: Math.max(0, Math.floor((now - capturedAtMs) / 1000)),
     contentHash: snapshot.scheduleHash,
+    provenance: normalizeProvenance(snapshot.provenance) ?? undefined,
     quality: snapshot.quality
   };
 }
@@ -227,4 +229,76 @@ export function scheduleStateFromSnapshot(
 export async function fetchStaticSnapshot(nrec: string, signal?: AbortSignal) {
   const payload = await fetchJson(staticDataUrl(`schedule/${nrec}.json`), signal);
   return normalizeStaticSnapshot(payload, nrec);
+}
+
+/* ------------------------------------------------------------------ *
+ * Происхождение данных
+ * ------------------------------------------------------------------ */
+
+/**
+ * Откуда взялся снимок.
+ *
+ * Обход собирает данные в GitHub Actions, поэтому каждое обновление —
+ * публичный коммит. Эти поля дают студенту (и ИТ-службе ВлГУ) возможность
+ * открыть конкретный коммит и сверить, что показано именно то, что забрали из
+ * API. Без ссылки на себя «прозрачность» остаётся обещанием в README.
+ *
+ * Снимок, собранный вручную вне CI, полей не имеет — и это честно.
+ */
+export interface SnapshotProvenance {
+  repository: string;
+  commit: string;
+  commitUrl: string;
+  runUrl: string | null;
+}
+
+export interface CrawlStatus {
+  startedAt: string;
+  finishedAt: string | null;
+  durationSeconds?: number;
+  institutes: number;
+  groupsInCatalog: number;
+  scheduleAttempted: number;
+  scheduleOk: number;
+  scheduleFailed: number;
+  failures: Array<{ scope: string; group?: string; institute?: string; reason: string }>;
+  provenance: SnapshotProvenance | null;
+}
+
+export function normalizeProvenance(value: unknown): SnapshotProvenance | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.repository !== "string" || typeof value.commit !== "string") return null;
+  if (typeof value.commitUrl !== "string" || !value.commitUrl.startsWith("https://")) return null;
+  const runUrl = typeof value.runUrl === "string" && value.runUrl.startsWith("https://") ? value.runUrl : null;
+  return { repository: value.repository, commit: value.commit, commitUrl: value.commitUrl, runUrl };
+}
+
+export function normalizeCrawlStatus(payload: unknown): CrawlStatus {
+  if (!isRecord(payload) || typeof payload.startedAt !== "string") {
+    throw new Error("Отчёт об обходе имеет неизвестный формат");
+  }
+  const number = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+  return {
+    startedAt: payload.startedAt,
+    finishedAt: typeof payload.finishedAt === "string" ? payload.finishedAt : null,
+    durationSeconds: typeof payload.durationSeconds === "number" ? payload.durationSeconds : undefined,
+    institutes: number(payload.institutes),
+    groupsInCatalog: number(payload.groupsInCatalog),
+    scheduleAttempted: number(payload.scheduleAttempted),
+    scheduleOk: number(payload.scheduleOk),
+    scheduleFailed: number(payload.scheduleFailed),
+    failures: Array.isArray(payload.failures)
+      ? payload.failures.filter(isRecord).map((item) => ({
+          scope: String(item.scope ?? ""),
+          group: typeof item.group === "string" ? item.group : undefined,
+          institute: typeof item.institute === "string" ? item.institute : undefined,
+          reason: String(item.reason ?? "")
+        }))
+      : [],
+    provenance: normalizeProvenance(payload.provenance)
+  };
+}
+
+export async function fetchCrawlStatus(signal?: AbortSignal): Promise<CrawlStatus> {
+  return normalizeCrawlStatus(await fetchJson(staticDataUrl("status.json"), signal));
 }

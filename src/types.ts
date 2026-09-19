@@ -70,6 +70,8 @@ export interface ScheduleState {
   snapshotAgeSeconds?: number;
   contentHash?: string;
   requestId?: string;
+  /** Ссылка на коммит, которым этот снимок попал в приложение. */
+  provenance?: { repository: string; commit: string; commitUrl: string; runUrl: string | null };
   quality?: ScheduleQuality;
 }
 

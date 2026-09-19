@@ -64,6 +64,7 @@ import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/sch
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -1061,6 +1062,114 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
   );
 }
 
+/**
+ * «Откуда данные» — то, что делает прозрачность проверяемой, а не заявленной.
+ *
+ * Расписание собирается обходом в GitHub Actions, и каждое обновление ложится
+ * публичным коммитом. Панель показывает источник, время снимка, его отпечаток и
+ * даёт открыть конкретный коммит: любой желающий — студент, преподаватель,
+ * ИТ-служба ВлГУ — может сверить, что приложение показывает именно то, что было
+ * забрано из API.
+ *
+ * Состояние обхода подгружается только при раскрытии: на экране расписания оно
+ * никому не нужно, а лишний запрос при каждом запуске — нет.
+ */
+function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleState | null; sourceLabel: string }) {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<CrawlStatus | null>(null);
+  const [statusState, setStatusState] = useState<"idle" | "loading" | "missing">("idle");
+
+  useEffect(() => {
+    if (!open || status || statusState === "loading") return;
+    setStatusState("loading");
+    const controller = new AbortController();
+    fetchCrawlStatus(controller.signal)
+      .then((value) => {
+        setStatus(value);
+        setStatusState("idle");
+      })
+      .catch(() => setStatusState("missing"));
+    return () => controller.abort();
+  }, [open, status, statusState]);
+
+  const provenance = schedule?.provenance ?? status?.provenance ?? null;
+  const capturedAt = schedule?.fetchedAt ? formatUpdatedAt(schedule.fetchedAt) : null;
+
+  return (
+    <section className="settings-panel provenance-panel">
+      <button type="button" className="provenance-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+        <span className="provenance-icon"><ShieldCheck size={20} /></span>
+        <span>
+          <strong>Откуда данные</strong>
+          <small>{capturedAt ? `${sourceLabel} · ${capturedAt}` : sourceLabel}</small>
+        </span>
+        <ChevronRight size={20} className={open ? "provenance-chevron open" : "provenance-chevron"} />
+      </button>
+
+      {open && (
+        <div className="provenance-body">
+          <dl className="provenance-facts">
+            <div>
+              <dt>Источник</dt>
+              <dd>{sourceLabel}</dd>
+            </div>
+            {capturedAt && (
+              <div>
+                <dt>Снимок снят</dt>
+                <dd>{capturedAt}</dd>
+              </div>
+            )}
+            {schedule?.contentHash && (
+              <div>
+                <dt>Отпечаток</dt>
+                <dd className="provenance-hash">{schedule.contentHash.slice(0, 16)}</dd>
+              </div>
+            )}
+          </dl>
+
+          {provenance ? (
+            <div className="provenance-links">
+              <a href={provenance.commitUrl} target="_blank" rel="noreferrer noopener">
+                Открыть коммит с этими данными
+              </a>
+              {provenance.runUrl && (
+                <a href={provenance.runUrl} target="_blank" rel="noreferrer noopener">
+                  Журнал обхода API ВлГУ
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="provenance-note">
+              Снимок собран вручную, вне автоматического обхода, поэтому ссылки на коммит у него нет.
+            </p>
+          )}
+
+          {status && (
+            <div className="provenance-crawl">
+              <strong>Последний обход</strong>
+              <p>
+                {status.institutes} институтов, {status.groupsInCatalog} групп в каталоге.
+                {status.scheduleAttempted > 0
+                  ? ` Расписаний получено ${status.scheduleOk} из ${status.scheduleAttempted}.`
+                  : " Расписания в этом обходе не запрашивались."}
+              </p>
+              {status.scheduleFailed > 0 && (
+                <p className="provenance-failures">
+                  ВлГУ не ответил по {status.scheduleFailed} группам — у них осталось прежнее расписание.
+                </p>
+              )}
+            </div>
+          )}
+
+          {statusState === "missing" && (
+            <p className="provenance-note">Отчёт об обходе недоступен: данные загружены не из снимка.</p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function TodayView({
   subgroup,
   onSubgroup,
@@ -1942,6 +2051,8 @@ function SettingsView({
 
           {notice && <p className="notice">{notice}</p>}
         </section>
+
+        <DataProvenancePanel schedule={schedule} sourceLabel={scheduleSource} />
 
         <section className="settings-panel personal-data-panel">
           <header className="personal-data-head">
