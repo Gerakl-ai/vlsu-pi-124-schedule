@@ -1,12 +1,25 @@
-const CACHE_NAME = "lad-vlsu-v67";
+const CACHE_NAME = "lad-vlsu-v68";
+
+// Базовый путь выводится из адреса самого воркера: на своём домене это "/",
+// на проектном сайте GitHub Pages — "/<repo>/". Без этого установленное
+// приложение кэшировало бы чужие пути и не запускалось бы офлайн.
+const BASE = self.location.pathname.replace(/[^/]*$/, "");
+
+function path(value) {
+  return BASE + String(value).replace(/^\//, "");
+}
+
 const APP_SHELL = [
-  "/",
-  "/manifest.webmanifest",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
-  "/images/hero-obsidian-campus.jpg",
-  "/images/hero-porcelain-campus.jpg"
+  BASE,
+  path("manifest.webmanifest"),
+  path("icons/icon-192.png"),
+  path("icons/icon-512.png"),
+  path("images/hero-obsidian-campus.jpg"),
+  path("images/hero-porcelain-campus.jpg")
 ];
+
+const ASSETS_PREFIX = path("assets/");
+const ICON_192 = path("icons/icon-192.png");
 
 function navigationSafeResponse(response) {
   return new Response(response.body, {
@@ -26,13 +39,12 @@ function validBuildAsset(response, pathname) {
 
 async function discoverBuildAssets() {
   try {
-    const response = await fetch("/index.html", { cache: "no-store" });
+    const response = await fetch(path("index.html"), { cache: "no-store" });
     const html = await response.text();
     const matches = [...html.matchAll(/(?:src|href)="([^"]+)"/g)];
     const directAssets = matches
-      .map((match) => match[1])
-      .filter((url) => url.startsWith("/assets/") || url.startsWith("assets/"))
-      .map((url) => (url.startsWith("/") ? url : `/${url}`));
+      .map((match) => new URL(match[1], new URL(path("index.html"), self.location.origin)).pathname)
+      .filter((url) => url.startsWith(ASSETS_PREFIX));
     const assets = new Set(directAssets);
     const pendingScripts = directAssets.filter((url) => url.endsWith(".js"));
     const scannedScripts = new Set();
@@ -48,10 +60,10 @@ async function discoverBuildAssets() {
         const nestedAssets = [...script.matchAll(/["'(]((?:\/?assets\/|\.\.?\/)[^"'()\s]+\.(?:js|css|png|jpg|jpeg|webp|svg))/g)]
           .map((match) => {
             const value = match[1];
-            if (value.startsWith("assets/")) return `/${value}`;
+            if (value.startsWith("assets/")) return path(value);
             return new URL(value, new URL(asset, self.location.origin)).pathname;
           })
-          .filter((url) => url.startsWith("/assets/"));
+          .filter((url) => url.startsWith(ASSETS_PREFIX));
         nestedAssets.forEach((url) => {
           if (assets.has(url)) return;
           assets.add(url);
@@ -74,7 +86,7 @@ self.addEventListener("install", (event) => {
       const resources = [...new Set([...APP_SHELL, ...buildAssets])];
       await Promise.all(resources.map(async (resource) => {
         const response = await fetch(resource, { cache: "no-store" });
-        if (!response.ok || (resource.startsWith("/assets/") && !validBuildAsset(response, resource))) {
+        if (!response.ok || (resource.startsWith(ASSETS_PREFIX) && !validBuildAsset(response, resource))) {
           throw new Error(`Cannot install ${resource}`);
         }
         await cache.put(resource, response);
@@ -100,15 +112,17 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   if (request.method !== "GET") return;
   const url = new URL(request.url);
-  if (url.pathname.startsWith("/vlsu-api/")) return;
-  if (url.pathname.startsWith("/app-api/")) return;
+  if (url.pathname.startsWith(path("vlsu-api/"))) return;
+  if (url.pathname.startsWith(path("app-api/"))) return;
+  // Снимки расписания обновляются отдельным обходом и не входят в app shell:
+  // их кэширование по требованию описано в docs/DATA-PIPELINE.md.
   if (url.origin !== self.location.origin) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
-        const cachedShell = await cache.match("/");
+        const cachedShell = await cache.match(BASE);
 
         // The release shell and its hashed assets are installed together. Replacing only
         // index.html here would mix releases and can leave an installed PWA unbootable.
@@ -120,7 +134,7 @@ self.addEventListener("fetch", (event) => {
           if (!response.ok) throw new Error(`Navigation failed with ${response.status}`);
           return navigationSafeResponse(response);
         } catch {
-          const fallback = await cache.match("/");
+          const fallback = await cache.match(BASE);
           return fallback ? navigationSafeResponse(fallback) : Response.error();
         }
       })()
@@ -136,7 +150,7 @@ self.addEventListener("fetch", (event) => {
           if (validBuildAsset(response, url.pathname)) {
             const clone = response.clone();
             event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.put(url.pathname, clone)));
-          } else if (url.pathname.startsWith("/assets/")) {
+          } else if (url.pathname.startsWith(ASSETS_PREFIX)) {
             throw new Error("Invalid build asset response");
           }
           return response;
@@ -160,15 +174,15 @@ self.addEventListener("message", (event) => {
     self.registration.showNotification(title, {
       body,
       tag,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      data: { url: "/" }
+      icon: ICON_192,
+      badge: ICON_192,
+      data: { url: BASE }
     })
   );
 });
 
 self.addEventListener("push", (event) => {
-  let payload = { title: "Лад ВлГУ", body: "Проверьте ближайшую пару.", tag: "lad-schedule-push", url: "/" };
+  let payload = { title: "Лад ВлГУ", body: "Проверьте ближайшую пару.", tag: "lad-schedule-push", url: BASE };
   try {
     if (event.data) payload = { ...payload, ...event.data.json() };
   } catch {
@@ -178,9 +192,9 @@ self.addEventListener("push", (event) => {
     self.registration.showNotification(payload.title, {
       body: payload.body,
       tag: payload.tag,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      data: { url: payload.url || "/" }
+      icon: ICON_192,
+      badge: ICON_192,
+      data: { url: payload.url || BASE }
     })
   );
 });
@@ -191,7 +205,7 @@ self.addEventListener("notificationclick", (event) => {
     self.clients.matchAll({ type: "window" }).then((clients) => {
       const existing = clients.find((client) => "focus" in client);
       if (existing) return existing.focus();
-      if (self.clients.openWindow) return self.clients.openWindow(event.notification.data?.url || "/");
+      if (self.clients.openWindow) return self.clients.openWindow(event.notification.data?.url || BASE);
       return undefined;
     })
   );

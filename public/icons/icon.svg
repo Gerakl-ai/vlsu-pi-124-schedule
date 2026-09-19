@@ -1,3 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <image href="/icons/icon-512.png" width="512" height="512" preserveAspectRatio="xMidYMid slice"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Лад ВлГУ">
+  <title>Лад ВлГУ</title>
+  <!--
+    Знак построен на том, что есть только в этом предмете: учебная неделя ВлГУ
+    делится на числитель и знаменатель. Три строки расписания разной длины,
+    разделённые чертой, читаются и как дробь, и как расписание.
+    Геометрия намеренно крупная: знак должен оставаться различимым на 16 px.
+  -->
+  <rect width="512" height="512" rx="114" fill="#c9602d"/>
+  <g fill="#f7efe6">
+    <rect x="172" y="160" width="168" height="48" rx="24"/>
+    <rect x="116" y="242" width="280" height="28" rx="14"/>
+    <rect x="200" y="304" width="112" height="48" rx="24"/>
+  </g>
 </svg>

@@ -8,9 +8,8 @@ import {
   loadStaticCatalog,
   scheduleStateFromSnapshot
 } from "./staticData";
+import { instituteShortName, instituteVisualKey } from "../features/groups/instituteVisuals";
 import {
-  instituteShortName,
-  instituteVisualKey,
   type GroupOption,
   type GroupProfile,
   type InstituteOption,
@@ -218,7 +217,7 @@ export async function loadInstitutes(): Promise<InstituteOption[]> {
     .map((item) => ({
       id: item.Value,
       name: item.Text.trim(),
-      shortName: instituteShortName(item.Text),
+      shortName: instituteShortName(item.Value, item.Text),
       visualKey: instituteVisualKey(item.Value, item.Text)
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "ru"));

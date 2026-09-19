@@ -509,6 +509,20 @@ select,
 .institute-badge[data-visual$="-6"] { --badge-a: 255, 126, 174; --badge-b: 173, 51, 117; }
 .group-brand-mark[data-visual$="-7"],
 .institute-badge[data-visual$="-7"] { --badge-a: 138, 209, 255; --badge-b: 62, 123, 168; }
+.group-brand-mark[data-visual$="-8"],
+.institute-badge[data-visual$="-8"] { --badge-a: 255, 176, 120; --badge-b: 186, 96, 42; }
+.group-brand-mark[data-visual$="-9"],
+.institute-badge[data-visual$="-9"] { --badge-a: 150, 232, 160; --badge-b: 48, 132, 84; }
+.group-brand-mark[data-visual$="-10"],
+.institute-badge[data-visual$="-10"] { --badge-a: 255, 168, 168; --badge-b: 176, 62, 78; }
+.group-brand-mark[data-visual$="-11"],
+.institute-badge[data-visual$="-11"] { --badge-a: 164, 196, 255; --badge-b: 70, 92, 190; }
+.group-brand-mark[data-visual$="-12"],
+.institute-badge[data-visual$="-12"] { --badge-a: 226, 186, 140; --badge-b: 150, 104, 58; }
+.group-brand-mark[data-visual$="-13"],
+.institute-badge[data-visual$="-13"] { --badge-a: 186, 178, 255; --badge-b: 96, 88, 196; }
+.group-brand-mark[data-visual$="-14"],
+.institute-badge[data-visual$="-14"] { --badge-a: 150, 216, 216; --badge-b: 46, 124, 128; }
 
 .group-brand-mark[data-visual^="institute-"] {
   background:

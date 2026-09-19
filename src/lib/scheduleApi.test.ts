@@ -13,14 +13,14 @@ afterEach(() => {
 describe("VLSU catalogs", () => {
   it("normalizes institutes from the public catalog", async () => {
     vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify([
-      { Value: "iite-id", Text: "Институт информационных технологий и электроники" },
-      { Value: "gi-id", Text: "Гуманитарный институт" }
+      { Value: "5b42fa53ec1dd1892e5ec44a3a60a896", Text: "Институт информационных технологий и электроники" },
+      { Value: "c22ac11fe7a7799355b1b90ba6957321", Text: "Гуманитарный институт" }
     ]), { status: 200, headers: { "Content-Type": "application/json" } })));
 
     const institutes = await loadInstitutes();
 
     expect(institutes).toHaveLength(2);
-    expect(institutes.find((item) => item.id === "iite-id")).toMatchObject({
+    expect(institutes.find((item) => item.id === "5b42fa53ec1dd1892e5ec44a3a60a896")).toMatchObject({
       name: "Институт информационных технологий и электроники",
       shortName: "ИИТЭ"
     });
@@ -33,13 +33,13 @@ describe("VLSU catalogs", () => {
     ] }), { status: 200, headers: { "Content-Type": "application/json" } }));
     vi.stubGlobal("fetch", fetchMock);
 
-    const groups = await loadGroups("iite-id");
+    const groups = await loadGroups("5b42fa53ec1dd1892e5ec44a3a60a896");
 
     expect(groups.map((group) => group.name)).toEqual(["ПИ-99", "ПИ-124"]);
     expect(groups[1]).toMatchObject({ nrec: "b", course: "3 курс" });
     expect(fetchMock).toHaveBeenCalledWith("/vlsu-api/student/GetStudGroups", expect.objectContaining({
       method: "POST",
-      body: JSON.stringify({ Institut: "iite-id", WFormed: 0 })
+      body: JSON.stringify({ Institut: "5b42fa53ec1dd1892e5ec44a3a60a896", WFormed: 0 })
     }));
   });
 });

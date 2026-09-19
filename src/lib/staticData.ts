@@ -11,6 +11,7 @@
 import type { CurrentInfo, LessonSlot, ScheduleState } from "../types";
 import type { GroupOption, InstituteOption, StudyFormKey } from "../features/groups/groupTypes";
 import { STUDY_FORM_KEYS } from "../features/groups/groupTypes";
+import { instituteShortName, instituteVisualKey } from "../features/groups/instituteVisuals";
 
 export const STATIC_SCHEMA_VERSION = 3;
 
@@ -149,8 +150,8 @@ export function catalogInstitutes(catalog: StaticCatalog): InstituteOption[] {
     .map((institute) => ({
       id: institute.id,
       name: institute.name,
-      shortName: institute.shortName,
-      visualKey: institute.id
+      shortName: institute.shortName || instituteShortName(institute.id, institute.name),
+      visualKey: instituteVisualKey(institute.id, institute.name)
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "ru"));
 }
