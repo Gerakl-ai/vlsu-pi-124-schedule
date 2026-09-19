@@ -14,7 +14,7 @@ import {
   Activity,
   Bell,
   BellRing,
-  BrainCircuit,
+  Smartphone,
   BookCheck,
   CalendarDays,
   CheckCircle2,
@@ -43,7 +43,6 @@ import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSet
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
 import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
-import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./features/notes/notePreferences";
 import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
@@ -328,7 +327,6 @@ export function App() {
     return date;
   });
   const [dayMotionDirection, setDayMotionDirection] = useState<"forward" | "backward" | null>(null);
-  const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled() && readAiConsent());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -351,7 +349,7 @@ export function App() {
   const currentWeek = schedule?.allLessons.some((lesson) => lesson.scheduleKind === "exam") ? reportedWeek : calendarWeek;
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
-  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled, selectedGroup);
+  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, selectedGroup);
   const openNotes = useMemo(() => smartNotes.notes.filter((note) => note.status === "open"), [smartNotes.notes]);
   const focusNote = useMemo(() => {
     return [...openNotes].sort((a, b) => {
@@ -468,10 +466,6 @@ export function App() {
     if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
     setNotice(message);
   }
-
-  useEffect(() => {
-    if (readAiEnabled() && !readAiConsent()) writeAiEnabled(false);
-  }, []);
 
   useEffect(() => {
     if (!selectedGroup) return;
@@ -946,11 +940,6 @@ export function App() {
               onThemeOpen={() => setThemeSheetOpen(true)}
               notes={smartNotes.notes}
               onImportNotes={smartNotes.importNotes}
-              aiEnabled={aiEnabled}
-              onAiEnabled={(enabled) => {
-                setAiEnabled(enabled);
-                writeAiEnabled(enabled);
-              }}
             />
           )}
         </div>
@@ -1874,9 +1863,7 @@ function SettingsView({
   customThemeName,
   onThemeOpen,
   notes,
-  onImportNotes,
-  aiEnabled,
-  onAiEnabled
+  onImportNotes
 }: {
   settings: ReminderSettings;
   notice: string;
@@ -1891,14 +1878,11 @@ function SettingsView({
   onThemeOpen: () => void;
   notes: SmartNote[];
   onImportNotes: (notes: SmartNote[]) => Promise<number>;
-  aiEnabled: boolean;
-  onAiEnabled: (enabled: boolean) => void;
 }) {
   const activeTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
-  const [cloudConsent, setCloudConsent] = useState(() => readAiConsent());
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
     : schedule?.source === "static-snapshot"
@@ -1910,12 +1894,6 @@ function SettingsView({
         : schedule
           ? "Кэш устройства"
           : "Нет данных";
-
-  function updateCloudConsent(consented: boolean) {
-    setCloudConsent(consented);
-    writeAiConsent(consented);
-    if (!consented && aiEnabled) onAiEnabled(false);
-  }
 
   async function importBackup(file?: File) {
     if (!file) return;
@@ -2024,50 +2002,21 @@ function SettingsView({
           <div className="privacy-map" aria-label="Как приложение работает с данными">
             <div>
               <ShieldCheck size={18} />
-              <span><strong>Только на iPhone</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
+              <span><strong>Только на устройстве</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
             </div>
             <div>
               <CloudOff size={18} />
               <span><strong>Без слежения</strong><small>Нет аккаунта, рекламных счётчиков, аналитики и cookies.</small></span>
             </div>
             <div>
-              <BrainCircuit size={18} />
-              <span><strong>Облако — только по выбору</strong><small>Текст новой заметки отправляется в Cloudflare AI лишь после отдельного разрешения.</small></span>
+              <Smartphone size={18} />
+              <span><strong>Работает офлайн</strong><small>Расписание открывается из сохранённого снимка, даже когда ВлГУ недоступен.</small></span>
             </div>
           </div>
-          <div className="ai-setting">
-            <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
-            <div>
-              <strong>Облачное уточнение</strong>
-              <small>До 4000 символов новой заметки передаются Cloudflare AI. Локальная сортировка работает всегда.</small>
-            </div>
-            <button
-              className={`setting-switch ${aiEnabled ? "active" : ""}`}
-              type="button"
-              role="switch"
-              aria-checked={aiEnabled}
-              aria-label="Облачное уточнение записей"
-              disabled={!cloudConsent}
-              onClick={() => onAiEnabled(!aiEnabled)}
-            >
-              <span />
-            </button>
-          </div>
-          <label className="cloud-consent">
-            <input
-              type="checkbox"
-              checked={cloudConsent}
-              onChange={(event) => updateCloudConsent(event.target.checked)}
-            />
-            <span>
-              <strong>Разрешаю облачную классификацию</strong>
-              <small>Не отправляйте чужие, медицинские, паспортные и другие чувствительные данные. Разрешение можно отозвать здесь в любой момент.</small>
-            </span>
-          </label>
           <details className="privacy-details">
             <summary>Данные и статус приложения</summary>
-            <p>Неофициальное приложение для студентов ВлГУ. Расписание загружается из публичного API через технический прокси; заметки и вложения сервер приложения не хранит.</p>
-            <p>При обычном открытии Cloudflare технически обрабатывает сетевой запрос. Облачное уточнение по умолчанию выключено.</p>
+            <p>Неофициальное приложение для студентов ВлГУ. Расписание берётся из публичного снимка, собранного заранее; заметки и вложения никуда не отправляются и остаются на устройстве.</p>
+            <p>Нет аккаунта, аналитики и облачной обработки записей: разбор заметок выполняется целиком в браузере.</p>
           </details>
           <div className="backup-actions">
             <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>

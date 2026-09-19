@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { GroupProfile } from "../groups/groupTypes";
 import { buildSubjectOptions, classifyNote, explicitPersonalSpace, noteTitle } from "./noteClassifier";
-import { requestSmartClassification } from "./noteApi";
 import { formatDueLabel, resolveNoteDeadline } from "./noteDeadline";
 import { reorderNoteCollection, sortNotes } from "./noteOrdering";
 import type { NoteDropPlacement } from "./noteOrdering";
@@ -55,7 +54,7 @@ function studyScope(
   return { groupNrec: undefined, groupName: undefined };
 }
 
-export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabled: boolean, group: GroupProfile | null) {
+export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: GroupProfile | null) {
   const [notes, setNotes] = useState<SmartNote[]>([]);
   const [folders, setFolders] = useState<NoteFolder[]>(DEFAULT_NOTE_FOLDERS);
   const [ready, setReady] = useState(false);
@@ -120,59 +119,6 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     });
   }, [folderSpaces, group, ready, subjects]);
 
-  const enrichNote = useCallback((note: SmartNote) => {
-    if (!aiEnabled) return;
-    const explicitClassification = classifyNote(note.text, subjects, spaces);
-    void requestSmartClassification(note.text, subjects, spaces).then((remote) => {
-      if (!remote || (remote.confidence ?? 0) < note.confidence) {
-        if (note.classificationPending) {
-          setNotes((current) => {
-            let settled: SmartNote | undefined;
-            const next = current.map((item) => {
-              if (item.id !== note.id || item.text !== note.text) return item;
-              settled = { ...item, classificationPending: false };
-              return settled;
-            });
-            if (settled) void storeNote(settled);
-            return sortNotes(next);
-          });
-        }
-        return;
-      }
-
-      setNotes((current) => {
-        let enriched: SmartNote | undefined;
-        const personalSpace = explicitPersonalSpace(note.text);
-          const protectedSpace = explicitClassification.subjectKey || note.lessonContext ? "Учёба" : personalSpace;
-        const next = current.map((item) => {
-          if (item.id !== note.id || item.text !== note.text) return item;
-          const enrichedSpace = item.spaceManual ? item.space : protectedSpace ?? remote.space ?? item.space;
-          const remoteDueAt = item.dueManual ? item.dueAt : remote.dueAt ?? item.dueAt;
-          const nextNote: SmartNote = {
-            ...item,
-            ...remote,
-            space: enrichedSpace,
-            topic: item.subjectLabel ?? remote.topic ?? item.topic,
-            spaceManual: item.spaceManual,
-            subjectKey: item.lessonContext?.subjectKeys[0] ?? explicitClassification.subjectKey,
-            subjectLabel: item.lessonContext?.subjectLabel ?? explicitClassification.subjectLabel,
-            ...studyScope(explicitClassification, item.lessonContext, group),
-            dueAt: remoteDueAt,
-            dueLabel: remoteDueAt ? formatDueLabel(remoteDueAt) : undefined,
-            dueManual: item.dueManual,
-            classificationSource: "ai",
-            classificationPending: false,
-            updatedAt: new Date().toISOString()
-          };
-          enriched = nextNote;
-          return nextNote;
-        });
-        if (enriched) void storeNote(enriched);
-        return sortNotes(next);
-      });
-    });
-  }, [aiEnabled, group, spaces, subjects]);
-
   const createNote = useCallback(async (input: NoteDocumentInput) => {
     const timestamp = new Date().toISOString();
     const classification = applyLessonContext(classifyNote(input.text, subjects, spaces), input.lessonContext);
@@ -192,7 +138,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       updatedAt: timestamp,
       contentUpdatedAt: timestamp,
       classificationSource: "local",
-      classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
+      classificationPending: false,
       lessonContext: input.lessonContext ?? undefined,
       ...scope,
       ...classification,
@@ -200,9 +146,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
     };
     setNotes((current) => sortNotes([note, ...current]));
     await storeNote(note);
-    enrichNote(note);
     return note;
-  }, [aiEnabled, enrichNote, group, spaces, subjects]);
+  }, [group, spaces, subjects]);
 
   const updateNote = useCallback(async (noteId: string, input: NoteDocumentInput) => {
     const existing = notes.find((note) => note.id === noteId);
@@ -223,16 +168,15 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, aiEnabl
       updatedAt: timestamp,
       contentUpdatedAt: timestamp,
       classificationSource: "local",
-      classificationPending: aiEnabled && import.meta.env.PROD && navigator.onLine,
+      classificationPending: false,
       lessonContext: input.lessonContext ?? undefined,
       ...scope,
       ...deadline
     };
     setNotes((current) => sortNotes(current.map((item) => item.id === noteId ? note : item)));
     await storeNote(note);
-    enrichNote(note);
     return note;
-  }, [aiEnabled, enrichNote, group, notes, spaces, subjects]);
+  }, [group, notes, spaces, subjects]);
 
   const toggleNote = useCallback((noteId: string) => {
     setNotes((current) => {
