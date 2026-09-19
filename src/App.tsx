@@ -15,6 +15,7 @@ import {
   Bell,
   BellRing,
   Smartphone,
+  TriangleAlert,
   BookCheck,
   CalendarDays,
   CheckCircle2,
@@ -60,6 +61,8 @@ import {
   type ThemeId
 } from "./features/themes/theme";
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
+import { heroCopy } from "./lib/heroCopy";
+import { freshnessNotice } from "./lib/freshness";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -160,7 +163,7 @@ function MotionScene() {
   );
 }
 
-type HeroMode = "current" | "next" | "done" | "free" | "loading";
+import type { HeroMode } from "./lib/heroCopy";
 
 interface StudyWindow {
   after: string;
@@ -342,6 +345,7 @@ export function App() {
   const groupLinkHandledRef = useRef(false);
 
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
+  const freshness = useMemo(() => freshnessNotice(schedule?.fetchedAt, nowTick), [schedule?.fetchedAt, nowTick]);
   const reportedWeek = schedule
     ? weekModeFromSnapshot(activeWeekMode(schedule.currentInfo.currentWeekType), schedule.weekTypeAsOf ?? schedule.fetchedAt, nowDate)
     : "numerator";
@@ -398,7 +402,6 @@ export function App() {
     : isSelectedToday
       ? todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length
       : 0;
-  const dayProgress = todayLessons.length ? Math.round((completedCount / todayLessons.length) * 100) : 100;
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
@@ -834,6 +837,16 @@ export function App() {
           onPointerCancelCapture={cancelScreenGesture}
           onClickCapture={suppressClickAfterGesture}
         >
+          {freshness?.warn && (
+            <p className={`freshness-banner level-${freshness.level}`} role="status">
+              <TriangleAlert size={16} aria-hidden="true" />
+              <span>
+                <strong>{freshness.title}</strong>
+                <small>{freshness.detail}</small>
+              </span>
+            </p>
+          )}
+
           <div className="screen-swipe-feedback" ref={gestureFeedbackRef} data-visible="false" aria-hidden="true">
             <span className="screen-swipe-arrow"><ChevronRight size={18} /></span>
             <strong data-gesture-label />
@@ -858,7 +871,6 @@ export function App() {
               progress={progress}
               remaining={remaining}
               completedCount={completedCount}
-              dayProgress={dayProgress}
               dayCompleted={dayCompleted}
               hasLoadedLessons={hasLoadedLessons}
               current={current}
@@ -1045,7 +1057,6 @@ function TodayView({
   progress,
   remaining,
   completedCount,
-  dayProgress,
   dayCompleted,
   hasLoadedLessons,
   current,
@@ -1078,7 +1089,6 @@ function TodayView({
   progress: number;
   remaining: number;
   completedCount: number;
-  dayProgress: number;
   dayCompleted: boolean;
   hasLoadedLessons: boolean;
   current?: LessonSlot;
@@ -1104,39 +1114,19 @@ function TodayView({
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
-  const sigilLabel = heroMode === "current" ? "Пара" : heroMode === "next" ? "Старт" : heroMode === "done" ? "Готово" : heroMode === "free" ? "Свободно" : "ВлГУ";
-  const sigilValue = heroMode === "current"
-    ? `${progress}%`
-    : heroMode === "next"
-      ? isSelectedToday ? formatDuration(minutesToNext) : next?.start ?? "—"
-      : heroMode === "done"
-        ? `${completedCount}/${lessons.length}`
-        : heroMode === "free"
-          ? "0 пар"
-          : "...";
-  const statusCopy = heroMode === "current"
-    ? "Пара идёт"
-    : heroMode === "next"
-      ? isSelectedToday ? `До пары ${formatDuration(minutesToNext)}` : "В расписании"
-      : heroMode === "done"
-        ? "День закрыт"
-        : heroMode === "free"
-          ? "Свободный день"
-          : hasLoadedLessons ? "Данные готовы" : "Ждём ВлГУ";
-  const progressTitle = heroMode === "current"
-    ? `${remaining} мин осталось`
-    : heroMode === "next"
-      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next?.start}`
-      : heroMode === "done"
-        ? "День закрыт"
-        : heroMode === "free"
-          ? "День свободен"
-          : formatWeekMode(weekMode);
-  const progressCaption = heroMode === "free" && nextStudyDay
-    ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
-    : heroMode === "done"
-      ? `${completedCount} из ${lessons.length} пройдено`
-      : `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в этот день"}`;
+  const hero = heroCopy({
+    mode: heroMode,
+    isSelectedToday,
+    lessonProgress: progress,
+    minutesToNext,
+    minutesRemaining: remaining,
+    nextStart: next?.start,
+    completedCount,
+    lessonCount: lessons.length,
+    nextStudyDayLabel: nextStudyDay ? `${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}` : undefined,
+    hasLoadedLessons,
+    formatDuration
+  });
   const calendarDay = selectedDate.getDate();
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(selectedDate).replace(".", "");
   const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
@@ -1174,51 +1164,36 @@ function TodayView({
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
           <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
           <div className="hero-sigil" aria-hidden="true">
-            <span>{sigilLabel}</span>
-            <strong>{sigilValue}</strong>
+            <span>{hero.sigilLabel}</span>
+            <strong>{hero.sigilValue}</strong>
           </div>
-          <div className="status-pill">
-            <span className={current ? "live-dot" : "idle-dot"} />
-            {statusCopy}
-          </div>
+          {hero.status && (
+            <div className="status-pill">
+              <span className={hero.status.live ? "live-dot" : "idle-dot"} />
+              {hero.status.copy}
+            </div>
+          )}
           <h2>{heroSubject}</h2>
           <div className="hero-meta">
             <span><MapPin size={21} /> {heroRoom}</span>
             <span><Clock3 size={21} /> {heroTime}</span>
           </div>
 
-          <div className="progress-row" aria-label="Прогресс пары">
-            <div className="progress-track">
-              <span style={{ width: `${progress}%` }} />
+          {hero.showProgressRow && (
+            <div className="progress-row" aria-label="Прогресс пары">
+              <div className="progress-track">
+                <span style={{ width: `${progress}%` }} />
+              </div>
+              <div className="progress-copy">
+                <strong>{hero.progressTitle}</strong>
+              </div>
             </div>
-            <div className="progress-copy">
-              <strong>{progressTitle}</strong>
-              <span>{progressCaption}</span>
-            </div>
-          </div>
+          )}
         </section>
       </div>
 
       <div className="today-detail-scroll">
-        <DayMotionRail
-          weekMode={weekMode}
-          lessons={lessons}
-          dayProgress={dayProgress}
-          remaining={remaining}
-          current={current}
-          next={next}
-          nextStudyDay={nextStudyDay}
-          isSelectedToday={isSelectedToday}
-        />
-
-        <DayCommandStrip
-          completedCount={completedCount}
-          dayProgress={dayProgress}
-          lessons={lessons}
-          nextStudyDay={nextStudyDay}
-          studyWindows={studyWindows}
-          isSelectedToday={isSelectedToday}
-        />
+        <DayWindowsRow studyWindows={studyWindows} />
 
         {focusNote && (
           <button className="focus-note-card" type="button" onClick={onOpenNotes}>
@@ -1240,7 +1215,6 @@ function TodayView({
               <strong>{lessonKeySubject(next) || nextLabel}</strong>
               {next?.room && <small><MapPin size={14} /> {next.room}</small>}
             </div>
-            <ChevronRight size={23} />
           </section>
         )}
 
@@ -1262,104 +1236,26 @@ function TodayView({
   );
 }
 
-function DayMotionRail({
-  weekMode,
-  lessons,
-  dayProgress,
-  remaining,
-  current,
-  next,
-  nextStudyDay,
-  isSelectedToday
-}: {
-  weekMode: WeekMode;
-  lessons: LessonSlot[];
-  dayProgress: number;
-  remaining: number;
-  current?: LessonSlot;
-  next?: LessonSlot;
-  nextStudyDay: NextStudyDay | null;
-  isSelectedToday: boolean;
-}) {
-  const timingSignal = current
-    ? `${remaining} мин до конца`
-    : next
-      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next.start}`
-      : nextStudyDay
-        ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
-        : "День свободен";
-  const signals = [
-    formatWeekMode(weekMode),
-    `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в выбранный день"}`,
-    lessons.length ? `${dayProgress}% дня пройдено` : "Свободный день",
-    timingSignal
-  ];
+/**
+ * Окна между парами — единственный факт дня, которого нет ни в карточке, ни в
+ * ленте занятий. Остальные плитки прежней сводки (прогресс, «дальше») лишь
+ * пересказывали карточку, поэтому убраны.
+ *
+ * Это статус, а не кнопка: ни рамки, ни тени, ни стрелки — нажимать тут нечего.
+ */
+function DayWindowsRow({ studyWindows }: { studyWindows: StudyWindow[] }) {
+  const nearest = studyWindows[0];
+  if (!nearest) return null;
 
+  const more = studyWindows.length - 1;
   return (
-    <section className="day-motion-rail" aria-label={signals.join(". ")}>
-      <span className="day-motion-label" aria-hidden="true">
-        <Activity size={14} />
-        <i />
-        Ритм
+    <p className="day-windows-row">
+      <Clock3 size={15} aria-hidden="true" />
+      <span>
+        Окно {formatDuration(nearest.minutes)} · {nearest.after}-{nearest.before}
+        {more > 0 ? ` и ещё ${more}` : ""}
       </span>
-      <div className="day-motion-window" aria-hidden="true">
-        <div className="day-motion-track">
-          {[0, 1].map((copy) => (
-            <span className="day-motion-set" key={copy}>
-              {signals.map((signal, index) => (
-                <span className="day-motion-item" key={`${copy}-${signal}`}>
-                  <i data-tone={index % 3} />
-                  {signal}
-                </span>
-              ))}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DayCommandStrip({
-  completedCount,
-  dayProgress,
-  lessons,
-  nextStudyDay,
-  studyWindows,
-  isSelectedToday
-}: {
-  completedCount: number;
-  dayProgress: number;
-  lessons: LessonSlot[];
-  nextStudyDay: NextStudyDay | null;
-  studyWindows: StudyWindow[];
-  isSelectedToday: boolean;
-}) {
-  const nearestWindow = studyWindows[0];
-  const nextShortDay = nextStudyDay ? nextStudyDay.firstLesson.dateLabel ?? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
-  const nextStudyLabel = nextStudyDay
-    ? `${nextStudyDay.isToday ? (isSelectedToday ? "Сегодня" : nextShortDay) : nextShortDay}, ${nextStudyDay.firstLesson.start}`
-    : "Нет данных";
-  const windowCopy = lessons.length ? "пары идут подряд" : "можно отдыхать";
-
-  return (
-    <section className="command-strip" aria-label="Быстрая сводка дня">
-      <div className="command-item">
-        <span><Waves size={16} /> Прогресс</span>
-        <strong>{lessons.length ? `${completedCount}/${lessons.length}` : "0 пар"}</strong>
-        <small>{lessons.length ? `${dayProgress}% дня закрыто` : "учебный день свободен"}</small>
-      </div>
-      <div className="command-item accent">
-        <span><Clock3 size={16} /> Окна</span>
-        <strong>{nearestWindow ? formatDuration(nearestWindow.minutes) : "Без окон"}</strong>
-        <small>{nearestWindow ? `${nearestWindow.after}-${nearestWindow.before}` : windowCopy}</small>
-      </div>
-      <div className="command-item">
-        <span><CalendarDays size={16} /> Дальше</span>
-        <strong>{nextStudyLabel}</strong>
-        <small>{nextStudyDay ? lessonKeySubject(nextStudyDay.firstLesson) : "после обновления"}</small>
-      </div>
-    </section>
+    </p>
   );
 }
 
