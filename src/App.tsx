@@ -63,6 +63,7 @@ import {
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
+import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -383,14 +384,25 @@ export function App() {
     };
   }, [isSelectedPast, isSelectedToday, nowDate, schedule?.allLessons, selectedDate, selectedWeekMode]);
 
+  const [subgroup, setSubgroupState] = useState<SubgroupChoice>(() => readSubgroup(selectedGroup?.nrec));
+  useEffect(() => {
+    setSubgroupState(readSubgroup(selectedGroup?.nrec));
+  }, [selectedGroup?.nrec]);
+  const setSubgroup = useCallback((choice: SubgroupChoice) => {
+    setSubgroupState(choice);
+    writeSubgroup(selectedGroup?.nrec, choice);
+  }, [selectedGroup?.nrec]);
+
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
+  // Карточка обязана показывать ту же подгруппу, что и лента ниже.
+  const heroView = heroLesson ? lessonView(heroLesson, subgroup) : null;
   const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
-  const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
-  const heroRoom = heroLesson
-    ? heroLesson.room ?? "Аудитория уточняется"
+  const heroSubject = heroView?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
+  const heroRoom = heroView
+    ? heroView.room ?? "Аудитория уточняется"
     : dayCompleted || freeStudyDay
       ? selectedGroup?.name ?? "Группа"
       : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
@@ -862,6 +874,8 @@ export function App() {
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
             <TodayView
               key={selectedDateKey}
+              subgroup={subgroup}
+              onSubgroup={setSubgroup}
               heroSubject={heroSubject}
               heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
               lightHero={lightHero}
@@ -1048,6 +1062,8 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
 }
 
 function TodayView({
+  subgroup,
+  onSubgroup,
   heroSubject,
   heroVisual,
   lightHero,
@@ -1080,6 +1096,8 @@ function TodayView({
   motionDirection,
   onCreateLessonNote
 }: {
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
   heroSubject: string;
   heroVisual: string;
   lightHero: boolean;
@@ -1230,6 +1248,8 @@ function TodayView({
           groupNrec={groupNrec}
           onToggleNote={onToggleNote}
           onCreateLessonNote={onCreateLessonNote}
+          subgroup={subgroup}
+          onSubgroup={onSubgroup}
         />
       </div>
     </div>
@@ -1270,7 +1290,9 @@ function Timeline({
   notes,
   groupNrec,
   onToggleNote,
-  onCreateLessonNote
+  onCreateLessonNote,
+  subgroup,
+  onSubgroup
 }: {
   lessons: LessonSlot[];
   current?: LessonSlot;
@@ -1283,6 +1305,8 @@ function Timeline({
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -1332,6 +1356,8 @@ function Timeline({
           linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate, groupNrec)}
           onToggleNote={onToggleNote}
           onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
+          subgroup={subgroup}
+          onSubgroup={onSubgroup}
           index={index}
         />
       ))}
@@ -1349,6 +1375,8 @@ function LessonRow({
   linkedNotes,
   onToggleNote,
   onCreateNote,
+  subgroup,
+  onSubgroup,
   index
 }: {
   lesson: LessonSlot;
@@ -1360,9 +1388,12 @@ function LessonRow({
   linkedNotes: SmartNote[];
   onToggleNote: (noteId: string) => void;
   onCreateNote: (intent: "note" | "homework") => void;
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
+  const view = lessonView(lesson, subgroup);
 
   function handleToggle() {
     const willExpand = !isExpanded;
@@ -1387,11 +1418,11 @@ function LessonRow({
           <span>{lesson.end}</span>
         </span>
         <span className="route-dot" aria-hidden="true" />
-        <span className="lesson-title">{lesson.subject}</span>
+        <span className="lesson-title">{view.subject}</span>
         <span className="lesson-place">
           <MapPin size={16} />
-          {lesson.room || "Аудитория уточняется"}
-          {lesson.kind ? <span>{lesson.kind}</span> : null}
+          {view.room || "Аудитория уточняется"}
+          {view.kind ? <span>{view.kind}</span> : null}
         </span>
         <span className="row-end" aria-hidden="true">
           {isCurrent && <span className="row-chip">Сейчас</span>}
@@ -1405,15 +1436,41 @@ function LessonRow({
           {lesson.variants && lesson.variants.length > 1 ? (
             <div className="lesson-variants" aria-label="Варианты для подгрупп">
               {lesson.variants.map((variant, variantIndex) => (
-                <div className="lesson-variant" key={`${variant.rawText}-${variantIndex}`}>
+                <div
+                  className={`lesson-variant ${subgroup === variantIndex ? "chosen" : ""}`}
+                  key={`${variant.rawText}-${variantIndex}`}
+                >
                   <strong>{variant.subject}</strong>
                   <span>
                     {[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}
                   </span>
                 </div>
               ))}
+              {/* Выбор предлагается там, где студент впервые видит две подгруппы. */}
+              <div className="subgroup-picker" role="group" aria-label="Моя подгруппа">
+                <span>Моя подгруппа</span>
+                {lesson.variants.map((_, variantIndex) => (
+                  <button
+                    key={`pick-${variantIndex}`}
+                    type="button"
+                    className={subgroup === variantIndex ? "active" : ""}
+                    aria-pressed={subgroup === variantIndex}
+                    onClick={() => onSubgroup(subgroup === variantIndex ? "all" : variantIndex)}
+                  >
+                    {variantIndex + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={subgroup === "all" ? "active" : ""}
+                  aria-pressed={subgroup === "all"}
+                  onClick={() => onSubgroup("all")}
+                >
+                  обе
+                </button>
+              </div>
             </div>
-          ) : lesson.teacher ? <span>{lesson.teacher}</span> : null}
+          ) : view.teacher ? <span>{view.teacher}</span> : null}
           <div className="lesson-note-actions" aria-label="Добавить к паре">
             <button type="button" onClick={() => onCreateNote("note")}><NotebookPen size={16} /> Записка</button>
             <button type="button" onClick={() => onCreateNote("homework")}><BookCheck size={16} /> ДЗ</button>

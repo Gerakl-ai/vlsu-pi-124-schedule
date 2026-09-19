@@ -5396,3 +5396,45 @@ button.day-title > svg {
   flex: none;
   opacity: .8;
 }
+
+/* Выбор подгруппы предлагается прямо там, где видно обе: внутри раскрытой пары. */
+.subgroup-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--theme-panel-border);
+}
+
+.subgroup-picker > span {
+  margin-right: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 750;
+}
+
+.subgroup-picker button {
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0 9px;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 7px;
+  background: var(--theme-control);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.subgroup-picker button.active {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  color: var(--text);
+}
+
+.lesson-variant.chosen {
+  border-left: 2px solid var(--accent);
+  padding-left: 7px;
+}
