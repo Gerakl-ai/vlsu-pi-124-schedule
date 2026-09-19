@@ -1,3 +1,25 @@
+/**
+ * Формы обучения ВлГУ. Приложение долго запрашивало только очную (WFormed: 0),
+ * поэтому заочники и очно-заочники не могли найти свою группу вообще.
+ */
+export const STUDY_FORM_KEYS = ["full-time", "extramural", "part-time"] as const;
+
+export type StudyFormKey = (typeof STUDY_FORM_KEYS)[number];
+
+export const STUDY_FORM_LABELS: Record<StudyFormKey, string> = {
+  "full-time": "Очная",
+  extramural: "Заочная",
+  "part-time": "Очно-заочная"
+};
+
+/** Короткая подпись для списка групп: очную не подписываем, она подразумевается. */
+export function studyFormLabel(forms: StudyFormKey[] | undefined) {
+  if (!forms || !forms.length) return undefined;
+  const meaningful = forms.filter((form) => form !== "full-time");
+  if (!meaningful.length) return undefined;
+  return meaningful.map((form) => STUDY_FORM_LABELS[form]).join(" · ");
+}
+
 export interface InstituteOption {
   id: string;
   name: string;
@@ -9,6 +31,7 @@ export interface GroupOption {
   nrec: string;
   name: string;
   course?: string;
+  forms?: StudyFormKey[];
 }
 
 export interface GroupProfile extends GroupOption {
@@ -29,43 +52,8 @@ export const LEGACY_PI124_GROUP: GroupProfile = {
   visualKey: "iite"
 };
 
-const SHORT_NAME_OVERRIDES: Array<[RegExp, string]> = [
-  [/информационн.*технолог.*электроник/i, "ИИТЭ"],
-  [/архитектур.*строитель/i, "ИАС"],
-  [/машиностроен.*автомобиль/i, "ИМиАТ"],
-  [/экономик.*туризм/i, "ИЭиТ"],
-  [/педагогическ/i, "ПИ"],
-  [/гуманитарн/i, "ГИ"],
-  [/юридическ/i, "ЮИ"],
-  [/искусств/i, "ИскИ"],
-  [/физическ.*математ/i, "ФМИ"],
-  [/биолог.*эколог/i, "БЭИ"]
-];
-
-function stableHash(value: string) {
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  return Math.abs(hash >>> 0);
-}
-
-export function instituteShortName(name: string) {
-  const override = SHORT_NAME_OVERRIDES.find(([pattern]) => pattern.test(name));
-  if (override) return override[1];
-
-  const words = name
-    .replace(/[()«»"']/g, " ")
-    .split(/\s+/)
-    .filter((word) => word.length > 2 && !/^(институт|филиал|имени|университет)$/i.test(word));
-  const acronym = words.map((word) => word[0]).join("").toLocaleUpperCase("ru-RU");
-  return acronym.slice(0, 5) || "ВлГУ";
-}
-
-export function instituteVisualKey(id: string, name: string) {
-  return `institute-${stableHash(`${id}:${name}`) % 8}`;
-}
+// Сокращения и палитры институтов живут в instituteVisuals.ts:
+// таблица по стабильному id вместо регулярок по названию.
 
 export function toGroupProfile(institute: InstituteOption, group: GroupOption): GroupProfile {
   return {

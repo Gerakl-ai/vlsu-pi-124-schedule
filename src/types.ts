@@ -49,7 +49,7 @@ export interface CurrentInfo {
   semester: number;
 }
 
-export type ScheduleDataSource = "live" | "edge-cache" | "global-snapshot" | "device-cache";
+export type ScheduleDataSource = "live" | "edge-cache" | "global-snapshot" | "static-snapshot" | "device-cache";
 
 export interface ScheduleQuality {
   valid: boolean;
@@ -70,6 +70,8 @@ export interface ScheduleState {
   snapshotAgeSeconds?: number;
   contentHash?: string;
   requestId?: string;
+  /** Ссылка на коммит, которым этот снимок попал в приложение. */
+  provenance?: { repository: string; commit: string; commitUrl: string; runUrl: string | null };
   quality?: ScheduleQuality;
 }
 

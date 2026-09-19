@@ -93,7 +93,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
         window.location.reload();
       });
     }
-    const workerUrl = `/sw.js?release=${encodeURIComponent(RELEASE_CHANNEL)}`;
+    // Воркер лежит рядом с приложением: на проектном сайте Pages это подкаталог,
+    // а не корень. Абсолютный путь дал бы 404 и область видимости всего домена.
+    const base = import.meta.env.BASE_URL || "/";
+    const workerUrl = `${base}sw.js?release=${encodeURIComponent(RELEASE_CHANNEL)}`;
     navigator.serviceWorker.register(workerUrl, { updateViaCache: "none" })
       .then((registration) => registration.update())
       .catch(() => {

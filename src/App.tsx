@@ -14,7 +14,8 @@ import {
   Activity,
   Bell,
   BellRing,
-  BrainCircuit,
+  Smartphone,
+  TriangleAlert,
   BookCheck,
   CalendarDays,
   CheckCircle2,
@@ -43,7 +44,6 @@ import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSet
 import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
 import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
-import { readAiConsent, readAiEnabled, writeAiConsent, writeAiEnabled } from "./features/notes/notePreferences";
 import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
@@ -61,6 +61,10 @@ import {
   type ThemeId
 } from "./features/themes/theme";
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
+import { heroCopy } from "./lib/heroCopy";
+import { freshnessNotice } from "./lib/freshness";
+import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
+import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
 import { getNotificationCapability, requestNotificationPermission, scheduleNextReminder, sendTestNotification } from "./lib/reminders";
 import {
@@ -161,7 +165,7 @@ function MotionScene() {
   );
 }
 
-type HeroMode = "current" | "next" | "done" | "free" | "loading";
+import type { HeroMode } from "./lib/heroCopy";
 
 interface StudyWindow {
   after: string;
@@ -328,7 +332,6 @@ export function App() {
     return date;
   });
   const [dayMotionDirection, setDayMotionDirection] = useState<"forward" | "backward" | null>(null);
-  const [aiEnabled, setAiEnabled] = useState(() => readAiEnabled() && readAiConsent());
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
   const contentScrollRef = useRef<HTMLDivElement>(null);
@@ -344,6 +347,7 @@ export function App() {
   const groupLinkHandledRef = useRef(false);
 
   const nowDate = useMemo(() => new Date(nowTick), [nowTick]);
+  const freshness = useMemo(() => freshnessNotice(schedule?.fetchedAt, nowTick), [schedule?.fetchedAt, nowTick]);
   const reportedWeek = schedule
     ? weekModeFromSnapshot(activeWeekMode(schedule.currentInfo.currentWeekType), schedule.weekTypeAsOf ?? schedule.fetchedAt, nowDate)
     : "numerator";
@@ -351,7 +355,7 @@ export function App() {
   const currentWeek = schedule?.allLessons.some((lesson) => lesson.scheduleKind === "exam") ? reportedWeek : calendarWeek;
   const weekMode = weekOverride === "current" ? currentWeek : weekOverride;
   const notificationCapability = useMemo(() => getNotificationCapability(settings), [settings]);
-  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, aiEnabled, selectedGroup);
+  const smartNotes = useSmartNotes(schedule?.allLessons ?? [], weekMode, selectedGroup);
   const openNotes = useMemo(() => smartNotes.notes.filter((note) => note.status === "open"), [smartNotes.notes]);
   const focusNote = useMemo(() => {
     return [...openNotes].sort((a, b) => {
@@ -381,14 +385,25 @@ export function App() {
     };
   }, [isSelectedPast, isSelectedToday, nowDate, schedule?.allLessons, selectedDate, selectedWeekMode]);
 
+  const [subgroup, setSubgroupState] = useState<SubgroupChoice>(() => readSubgroup(selectedGroup?.nrec));
+  useEffect(() => {
+    setSubgroupState(readSubgroup(selectedGroup?.nrec));
+  }, [selectedGroup?.nrec]);
+  const setSubgroup = useCallback((choice: SubgroupChoice) => {
+    setSubgroupState(choice);
+    writeSubgroup(selectedGroup?.nrec, choice);
+  }, [selectedGroup?.nrec]);
+
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
+  // Карточка обязана показывать ту же подгруппу, что и лента ниже.
+  const heroView = heroLesson ? lessonView(heroLesson, subgroup) : null;
   const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
-  const heroSubject = heroLesson?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
-  const heroRoom = heroLesson
-    ? heroLesson.room ?? "Аудитория уточняется"
+  const heroSubject = heroView?.subject ?? (dayCompleted ? "Все пары пройдены" : freeStudyDay ? (isSelectedToday ? "Сегодня без пар" : "В этот день без пар") : heroFallback?.subject ?? "Загрузка расписания");
+  const heroRoom = heroView
+    ? heroView.room ?? "Аудитория уточняется"
     : dayCompleted || freeStudyDay
       ? selectedGroup?.name ?? "Группа"
       : heroFallback?.room ?? selectedGroup?.instituteShortName ?? "ВлГУ";
@@ -400,7 +415,6 @@ export function App() {
     : isSelectedToday
       ? todayLessons.filter((lesson) => lessonTimingState(lesson, nowDate) === "past").length
       : 0;
-  const dayProgress = todayLessons.length ? Math.round((completedCount / todayLessons.length) * 100) : 100;
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
@@ -468,10 +482,6 @@ export function App() {
     if (lockMs > 0) noticeLockUntilRef.current = Date.now() + lockMs;
     setNotice(message);
   }
-
-  useEffect(() => {
-    if (readAiEnabled() && !readAiConsent()) writeAiEnabled(false);
-  }, []);
 
   useEffect(() => {
     if (!selectedGroup) return;
@@ -840,6 +850,16 @@ export function App() {
           onPointerCancelCapture={cancelScreenGesture}
           onClickCapture={suppressClickAfterGesture}
         >
+          {freshness?.warn && (
+            <p className={`freshness-banner level-${freshness.level}`} role="status">
+              <TriangleAlert size={16} aria-hidden="true" />
+              <span>
+                <strong>{freshness.title}</strong>
+                <small>{freshness.detail}</small>
+              </span>
+            </p>
+          )}
+
           <div className="screen-swipe-feedback" ref={gestureFeedbackRef} data-visible="false" aria-hidden="true">
             <span className="screen-swipe-arrow"><ChevronRight size={18} /></span>
             <strong data-gesture-label />
@@ -855,6 +875,8 @@ export function App() {
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
             <TodayView
               key={selectedDateKey}
+              subgroup={subgroup}
+              onSubgroup={setSubgroup}
               heroSubject={heroSubject}
               heroVisual={lightHero ? HERO_VISUAL_LIGHT : HERO_VISUAL_DARK}
               lightHero={lightHero}
@@ -864,7 +886,6 @@ export function App() {
               progress={progress}
               remaining={remaining}
               completedCount={completedCount}
-              dayProgress={dayProgress}
               dayCompleted={dayCompleted}
               hasLoadedLessons={hasLoadedLessons}
               current={current}
@@ -946,11 +967,6 @@ export function App() {
               onThemeOpen={() => setThemeSheetOpen(true)}
               notes={smartNotes.notes}
               onImportNotes={smartNotes.importNotes}
-              aiEnabled={aiEnabled}
-              onAiEnabled={(enabled) => {
-                setAiEnabled(enabled);
-                writeAiEnabled(enabled);
-              }}
             />
           )}
         </div>
@@ -1046,7 +1062,117 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
   );
 }
 
+/**
+ * «Откуда данные» — то, что делает прозрачность проверяемой, а не заявленной.
+ *
+ * Расписание собирается обходом в GitHub Actions, и каждое обновление ложится
+ * публичным коммитом. Панель показывает источник, время снимка, его отпечаток и
+ * даёт открыть конкретный коммит: любой желающий — студент, преподаватель,
+ * ИТ-служба ВлГУ — может сверить, что приложение показывает именно то, что было
+ * забрано из API.
+ *
+ * Состояние обхода подгружается только при раскрытии: на экране расписания оно
+ * никому не нужно, а лишний запрос при каждом запуске — нет.
+ */
+function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleState | null; sourceLabel: string }) {
+  const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<CrawlStatus | null>(null);
+  const [statusState, setStatusState] = useState<"idle" | "loading" | "missing">("idle");
+
+  useEffect(() => {
+    if (!open || status || statusState === "loading") return;
+    setStatusState("loading");
+    const controller = new AbortController();
+    fetchCrawlStatus(controller.signal)
+      .then((value) => {
+        setStatus(value);
+        setStatusState("idle");
+      })
+      .catch(() => setStatusState("missing"));
+    return () => controller.abort();
+  }, [open, status, statusState]);
+
+  const provenance = schedule?.provenance ?? status?.provenance ?? null;
+  const capturedAt = schedule?.fetchedAt ? formatUpdatedAt(schedule.fetchedAt) : null;
+
+  return (
+    <section className="settings-panel provenance-panel">
+      <button type="button" className="provenance-toggle" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+        <span className="provenance-icon"><ShieldCheck size={20} /></span>
+        <span>
+          <strong>Откуда данные</strong>
+          <small>{capturedAt ? `${sourceLabel} · ${capturedAt}` : sourceLabel}</small>
+        </span>
+        <ChevronRight size={20} className={open ? "provenance-chevron open" : "provenance-chevron"} />
+      </button>
+
+      {open && (
+        <div className="provenance-body">
+          <dl className="provenance-facts">
+            <div>
+              <dt>Источник</dt>
+              <dd>{sourceLabel}</dd>
+            </div>
+            {capturedAt && (
+              <div>
+                <dt>Снимок снят</dt>
+                <dd>{capturedAt}</dd>
+              </div>
+            )}
+            {schedule?.contentHash && (
+              <div>
+                <dt>Отпечаток</dt>
+                <dd className="provenance-hash">{schedule.contentHash.slice(0, 16)}</dd>
+              </div>
+            )}
+          </dl>
+
+          {provenance ? (
+            <div className="provenance-links">
+              <a href={provenance.commitUrl} target="_blank" rel="noreferrer noopener">
+                Открыть коммит с этими данными
+              </a>
+              {provenance.runUrl && (
+                <a href={provenance.runUrl} target="_blank" rel="noreferrer noopener">
+                  Журнал обхода API ВлГУ
+                </a>
+              )}
+            </div>
+          ) : (
+            <p className="provenance-note">
+              Снимок собран вручную, вне автоматического обхода, поэтому ссылки на коммит у него нет.
+            </p>
+          )}
+
+          {status && (
+            <div className="provenance-crawl">
+              <strong>Последний обход</strong>
+              <p>
+                {status.institutes} институтов, {status.groupsInCatalog} групп в каталоге.
+                {status.scheduleAttempted > 0
+                  ? ` Расписаний получено ${status.scheduleOk} из ${status.scheduleAttempted}.`
+                  : " Расписания в этом обходе не запрашивались."}
+              </p>
+              {status.scheduleFailed > 0 && (
+                <p className="provenance-failures">
+                  ВлГУ не ответил по {status.scheduleFailed} группам — у них осталось прежнее расписание.
+                </p>
+              )}
+            </div>
+          )}
+
+          {statusState === "missing" && (
+            <p className="provenance-note">Отчёт об обходе недоступен: данные загружены не из снимка.</p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function TodayView({
+  subgroup,
+  onSubgroup,
   heroSubject,
   heroVisual,
   lightHero,
@@ -1056,7 +1182,6 @@ function TodayView({
   progress,
   remaining,
   completedCount,
-  dayProgress,
   dayCompleted,
   hasLoadedLessons,
   current,
@@ -1080,6 +1205,8 @@ function TodayView({
   motionDirection,
   onCreateLessonNote
 }: {
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
   heroSubject: string;
   heroVisual: string;
   lightHero: boolean;
@@ -1089,7 +1216,6 @@ function TodayView({
   progress: number;
   remaining: number;
   completedCount: number;
-  dayProgress: number;
   dayCompleted: boolean;
   hasLoadedLessons: boolean;
   current?: LessonSlot;
@@ -1115,39 +1241,19 @@ function TodayView({
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
-  const sigilLabel = heroMode === "current" ? "Пара" : heroMode === "next" ? "Старт" : heroMode === "done" ? "Готово" : heroMode === "free" ? "Свободно" : "ВлГУ";
-  const sigilValue = heroMode === "current"
-    ? `${progress}%`
-    : heroMode === "next"
-      ? isSelectedToday ? formatDuration(minutesToNext) : next?.start ?? "—"
-      : heroMode === "done"
-        ? `${completedCount}/${lessons.length}`
-        : heroMode === "free"
-          ? "0 пар"
-          : "...";
-  const statusCopy = heroMode === "current"
-    ? "Пара идёт"
-    : heroMode === "next"
-      ? isSelectedToday ? `До пары ${formatDuration(minutesToNext)}` : "В расписании"
-      : heroMode === "done"
-        ? "День закрыт"
-        : heroMode === "free"
-          ? "Свободный день"
-          : hasLoadedLessons ? "Данные готовы" : "Ждём ВлГУ";
-  const progressTitle = heroMode === "current"
-    ? `${remaining} мин осталось`
-    : heroMode === "next"
-      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next?.start}`
-      : heroMode === "done"
-        ? "День закрыт"
-        : heroMode === "free"
-          ? "День свободен"
-          : formatWeekMode(weekMode);
-  const progressCaption = heroMode === "free" && nextStudyDay
-    ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
-    : heroMode === "done"
-      ? `${completedCount} из ${lessons.length} пройдено`
-      : `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в этот день"}`;
+  const hero = heroCopy({
+    mode: heroMode,
+    isSelectedToday,
+    lessonProgress: progress,
+    minutesToNext,
+    minutesRemaining: remaining,
+    nextStart: next?.start,
+    completedCount,
+    lessonCount: lessons.length,
+    nextStudyDayLabel: nextStudyDay ? `${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}` : undefined,
+    hasLoadedLessons,
+    formatDuration
+  });
   const calendarDay = selectedDate.getDate();
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(selectedDate).replace(".", "");
   const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
@@ -1185,51 +1291,36 @@ function TodayView({
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
           <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />
           <div className="hero-sigil" aria-hidden="true">
-            <span>{sigilLabel}</span>
-            <strong>{sigilValue}</strong>
+            <span>{hero.sigilLabel}</span>
+            <strong>{hero.sigilValue}</strong>
           </div>
-          <div className="status-pill">
-            <span className={current ? "live-dot" : "idle-dot"} />
-            {statusCopy}
-          </div>
+          {hero.status && (
+            <div className="status-pill">
+              <span className={hero.status.live ? "live-dot" : "idle-dot"} />
+              {hero.status.copy}
+            </div>
+          )}
           <h2>{heroSubject}</h2>
           <div className="hero-meta">
             <span><MapPin size={21} /> {heroRoom}</span>
             <span><Clock3 size={21} /> {heroTime}</span>
           </div>
 
-          <div className="progress-row" aria-label="Прогресс пары">
-            <div className="progress-track">
-              <span style={{ width: `${progress}%` }} />
+          {hero.showProgressRow && (
+            <div className="progress-row" aria-label="Прогресс пары">
+              <div className="progress-track">
+                <span style={{ width: `${progress}%` }} />
+              </div>
+              <div className="progress-copy">
+                <strong>{hero.progressTitle}</strong>
+              </div>
             </div>
-            <div className="progress-copy">
-              <strong>{progressTitle}</strong>
-              <span>{progressCaption}</span>
-            </div>
-          </div>
+          )}
         </section>
       </div>
 
       <div className="today-detail-scroll">
-        <DayMotionRail
-          weekMode={weekMode}
-          lessons={lessons}
-          dayProgress={dayProgress}
-          remaining={remaining}
-          current={current}
-          next={next}
-          nextStudyDay={nextStudyDay}
-          isSelectedToday={isSelectedToday}
-        />
-
-        <DayCommandStrip
-          completedCount={completedCount}
-          dayProgress={dayProgress}
-          lessons={lessons}
-          nextStudyDay={nextStudyDay}
-          studyWindows={studyWindows}
-          isSelectedToday={isSelectedToday}
-        />
+        <DayWindowsRow studyWindows={studyWindows} />
 
         {focusNote && (
           <button className="focus-note-card" type="button" onClick={onOpenNotes}>
@@ -1251,7 +1342,6 @@ function TodayView({
               <strong>{lessonKeySubject(next) || nextLabel}</strong>
               {next?.room && <small><MapPin size={14} /> {next.room}</small>}
             </div>
-            <ChevronRight size={23} />
           </section>
         )}
 
@@ -1267,110 +1357,34 @@ function TodayView({
           groupNrec={groupNrec}
           onToggleNote={onToggleNote}
           onCreateLessonNote={onCreateLessonNote}
+          subgroup={subgroup}
+          onSubgroup={onSubgroup}
         />
       </div>
     </div>
   );
 }
 
-function DayMotionRail({
-  weekMode,
-  lessons,
-  dayProgress,
-  remaining,
-  current,
-  next,
-  nextStudyDay,
-  isSelectedToday
-}: {
-  weekMode: WeekMode;
-  lessons: LessonSlot[];
-  dayProgress: number;
-  remaining: number;
-  current?: LessonSlot;
-  next?: LessonSlot;
-  nextStudyDay: NextStudyDay | null;
-  isSelectedToday: boolean;
-}) {
-  const timingSignal = current
-    ? `${remaining} мин до конца`
-    : next
-      ? `${isSelectedToday ? "Старт" : "Начало"} в ${next.start}`
-      : nextStudyDay
-        ? `Дальше: ${nextStudyDay.dayName}, ${nextStudyDay.firstLesson.start}`
-        : "День свободен";
-  const signals = [
-    formatWeekMode(weekMode),
-    `${formatLessonCount(lessons.length)} ${isSelectedToday ? "сегодня" : "в выбранный день"}`,
-    lessons.length ? `${dayProgress}% дня пройдено` : "Свободный день",
-    timingSignal
-  ];
+/**
+ * Окна между парами — единственный факт дня, которого нет ни в карточке, ни в
+ * ленте занятий. Остальные плитки прежней сводки (прогресс, «дальше») лишь
+ * пересказывали карточку, поэтому убраны.
+ *
+ * Это статус, а не кнопка: ни рамки, ни тени, ни стрелки — нажимать тут нечего.
+ */
+function DayWindowsRow({ studyWindows }: { studyWindows: StudyWindow[] }) {
+  const nearest = studyWindows[0];
+  if (!nearest) return null;
 
+  const more = studyWindows.length - 1;
   return (
-    <section className="day-motion-rail" aria-label={signals.join(". ")}>
-      <span className="day-motion-label" aria-hidden="true">
-        <Activity size={14} />
-        <i />
-        Ритм
+    <p className="day-windows-row">
+      <Clock3 size={15} aria-hidden="true" />
+      <span>
+        Окно {formatDuration(nearest.minutes)} · {nearest.after}-{nearest.before}
+        {more > 0 ? ` и ещё ${more}` : ""}
       </span>
-      <div className="day-motion-window" aria-hidden="true">
-        <div className="day-motion-track">
-          {[0, 1].map((copy) => (
-            <span className="day-motion-set" key={copy}>
-              {signals.map((signal, index) => (
-                <span className="day-motion-item" key={`${copy}-${signal}`}>
-                  <i data-tone={index % 3} />
-                  {signal}
-                </span>
-              ))}
-            </span>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function DayCommandStrip({
-  completedCount,
-  dayProgress,
-  lessons,
-  nextStudyDay,
-  studyWindows,
-  isSelectedToday
-}: {
-  completedCount: number;
-  dayProgress: number;
-  lessons: LessonSlot[];
-  nextStudyDay: NextStudyDay | null;
-  studyWindows: StudyWindow[];
-  isSelectedToday: boolean;
-}) {
-  const nearestWindow = studyWindows[0];
-  const nextShortDay = nextStudyDay ? nextStudyDay.firstLesson.dateLabel ?? WEEK_DAYS_SHORT[nextStudyDay.dayIndex - 1] : "";
-  const nextStudyLabel = nextStudyDay
-    ? `${nextStudyDay.isToday ? (isSelectedToday ? "Сегодня" : nextShortDay) : nextShortDay}, ${nextStudyDay.firstLesson.start}`
-    : "Нет данных";
-  const windowCopy = lessons.length ? "пары идут подряд" : "можно отдыхать";
-
-  return (
-    <section className="command-strip" aria-label="Быстрая сводка дня">
-      <div className="command-item">
-        <span><Waves size={16} /> Прогресс</span>
-        <strong>{lessons.length ? `${completedCount}/${lessons.length}` : "0 пар"}</strong>
-        <small>{lessons.length ? `${dayProgress}% дня закрыто` : "учебный день свободен"}</small>
-      </div>
-      <div className="command-item accent">
-        <span><Clock3 size={16} /> Окна</span>
-        <strong>{nearestWindow ? formatDuration(nearestWindow.minutes) : "Без окон"}</strong>
-        <small>{nearestWindow ? `${nearestWindow.after}-${nearestWindow.before}` : windowCopy}</small>
-      </div>
-      <div className="command-item">
-        <span><CalendarDays size={16} /> Дальше</span>
-        <strong>{nextStudyLabel}</strong>
-        <small>{nextStudyDay ? lessonKeySubject(nextStudyDay.firstLesson) : "после обновления"}</small>
-      </div>
-    </section>
+    </p>
   );
 }
 
@@ -1385,7 +1399,9 @@ function Timeline({
   notes,
   groupNrec,
   onToggleNote,
-  onCreateLessonNote
+  onCreateLessonNote,
+  subgroup,
+  onSubgroup
 }: {
   lessons: LessonSlot[];
   current?: LessonSlot;
@@ -1398,6 +1414,8 @@ function Timeline({
   groupNrec?: string;
   onToggleNote: (noteId: string) => void;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -1447,6 +1465,8 @@ function Timeline({
           linkedNotes={notesLinkedToLesson(lesson, notes, selectedDate, groupNrec)}
           onToggleNote={onToggleNote}
           onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
+          subgroup={subgroup}
+          onSubgroup={onSubgroup}
           index={index}
         />
       ))}
@@ -1464,6 +1484,8 @@ function LessonRow({
   linkedNotes,
   onToggleNote,
   onCreateNote,
+  subgroup,
+  onSubgroup,
   index
 }: {
   lesson: LessonSlot;
@@ -1475,9 +1497,12 @@ function LessonRow({
   linkedNotes: SmartNote[];
   onToggleNote: (noteId: string) => void;
   onCreateNote: (intent: "note" | "homework") => void;
+  subgroup: SubgroupChoice;
+  onSubgroup: (choice: SubgroupChoice) => void;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
+  const view = lessonView(lesson, subgroup);
 
   function handleToggle() {
     const willExpand = !isExpanded;
@@ -1502,11 +1527,11 @@ function LessonRow({
           <span>{lesson.end}</span>
         </span>
         <span className="route-dot" aria-hidden="true" />
-        <span className="lesson-title">{lesson.subject}</span>
+        <span className="lesson-title">{view.subject}</span>
         <span className="lesson-place">
           <MapPin size={16} />
-          {lesson.room || "Аудитория уточняется"}
-          {lesson.kind ? <span>{lesson.kind}</span> : null}
+          {view.room || "Аудитория уточняется"}
+          {view.kind ? <span>{view.kind}</span> : null}
         </span>
         <span className="row-end" aria-hidden="true">
           {isCurrent && <span className="row-chip">Сейчас</span>}
@@ -1520,15 +1545,41 @@ function LessonRow({
           {lesson.variants && lesson.variants.length > 1 ? (
             <div className="lesson-variants" aria-label="Варианты для подгрупп">
               {lesson.variants.map((variant, variantIndex) => (
-                <div className="lesson-variant" key={`${variant.rawText}-${variantIndex}`}>
+                <div
+                  className={`lesson-variant ${subgroup === variantIndex ? "chosen" : ""}`}
+                  key={`${variant.rawText}-${variantIndex}`}
+                >
                   <strong>{variant.subject}</strong>
                   <span>
                     {[variant.room, variant.kind, variant.teacher].filter(Boolean).join(" · ")}
                   </span>
                 </div>
               ))}
+              {/* Выбор предлагается там, где студент впервые видит две подгруппы. */}
+              <div className="subgroup-picker" role="group" aria-label="Моя подгруппа">
+                <span>Моя подгруппа</span>
+                {lesson.variants.map((_, variantIndex) => (
+                  <button
+                    key={`pick-${variantIndex}`}
+                    type="button"
+                    className={subgroup === variantIndex ? "active" : ""}
+                    aria-pressed={subgroup === variantIndex}
+                    onClick={() => onSubgroup(subgroup === variantIndex ? "all" : variantIndex)}
+                  >
+                    {variantIndex + 1}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  className={subgroup === "all" ? "active" : ""}
+                  aria-pressed={subgroup === "all"}
+                  onClick={() => onSubgroup("all")}
+                >
+                  обе
+                </button>
+              </div>
             </div>
-          ) : lesson.teacher ? <span>{lesson.teacher}</span> : null}
+          ) : view.teacher ? <span>{view.teacher}</span> : null}
           <div className="lesson-note-actions" aria-label="Добавить к паре">
             <button type="button" onClick={() => onCreateNote("note")}><NotebookPen size={16} /> Записка</button>
             <button type="button" onClick={() => onCreateNote("homework")}><BookCheck size={16} /> ДЗ</button>
@@ -1874,9 +1925,7 @@ function SettingsView({
   customThemeName,
   onThemeOpen,
   notes,
-  onImportNotes,
-  aiEnabled,
-  onAiEnabled
+  onImportNotes
 }: {
   settings: ReminderSettings;
   notice: string;
@@ -1891,16 +1940,15 @@ function SettingsView({
   onThemeOpen: () => void;
   notes: SmartNote[];
   onImportNotes: (notes: SmartNote[]) => Promise<number>;
-  aiEnabled: boolean;
-  onAiEnabled: (enabled: boolean) => void;
 }) {
   const activeTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
-  const [cloudConsent, setCloudConsent] = useState(() => readAiConsent());
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
+    : schedule?.source === "static-snapshot"
+    ? "Снимок ВлГУ"
     : schedule?.source === "global-snapshot"
       ? "Резервный снимок"
       : schedule?.source === "edge-cache"
@@ -1908,12 +1956,6 @@ function SettingsView({
         : schedule
           ? "Кэш устройства"
           : "Нет данных";
-
-  function updateCloudConsent(consented: boolean) {
-    setCloudConsent(consented);
-    writeAiConsent(consented);
-    if (!consented && aiEnabled) onAiEnabled(false);
-  }
 
   async function importBackup(file?: File) {
     if (!file) return;
@@ -2010,6 +2052,8 @@ function SettingsView({
           {notice && <p className="notice">{notice}</p>}
         </section>
 
+        <DataProvenancePanel schedule={schedule} sourceLabel={scheduleSource} />
+
         <section className="settings-panel personal-data-panel">
           <header className="personal-data-head">
             <span className="personal-data-icon"><HardDrive size={21} /></span>
@@ -2022,50 +2066,21 @@ function SettingsView({
           <div className="privacy-map" aria-label="Как приложение работает с данными">
             <div>
               <ShieldCheck size={18} />
-              <span><strong>Только на iPhone</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
+              <span><strong>Только на устройстве</strong><small>Записи, фотографии, папки, настройки и кэш расписания.</small></span>
             </div>
             <div>
               <CloudOff size={18} />
               <span><strong>Без слежения</strong><small>Нет аккаунта, рекламных счётчиков, аналитики и cookies.</small></span>
             </div>
             <div>
-              <BrainCircuit size={18} />
-              <span><strong>Облако — только по выбору</strong><small>Текст новой заметки отправляется в Cloudflare AI лишь после отдельного разрешения.</small></span>
+              <Smartphone size={18} />
+              <span><strong>Работает офлайн</strong><small>Расписание открывается из сохранённого снимка, даже когда ВлГУ недоступен.</small></span>
             </div>
           </div>
-          <div className="ai-setting">
-            <span className="ai-setting-icon"><BrainCircuit size={19} /></span>
-            <div>
-              <strong>Облачное уточнение</strong>
-              <small>До 4000 символов новой заметки передаются Cloudflare AI. Локальная сортировка работает всегда.</small>
-            </div>
-            <button
-              className={`setting-switch ${aiEnabled ? "active" : ""}`}
-              type="button"
-              role="switch"
-              aria-checked={aiEnabled}
-              aria-label="Облачное уточнение записей"
-              disabled={!cloudConsent}
-              onClick={() => onAiEnabled(!aiEnabled)}
-            >
-              <span />
-            </button>
-          </div>
-          <label className="cloud-consent">
-            <input
-              type="checkbox"
-              checked={cloudConsent}
-              onChange={(event) => updateCloudConsent(event.target.checked)}
-            />
-            <span>
-              <strong>Разрешаю облачную классификацию</strong>
-              <small>Не отправляйте чужие, медицинские, паспортные и другие чувствительные данные. Разрешение можно отозвать здесь в любой момент.</small>
-            </span>
-          </label>
           <details className="privacy-details">
             <summary>Данные и статус приложения</summary>
-            <p>Неофициальное приложение для студентов ВлГУ. Расписание загружается из публичного API через технический прокси; заметки и вложения сервер приложения не хранит.</p>
-            <p>При обычном открытии Cloudflare технически обрабатывает сетевой запрос. Облачное уточнение по умолчанию выключено.</p>
+            <p>Неофициальное приложение для студентов ВлГУ. Расписание берётся из публичного снимка, собранного заранее; заметки и вложения никуда не отправляются и остаются на устройстве.</p>
+            <p>Нет аккаунта, аналитики и облачной обработки записей: разбор заметок выполняется целиком в браузере.</p>
           </details>
           <div className="backup-actions">
             <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>

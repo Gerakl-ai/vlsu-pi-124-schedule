@@ -1,5 +1,10 @@
 import type { LessonSlot, WeekMode } from "../types";
+import { vlsuWeekModeForDate } from "./academicWeek";
 import { lessonAppliesToWeek } from "./scheduleApi";
+
+// Расчёт учебной недели живёт в academicWeek.ts, чтобы его могли использовать
+// и разбор расписания, и чтение статических снимков без цикла импортов.
+export { vlsuWeekModeForDate };
 
 const DAY_NAME_TO_INDEX: Record<string, number> = {
   "Понедельник": 1,
@@ -49,16 +54,6 @@ export function weekModeFromSnapshot(currentMode: WeekMode, snapshotAt: string |
   const snapshotDate = new Date(snapshotAt);
   if (Number.isNaN(snapshotDate.getTime())) return currentMode;
   return weekModeForDate(targetDate, currentMode, snapshotDate);
-}
-
-export function vlsuWeekModeForDate(date = new Date()): WeekMode {
-  const academicYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
-  const firstSeptember = new Date(academicYear, 8, 1);
-  firstSeptember.setHours(0, 0, 0, 0);
-  const firstAcademicMonday = dateForWeekDay(1, firstSeptember);
-  const targetMonday = dateForWeekDay(1, date);
-  const weekDelta = Math.floor((targetMonday.getTime() - firstAcademicMonday.getTime()) / 604_800_000);
-  return Math.abs(weekDelta) % 2 === 0 ? "numerator" : "denominator";
 }
 
 export function selectedWeekModeForDate(

@@ -24,6 +24,7 @@ import {
 import { groupLinkUrl } from "./groupLinks";
 import {
   LEGACY_PI124_GROUP,
+  studyFormLabel,
   toGroupProfile,
   type GroupOption,
   type GroupProfile,
@@ -228,7 +229,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
               <div className="group-picker-row-wrap" key={group.nrec}>
                 <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
                   <span className="group-badge"><UsersRound size={19} /></span>
-                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.course ?? activeInstitute.shortName}</small></span>
+                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{[group.course ?? activeInstitute.shortName, studyFormLabel(group.forms)].filter(Boolean).join(" · ")}</small></span>
                   {isCurrent ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                 </button>
                 <button type="button" className={`group-favorite-button ${isFavorite ? "active" : ""}`} onClick={(event) => toggleFavorite(event, profile)} aria-label={`${isFavorite ? "Убрать" : "Добавить"} ${group.name} ${isFavorite ? "из" : "в"} избранное`} title={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}>

@@ -1,0 +1,79 @@
+import { describe, expect, it } from "vitest";
+
+import { instituteShortName, scheduleQuality, sha256, stableStringify } from "./buildSnapshot.mjs";
+import { decodePayload } from "./vlsuClient.mjs";
+
+describe("stableStringify", () => {
+  it("не зависит от порядка ключей", () => {
+    expect(stableStringify({ b: 1, a: 2 })).toBe(stableStringify({ a: 2, b: 1 }));
+  });
+
+  it("сохраняет порядок массива: дни недели переставлять нельзя", () => {
+    expect(stableStringify([1, 2])).not.toBe(stableStringify([2, 1]));
+  });
+});
+
+describe("scheduleHash", () => {
+  const schedule = [{ type: "Lessons", name: "Понедельник", n1: "111-3, лб, Иванов И.И., Базы данных" }];
+
+  it("не меняется от текущей пары и времени снимка", () => {
+    // Главное свойство: иначе git показывал бы изменение во всех группах
+    // при каждом запуске обхода, а не реальную правку расписания.
+    const first = sha256({ semester: 5, schedule });
+    const second = sha256({ semester: 5, schedule });
+    expect(first).toBe(second);
+  });
+
+  it("меняется, когда меняется расписание", () => {
+    const changed = [{ ...schedule[0], n1: "119-3, лк, Петров П.П., Базы данных" }];
+    expect(sha256({ semester: 5, schedule })).not.toBe(sha256({ semester: 5, schedule: changed }));
+  });
+});
+
+describe("scheduleQuality", () => {
+  it("отвергает пустой массив: это не «занятий нет», а сбой", () => {
+    expect(scheduleQuality([])).toBeNull();
+    expect(scheduleQuality("")).toBeNull();
+  });
+
+  it("отвергает массив с посторонними записями", () => {
+    expect(scheduleQuality([{ type: "Lessons", name: "Понедельник" }, { foo: 1 }])).toBeNull();
+  });
+
+  it("считает дни и экзамены", () => {
+    const quality = scheduleQuality([
+      { type: "Lessons", name: "Понедельник", n1: "111-3, лб, Иванов И.И., Базы данных" },
+      { type: "ExamSession", name: "Базы данных", date: "10.01.2027", time: "09:00", isConsultation: false }
+    ]);
+    expect(quality).toMatchObject({ valid: true, scheduleEntries: 2, lessonDays: 1, examEntries: 1 });
+  });
+
+  it("помечает неделю без единого занятия", () => {
+    const quality = scheduleQuality([{ type: "Lessons", name: "Понедельник", n1: "", z1: "" }]);
+    expect(quality?.warnings).toContain("empty-week");
+  });
+});
+
+describe("decodePayload", () => {
+  it("разворачивает JSON, завёрнутый в JSON-строку", () => {
+    expect(decodePayload('[{"Value":"a","Text":"b"}]')).toEqual([{ Value: "a", Text: "b" }]);
+  });
+
+  it("оставляет пустую строку как есть, чтобы она была распознана как сбой", () => {
+    expect(decodePayload("")).toBe("");
+  });
+});
+
+describe("instituteShortName", () => {
+  it("разводит два юридических подразделения", () => {
+    const law = instituteShortName("Юридический институт");
+    const college = instituteShortName("Отделение среднего профессионального юридического образования");
+    expect(law).toBe("ЮИ");
+    expect(college).not.toBe(law);
+  });
+
+  it("узнаёт основные институты", () => {
+    expect(instituteShortName("Институт информационных технологий и электроники")).toBe("ИИТЭ");
+    expect(instituteShortName("Институт архитектуры, строительства и энергетики")).toBe("ИАС");
+  });
+});

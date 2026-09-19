@@ -120,10 +120,8 @@ describe("Cloudflare worker", () => {
   });
 
   it("rejects cross-origin API calls", async () => {
-    const response = await worker.fetch(new Request("https://app.example/app-api/classify", {
-      method: "POST",
-      headers: { Origin: "https://untrusted.example", "Content-Type": "application/json" },
-      body: JSON.stringify({ text: "test" })
+    const response = await worker.fetch(new Request("https://app.example/app-api/schedule/" + "a".repeat(32), {
+      headers: { Origin: "https://untrusted.example" }
     }), createEnv());
 
     expect(response.status).toBe(403);

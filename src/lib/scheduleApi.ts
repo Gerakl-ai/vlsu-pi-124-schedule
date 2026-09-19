@@ -1,11 +1,19 @@
 import type { CurrentInfo, LessonSlot, LessonVariant, ScheduleDataSource, ScheduleQuality, ScheduleState, WeekMode } from "../types";
 import { writeGroupScheduleCache } from "../features/groups/groupStorage";
+import { vlsuWeekTypeForDate } from "./academicWeek";
 import {
-  instituteShortName,
-  instituteVisualKey,
+  catalogGroups,
+  catalogInstitutes,
+  fetchStaticSnapshot,
+  loadStaticCatalog,
+  scheduleStateFromSnapshot
+} from "./staticData";
+import { instituteShortName, instituteVisualKey } from "../features/groups/instituteVisuals";
+import {
   type GroupOption,
   type GroupProfile,
-  type InstituteOption
+  type InstituteOption,
+  type StudyFormKey
 } from "../features/groups/groupTypes";
 
 const API_BASE = "/vlsu-api";
@@ -190,29 +198,89 @@ function unwrapArrayPayload<T>(payload: unknown, label: string): T[] {
   throw new Error(`VLSU API returned an invalid ${label} payload`);
 }
 
+/**
+ * Каталог институтов. Основной источник — статический снимок из ветки data:
+ * API ВлГУ недоступен из браузера на чужом домене, а снимок ещё и переживает
+ * падения upstream. Прямой запрос остаётся запасным путём для dev-сервера и
+ * старых развёртываний через proxy.
+ */
 export async function loadInstitutes(): Promise<InstituteOption[]> {
+  try {
+    return catalogInstitutes(await loadStaticCatalog());
+  } catch {
+    // Статика недоступна — идём через proxy.
+  }
+
   const payload = await request<unknown>("/catalogs/GetInstitutes");
   return unwrapArrayPayload<InstituteDto>(payload, "institutes")
     .filter((item) => typeof item.Value === "string" && typeof item.Text === "string" && item.Value && item.Text)
     .map((item) => ({
       id: item.Value,
       name: item.Text.trim(),
-      shortName: instituteShortName(item.Text),
+      shortName: instituteShortName(item.Value, item.Text),
       visualKey: instituteVisualKey(item.Value, item.Text)
     }))
     .sort((a, b) => a.name.localeCompare(b.name, "ru"));
 }
 
-export async function loadGroups(instituteId: string): Promise<GroupOption[]> {
+const STUDY_FORM_REQUESTS: Array<{ wformed: number; key: StudyFormKey }> = [
+  { wformed: 0, key: "full-time" },
+  { wformed: 1, key: "extramural" },
+  { wformed: 2, key: "part-time" }
+];
+
+async function fetchGroupsForForm(instituteId: string, wformed: number) {
   const groups = await request<GroupDto[] | GroupsResponse>("/student/GetStudGroups", {
     method: "POST",
-    body: JSON.stringify({ Institut: instituteId, WFormed: 0 })
+    body: JSON.stringify({ Institut: instituteId, WFormed: wformed })
   });
   const list = Array.isArray(groups) ? groups : groups.value ?? [];
-  return list
-    .filter((group) => typeof group.Nrec === "string" && typeof group.Name === "string" && group.Nrec && group.Name)
-    .map((group) => ({ nrec: group.Nrec, name: group.Name.trim(), course: group.Course?.trim() || undefined }))
-    .sort((a, b) => a.name.localeCompare(b.name, "ru", { numeric: true }));
+  return list.filter((group) => typeof group.Nrec === "string" && typeof group.Name === "string" && group.Nrec && group.Name);
+}
+
+/**
+ * Группы института по всем трём формам обучения.
+ *
+ * Раньше запрашивалась только очная (WFormed: 0), из-за чего заочники и
+ * очно-заочники не находили свою группу вообще — это больше трети групп ВлГУ.
+ */
+export async function loadGroups(instituteId: string): Promise<GroupOption[]> {
+  try {
+    const groups = catalogGroups(await loadStaticCatalog(), instituteId);
+    if (groups.length) return groups;
+  } catch {
+    // Статика недоступна — идём через proxy.
+  }
+
+  const byNrec = new Map<string, GroupOption>();
+  const responses = await Promise.allSettled(
+    STUDY_FORM_REQUESTS.map(async (form) => ({ form, groups: await fetchGroupsForForm(instituteId, form.wformed) }))
+  );
+
+  for (const response of responses) {
+    if (response.status !== "fulfilled") continue;
+    for (const group of response.value.groups) {
+      const existing = byNrec.get(group.Nrec);
+      if (existing) {
+        if (existing.forms && !existing.forms.includes(response.value.form.key)) {
+          existing.forms.push(response.value.form.key);
+        }
+        continue;
+      }
+      byNrec.set(group.Nrec, {
+        nrec: group.Nrec,
+        name: group.Name.trim(),
+        course: group.Course?.trim() || undefined,
+        forms: [response.value.form.key]
+      });
+    }
+  }
+
+  if (!byNrec.size && responses.every((response) => response.status === "rejected")) {
+    throw (responses[0] as PromiseRejectedResult).reason;
+  }
+
+  return [...byNrec.values()].sort((a, b) => a.name.localeCompare(b.name, "ru", { numeric: true }));
 }
 
 async function fetchCurrentInfo(nrec: string, metadata?: RequestMetadata): Promise<CurrentInfo> {
@@ -536,7 +604,31 @@ async function fetchGroupScheduleSnapshot(nrec: string) {
   }
 }
 
+/**
+ * Расписание группы из статического снимка.
+ *
+ * Снимок собран заранее на сервере и лежит на CDN, поэтому открытие расписания
+ * не зависит от доступности API ВлГУ в этот момент. Тип недели берётся из
+ * календаря, а не из снимка: так старый снимок не может перевернуть неделю.
+ */
+async function loadStaticSchedule(group: GroupProfile): Promise<ScheduleState> {
+  const snapshot = await fetchStaticSnapshot(group.nrec);
+  return scheduleStateFromSnapshot(snapshot, normalizeScheduleDays, vlsuWeekTypeForDate());
+}
+
+function normalizeScheduleDays(days: unknown[]) {
+  return normalizeSchedule(days as Array<ScheduleDayDto | ExamSessionDto>);
+}
+
 export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> {
+  try {
+    const staticState = await loadStaticSchedule(group);
+    writeGroupScheduleCache(staticState);
+    return staticState;
+  } catch {
+    // Снимка для этой группы ещё нет — пробуем прежние источники.
+  }
+
   if (import.meta.env.PROD) {
     try {
       const snapshot = await fetchGroupScheduleSnapshot(group.nrec);

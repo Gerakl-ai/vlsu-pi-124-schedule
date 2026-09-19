@@ -14,7 +14,10 @@
     "cloudflare:worker:check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
     "cloudflare:pages:check": "wrangler pages functions build functions --outdir .wrangler/pages --compatibility-date 2026-05-28",
     "cloudflare:check": "pnpm run cloudflare:worker:check && pnpm run cloudflare:pages:check",
-    "deploy": "pnpm run build && wrangler deploy"
+    "deploy": "pnpm run build && wrangler deploy",
+    "snapshot": "node scripts/snapshot/buildSnapshot.mjs",
+    "snapshot:catalog": "node scripts/snapshot/buildSnapshot.mjs --catalog-only",
+    "icons": "node scripts/icons/buildIcons.mjs"
   },
   "dependencies": {
     "@tiptap/extension-highlight": "^3.27.4",
