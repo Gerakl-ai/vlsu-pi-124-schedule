@@ -1040,7 +1040,8 @@ function Header({ group, currentWeek, isSessionSchedule, status, refreshedAt, on
 
       <div className="header-actions">
         <button className="week-chip" type="button" onClick={onRefresh} aria-label="Обновить расписание">
-          <CalendarDays size={18} />
+          {/* Иконка календаря убрана: рядом стоит само слово «Числ.»/«Знам.»,
+              а место в шапке нужнее названию группы. */}
           <span>{isSessionSchedule ? "Сессия" : formatWeekChip(currentWeek)}</span>
           <i className={`week-chip-health ${connectionState}`} title={syncStatusText(status, refreshedAt)} aria-hidden="true" />
           <RefreshCw className={isBusy ? "spin" : ""} size={16} />

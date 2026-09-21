@@ -4253,7 +4253,9 @@ button.day-title > svg {
   }
 
   .topbar {
-    grid-template-columns: minmax(156px, 1fr) minmax(0, 170px);
+    /* Правая колонка по содержимому, а не фиксированные 170px: иначе она
+       съедала ширину и название группы обрезалось до «ПИ-...». */
+    grid-template-columns: minmax(0, 1fr) auto;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     filter: none;
@@ -4270,7 +4272,7 @@ button.day-title > svg {
   .week-chip {
     min-width: 0;
     max-width: none;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
   }
 
   .header-icon-button {
