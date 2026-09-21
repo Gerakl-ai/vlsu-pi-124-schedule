@@ -35,8 +35,15 @@ function commitAppViewportHeight() {
 
   keyboardOpen = nextKeyboardOpen;
   if (!keyboardOpen && visualHeight > 0) stableViewportHeights[orientation] = visualHeight;
-  const appHeight = keyboardOpen && stableHeight > 0 ? stableHeight : visualHeight;
-  document.documentElement.style.setProperty("--app-viewport-height", `${appHeight}px`);
+  // Пока клавиатура закрыта, высоту задаёт CSS (100dvh) — это полный экран.
+  // Раньше сюда всегда писалась высота видимой области, а она в установленном
+  // приложении на iPhone не включает полосу домашнего индикатора: оболочка
+  // заканчивалась выше неё, и под нижней панелью оставалась пустая полоса.
+  if (keyboardOpen && stableHeight > 0) {
+    document.documentElement.style.setProperty("--app-viewport-height", `${stableHeight}px`);
+  } else {
+    document.documentElement.style.removeProperty("--app-viewport-height");
+  }
   if (Math.abs(visualHeight - appliedVisualHeight) > 1) {
     appliedVisualHeight = visualHeight;
     document.documentElement.style.setProperty("--visual-viewport-height", `${visualHeight}px`);

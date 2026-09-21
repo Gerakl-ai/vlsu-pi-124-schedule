@@ -1454,7 +1454,11 @@ function Timeline({
           <span>{timelineLabel}</span>
           <strong>{completedCount}/{lessons.length} пройдено</strong>
         </div>
-        <p>{focusLesson ? `${focusCopy}: ${lessonKeySubject(focusLesson)}` : focusCopy}</p>
+        {/* Строка нужна, только когда есть что сказать про ближайшую пару.
+            Без неё рядом стояли «4/4 пройдено» и «Все пары на сегодня
+            пройдены» — об одном и том же, да ещё и в третий раз после
+            карточки дня. */}
+        {focusLesson && <p>{`${focusCopy}: ${lessonKeySubject(focusLesson)}`}</p>}
       </div>
       {lessons.map((lesson, index) => (
         <LessonRow

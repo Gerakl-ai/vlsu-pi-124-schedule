@@ -22,7 +22,9 @@
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --nav-bar-height: 64px;
-  --nav-dock-bottom: max(6px, calc(var(--safe-bottom) - 26px));
+  /* Панель сама перекрывает полосу домашнего индикатора: иначе её значки
+     оказываются под ней, а раньше оболочка вообще заканчивалась выше. */
+  --nav-dock-bottom: max(6px, var(--safe-bottom));
   --nav-total-height: calc(6px + var(--nav-bar-height) + var(--nav-dock-bottom));
   --app-viewport-height: 100vh;
   --visual-viewport-height: 100vh;
