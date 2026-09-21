@@ -1,4 +1,5 @@
 import {
+  Fragment,
   lazy,
   Suspense,
   useCallback,
@@ -400,7 +401,7 @@ export function App() {
   const heroFallback = schedule ? parseCurrentInfoLesson(schedule.currentInfo.currentLesson) : null;
   const heroLesson = current ?? next;
   // Карточка обязана показывать ту же подгруппу, что и лента ниже.
-  const heroView = heroLesson ? lessonView(heroLesson, subgroup) : null;
+  const heroView = heroLesson ? lessonView(heroLesson, subgroup, selectedWeekMode) : null;
   const dayCompleted = (isSelectedToday && !heroLesson && todayLessons.length > 0) || (isSelectedPast && todayLessons.length > 0);
   const freeStudyDay = Boolean(schedule) && !heroLesson && !todayLessons.length;
   const heroMode: HeroMode = current ? "current" : next ? "next" : dayCompleted ? "done" : freeStudyDay ? "free" : "loading";
@@ -1363,6 +1364,7 @@ function TodayView({
           onCreateLessonNote={onCreateLessonNote}
           subgroup={subgroup}
           onSubgroup={onSubgroup}
+          selectedWeekMode={weekMode}
         />
       </div>
     </div>
@@ -1405,7 +1407,8 @@ function Timeline({
   onToggleNote,
   onCreateLessonNote,
   subgroup,
-  onSubgroup
+  onSubgroup,
+  selectedWeekMode
 }: {
   lessons: LessonSlot[];
   current?: LessonSlot;
@@ -1420,6 +1423,7 @@ function Timeline({
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
   subgroup: SubgroupChoice;
   onSubgroup: (choice: SubgroupChoice) => void;
+  selectedWeekMode: WeekMode;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -1461,7 +1465,23 @@ function Timeline({
             карточки дня. */}
         {focusLesson && <p>{`${focusCopy}: ${lessonKeySubject(focusLesson)}`}</p>}
       </div>
-      {lessons.map((lesson, index) => (
+      {lessons.map((lesson, index) => {
+        // Перерыв рисуется там, где он и происходит — между парами. Раньше окна
+        // были сведены в отдельную строку наверху, и день не читался как форма:
+        // непонятно, где он плотный, а где можно выдохнуть.
+        const previous = lessons[index - 1];
+        const gapMinutes = previous
+          ? minutesFromTime(lesson.start) - minutesFromTime(previous.end)
+          : 0;
+        const showGap = gapMinutes >= MIN_STUDY_WINDOW;
+
+        return (
+        <Fragment key={lesson.id}>
+        {showGap && (
+          <p className="timeline-gap" aria-label={`Перерыв ${formatDuration(gapMinutes)}`}>
+            <span>{formatDuration(gapMinutes)}</span>
+          </p>
+        )}
         <LessonRow
           key={lesson.id}
           lesson={lesson}
@@ -1475,9 +1495,12 @@ function Timeline({
           onCreateNote={(intent) => onCreateLessonNote(lesson, selectedDate, intent)}
           subgroup={subgroup}
           onSubgroup={onSubgroup}
+          weekMode={selectedWeekMode}
           index={index}
         />
-      ))}
+        </Fragment>
+        );
+      })}
     </section>
   );
 }
@@ -1494,6 +1517,7 @@ function LessonRow({
   onCreateNote,
   subgroup,
   onSubgroup,
+  weekMode,
   index
 }: {
   lesson: LessonSlot;
@@ -1507,10 +1531,11 @@ function LessonRow({
   onCreateNote: (intent: "note" | "homework") => void;
   subgroup: SubgroupChoice;
   onSubgroup: (choice: SubgroupChoice) => void;
+  weekMode: WeekMode;
   index: number;
 }) {
   const rowRef = useRef<HTMLElement>(null);
-  const view = lessonView(lesson, subgroup);
+  const view = lessonView(lesson, subgroup, weekMode);
 
   function handleToggle() {
     const willExpand = !isExpanded;

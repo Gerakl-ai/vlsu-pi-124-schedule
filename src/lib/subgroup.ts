@@ -17,7 +17,7 @@
  * после смены группы.
  */
 
-import type { LessonSlot, LessonVariant } from "../types";
+import type { LessonSlot, LessonVariant, WeekMode } from "../types";
 
 /** «Обе» — честный вариант по умолчанию: пока студент не выбрал, мы не угадываем. */
 export type SubgroupChoice = "all" | number;
@@ -72,13 +72,30 @@ function fromVariant(variant: LessonVariant, subgroupCount: number): LessonView 
 }
 
 /**
- * Как показать пару с учётом выбранной подгруппы.
+ * Подгруппы в лаборторных меняются местами каждую неделю: на числителе первая
+ * подгруппа у одного преподавателя, на знаменателе — у другого, и наоборот.
+ *
+ * ВлГУ этого не записывает: в его ответе числитель и знаменатель для такой пары
+ * совпадают до символа, а чередование студент держит в голове. Проверено на
+ * данных ПИ-124 — обе недели байт в байт одинаковые.
+ *
+ * Поэтому смещение считаем сами. Оно применяется только к парам, которые идут
+ * обе недели одинаково (weekMode === "all"): если недели в расписании
+ * действительно разные, там записано то, что есть, и выдумывать нечего.
+ */
+function variantIndexForWeek(choice: number, count: number, lesson: LessonSlot, weekMode: WeekMode) {
+  const rotates = lesson.weekMode === "all" && weekMode === "denominator";
+  return (choice + (rotates ? 1 : 0)) % count;
+}
+
+/**
+ * Как показать пару с учётом выбранной подгруппы и недели.
  *
  * Если выбранной подгруппы у конкретной пары нет — например, студент выбрал
  * вторую, а эта пара общая, — показывается склейка целиком. Молча прятать
  * занятие нельзя: пропущенная пара хуже лишней строки.
  */
-export function lessonView(lesson: LessonSlot, choice: SubgroupChoice): LessonView {
+export function lessonView(lesson: LessonSlot, choice: SubgroupChoice, weekMode: WeekMode = "all"): LessonView {
   const variants = lesson.variants ?? [];
   const subgroupCount = variants.length;
 
@@ -92,7 +109,9 @@ export function lessonView(lesson: LessonSlot, choice: SubgroupChoice): LessonVi
   };
 
   if (choice === "all" || subgroupCount < 2) return glued;
-  const variant = variants[choice];
+  if (choice >= subgroupCount) return glued;
+
+  const variant = variants[variantIndexForWeek(choice, subgroupCount, lesson, weekMode)];
   return variant ? fromVariant(variant, subgroupCount) : glued;
 }
 

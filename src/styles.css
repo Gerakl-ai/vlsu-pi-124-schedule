@@ -5636,3 +5636,29 @@ button.day-title > svg {
   border-color: color-mix(in srgb, var(--ruby) 30%, transparent);
   background: color-mix(in srgb, var(--ruby) 7%, var(--surface-strong));
 }
+
+/* Перерыв между парами. Намеренно тихий: это пауза в дне, а не событие —
+   но она должна быть видна там, где происходит, иначе день не читается. */
+.timeline-gap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 7px 0 7px var(--timeline-left);
+  color: var(--muted);
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.timeline-gap span {
+  position: relative;
+  z-index: 1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--theme-panel-solid);
+  border: 1px dashed color-mix(in srgb, var(--muted) 34%, transparent);
+}
+
+:root[data-theme-mode="light"] .timeline-gap span {
+  background: var(--surface-strong);
+}

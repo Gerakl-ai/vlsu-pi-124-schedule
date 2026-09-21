@@ -17,7 +17,7 @@ function lesson(rawText: string): LessonSlot {
     start: "08:30",
     end: "10:00",
     rawText,
-    weekMode: "numerator",
+    weekMode: "all",
     ...parseLessonText(rawText)
   };
 }
@@ -30,6 +30,29 @@ describe("lessonView", () => {
     expect(view.subject).toBe("Информационная безопасность / Основы backend разработки");
     expect(view.filtered).toBe(false);
     expect(view.subgroupCount).toBe(2);
+  });
+
+  it("меняет подгруппы местами на следующей неделе", () => {
+    // Главное свойство: лабораторные чередуются. На числителе первая подгруппа
+    // у одного преподавателя, на знаменателе — у другого. ВлГУ этого не
+    // записывает: обе недели в его ответе одинаковые, чередование наше.
+    expect(lessonView(split, 0, "numerator").subject).toBe("Информационная безопасность");
+    expect(lessonView(split, 0, "denominator").subject).toBe("Основы backend разработки");
+
+    expect(lessonView(split, 1, "numerator").subject).toBe("Основы backend разработки");
+    expect(lessonView(split, 1, "denominator").subject).toBe("Информационная безопасность");
+  });
+
+  it("аудитория едет вместе с предметом", () => {
+    expect(lessonView(split, 0, "numerator").room).toBe("428-2");
+    expect(lessonView(split, 0, "denominator").room).toBe("109-3");
+  });
+
+  it("не чередует пару, у которой недели в расписании разные", () => {
+    // Там записано то, что есть, и выдумывать смещение нельзя.
+    const onlyNumerator: LessonSlot = { ...split, weekMode: "numerator" };
+    expect(lessonView(onlyNumerator, 0, "numerator").subject).toBe("Информационная безопасность");
+    expect(lessonView(onlyNumerator, 0, "denominator").subject).toBe("Информационная безопасность");
   });
 
   it("с выбранной подгруппой показывает только её занятие и аудиторию", () => {
