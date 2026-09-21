@@ -32,20 +32,17 @@ describe("lessonView", () => {
     expect(view.subgroupCount).toBe(2);
   });
 
-  it("меняет подгруппы местами на следующей неделе", () => {
-    // Главное свойство: лабораторные чередуются. На числителе первая подгруппа
-    // у одного преподавателя, на знаменателе — у другого. ВлГУ этого не
-    // записывает: обе недели в его ответе одинаковые, чередование наше.
+  it("не придумывает чередование подгрупп при одинаковых данных обеих недель", () => {
     expect(lessonView(split, 0, "numerator").subject).toBe("Информационная безопасность");
-    expect(lessonView(split, 0, "denominator").subject).toBe("Основы backend разработки");
+    expect(lessonView(split, 0, "denominator").subject).toBe("Информационная безопасность");
 
     expect(lessonView(split, 1, "numerator").subject).toBe("Основы backend разработки");
-    expect(lessonView(split, 1, "denominator").subject).toBe("Информационная безопасность");
+    expect(lessonView(split, 1, "denominator").subject).toBe("Основы backend разработки");
   });
 
   it("аудитория едет вместе с предметом", () => {
     expect(lessonView(split, 0, "numerator").room).toBe("428-2");
-    expect(lessonView(split, 0, "denominator").room).toBe("109-3");
+    expect(lessonView(split, 0, "denominator").room).toBe("428-2");
   });
 
   it("не чередует пару, у которой недели в расписании разные", () => {

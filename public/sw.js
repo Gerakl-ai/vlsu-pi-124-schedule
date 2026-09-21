@@ -2,12 +2,13 @@
 // (sw.js?release=...). Так каждый выпуск получает свой кэш автоматически, и
 // установленное приложение не остаётся на старой сборке.
 const RELEASE = new URL(self.location.href).searchParams.get("release") || "dev";
-const CACHE_NAME = `lad-vlsu-${RELEASE}`;
 
 // Базовый путь выводится из адреса самого воркера: на своём домене это "/",
 // на проектном сайте GitHub Pages — "/<repo>/". Без этого установленное
 // приложение кэшировало бы чужие пути и не запускалось бы офлайн.
 const BASE = self.location.pathname.replace(/[^/]*$/, "");
+const CACHE_PREFIX = `lad-vlsu-scope:${encodeURIComponent(BASE)}:`;
+const CACHE_NAME = `${CACHE_PREFIX}${RELEASE}`;
 
 function path(value) {
   return BASE + String(value).replace(/^\//, "");
@@ -104,7 +105,7 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     Promise.all([
       caches.keys().then((keys) =>
-        Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key)))
+        Promise.all(keys.filter((key) => key.startsWith(CACHE_PREFIX) && key !== CACHE_NAME).map((key) => caches.delete(key)))
       ),
       self.registration.navigationPreload?.enable?.() ?? Promise.resolve()
     ])
@@ -121,6 +122,7 @@ self.addEventListener("fetch", (event) => {
   // Снимки расписания обновляются отдельным обходом и не входят в app shell:
   // их кэширование по требованию описано в docs/DATA-PIPELINE.md.
   if (url.origin !== self.location.origin) return;
+  if (!url.pathname.startsWith(BASE)) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
@@ -147,8 +149,8 @@ self.addEventListener("fetch", (event) => {
   }
 
   event.respondWith(
-    caches.match(request).then(async (requestMatch) => {
-      const cached = requestMatch || await caches.match(url.pathname);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const cached = await cache.match(request) || await cache.match(url.pathname);
       const fresh = fetch(request, { cache: "no-store" })
         .then((response) => {
           if (validBuildAsset(response, url.pathname)) {
