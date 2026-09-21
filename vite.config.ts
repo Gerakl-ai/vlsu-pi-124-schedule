@@ -14,7 +14,12 @@ export default defineConfig({
   // из корня. Базовый путь задаётся переменной окружения при сборке, чтобы
   // один и тот же код работал в обоих случаях.
   base: process.env.PAGES_BASE ?? "/",
-  plugins: [react()],
+  plugins: [react(), {
+    name: "release-html",
+    transformIndexHtml(html) {
+      return html.replace(/name="lad-release" content="[^"]*"/, `name="lad-release" content="${release}"`);
+    }
+  }],
   server: {
     port: 5173,
     proxy: {

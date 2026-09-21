@@ -379,6 +379,8 @@
       window.__ladBootComplete = false;
       (() => {
         const release = document.querySelector('meta[name="lad-release"]')?.content || "unknown";
+        const appBase = new URL("%BASE_URL%", window.location.origin);
+        const cachePrefix = `lad-vlsu-scope:${encodeURIComponent(appBase.pathname)}:`;
         let recoveryVisible = false;
 
         function showRecovery(reason) {
@@ -400,23 +402,32 @@
         async function recover(button, message) {
           button.disabled = true;
           message.textContent = "Проверяем свежую версию…";
+          const controller = new AbortController();
+          const timeout = window.setTimeout(() => controller.abort(), 10000);
           try {
-            const response = await fetch(`/index.html?lad-recovery=${Date.now()}`, { cache: "no-store" });
+            const recoveryUrl = new URL("index.html", appBase);
+            recoveryUrl.searchParams.set("lad-recovery", String(Date.now()));
+            const response = await fetch(recoveryUrl, { cache: "no-store", signal: controller.signal });
             const html = await response.text();
             const latestRelease = html.match(/name="lad-release" content="([^"]+)"/)?.[1];
             if (!response.ok || !latestRelease) {
               throw new Error("release unavailable");
             }
             const registrations = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
-            await Promise.all(registrations.map((registration) => registration.unregister()));
+            await Promise.all(registrations.filter((registration) => registration.scope === appBase.href).map((registration) => registration.unregister()));
             if ("caches" in window) {
               const names = await caches.keys();
-              await Promise.all(names.filter((name) => name.startsWith("lad-vlsu-")).map((name) => caches.delete(name)));
+              await Promise.all(names.filter((name) => name.startsWith(cachePrefix)).map((name) => caches.delete(name)));
             }
-            window.location.replace(`/?lad-recovered=${encodeURIComponent(latestRelease)}`);
+            const destination = new URL(appBase);
+            destination.search = window.location.search;
+            destination.searchParams.set("lad-recovered", latestRelease);
+            window.location.replace(destination.href);
           } catch {
             message.textContent = "Свежая версия пока недоступна. Проверьте сеть и попробуйте ещё раз.";
             button.disabled = false;
+          } finally {
+            window.clearTimeout(timeout);
           }
         }
 
