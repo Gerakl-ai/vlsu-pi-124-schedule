@@ -19,22 +19,30 @@ describe("freshnessNotice", () => {
     expect(notice?.title).toContain("17 сентября");
   });
 
-  it("после трёх суток советует свериться с сайтом ВлГУ", () => {
+  it("после трёх суток добавляет возраст и совет свериться", () => {
     // Ровно тот случай, что наблюдался в проде: снимок десятидневной давности
     // подавался как обычное расписание.
     const notice = freshnessNotice(daysAgo(10), NOW);
     expect(notice?.level).toBe("stale");
-    expect(notice?.title).toContain("устарело");
+    expect(notice?.title).toContain("8 сентября");
     expect(notice?.detail).toContain("10 дней");
-    expect(notice?.detail).toContain("сайте ВлГУ");
+    expect(notice?.detail).toContain("ВлГУ");
+  });
+
+  it("до трёх суток обходится одной строкой без подробностей", () => {
+    // Сообщение важное, но не должно занимать четверть экрана.
+    const notice = freshnessNotice(daysAgo(2), NOW);
+    expect(notice?.level).toBe("aging");
+    expect(notice?.title).toContain("Расписание от");
+    expect(notice?.detail).toBe("");
   });
 
   it("склоняет дни по-русски", () => {
-    expect(freshnessNotice(daysAgo(1), NOW)?.detail).toContain("1 день");
-    expect(freshnessNotice(daysAgo(2), NOW)?.detail).toContain("2 дня");
+    // Возраст называется только в «устаревшем» состоянии, то есть с четвёртых суток.
     expect(freshnessNotice(daysAgo(5), NOW)?.detail).toContain("5 дней");
     expect(freshnessNotice(daysAgo(11), NOW)?.detail).toContain("11 дней");
     expect(freshnessNotice(daysAgo(21), NOW)?.detail).toContain("21 день");
+    expect(freshnessNotice(daysAgo(22), NOW)?.detail).toContain("22 дня");
   });
 
   it("не падает на пустом и битом значении", () => {

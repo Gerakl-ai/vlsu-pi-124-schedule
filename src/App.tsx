@@ -208,8 +208,10 @@ function formatNoteCount(count: number) {
 }
 
 function formatWeekChip(mode: WeekMode) {
-  if (mode === "denominator") return "Знамен.";
-  if (mode === "numerator") return "Числитель";
+  // Коротко и одинаковой длины: длинные варианты всё равно обрезались
+  // до «Зна...», отнимая место у названия группы.
+  if (mode === "denominator") return "Знам.";
+  if (mode === "numerator") return "Числ.";
   return "Все";
 }
 
@@ -852,10 +854,10 @@ export function App() {
         >
           {freshness?.warn && (
             <p className={`freshness-banner level-${freshness.level}`} role="status">
-              <TriangleAlert size={16} aria-hidden="true" />
+              <TriangleAlert size={14} aria-hidden="true" />
               <span>
                 <strong>{freshness.title}</strong>
-                <small>{freshness.detail}</small>
+                {freshness.detail && <small>{freshness.detail}</small>}
               </span>
             </p>
           )}

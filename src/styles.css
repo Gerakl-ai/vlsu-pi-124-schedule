@@ -391,7 +391,10 @@ select,
 }
 
 .brand-button {
-  width: fit-content;
+  /* Забирает остаток строки, чтобы название группы помещалось целиком. */
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   max-width: 100%;
   padding: 0;
   color: inherit;
@@ -560,7 +563,9 @@ select,
   height: 50px;
   min-width: 0;
   max-width: none;
-  flex: 1 1 auto;
+  /* Не растягиваться: место в шапке принадлежит названию группы — это главное
+     слово на экране, а раньше чип отбирал ширину и «ПИ-124» резалось до «ПИ-...». */
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1108,6 +1113,13 @@ select,
     linear-gradient(135deg, rgba(11, 18, 30, 0.98), rgba(4, 7, 13, 0.96) 62%),
     var(--surface);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.52), 0 0 34px rgba(var(--accent-rgb), 0.08), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+/* Без строки прогресса карточке нечем заполнять минимальную высоту, и под
+   текстом оставалась заметная пустота. Пусть в таких режимах высоту задаёт
+   содержимое. */
+.hero-card:not(:has(.progress-row)) {
+  min-height: 0;
 }
 
 .hero-card.completed-day {
@@ -5350,12 +5362,13 @@ button.day-title > svg {
 /* Полоса возраста данных: появляется, только когда расписание реально устарело.
    Тихо протухшие данные хуже, чем их отсутствие. */
 .freshness-banner {
-  display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  align-items: start;
-  gap: 9px;
-  margin: 0 0 10px;
-  padding: 10px 12px;
+  /* Одна строка, а не блок: сказать о возрасте нужно, но это не повод
+     занимать четверть экрана над самим расписанием. */
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 7px 11px;
   border: 1px solid color-mix(in srgb, var(--warning) 38%, transparent);
   border-radius: 9px;
   background: color-mix(in srgb, var(--warning) 12%, var(--theme-panel-solid, transparent));
@@ -5368,7 +5381,7 @@ button.day-title > svg {
 }
 
 .freshness-banner > svg {
-  margin-top: 1px;
+  flex: none;
   color: var(--warning);
 }
 
@@ -5376,21 +5389,22 @@ button.day-title > svg {
   color: var(--ruby);
 }
 
-.freshness-banner strong,
-.freshness-banner small {
-  display: block;
+.freshness-banner > span {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0 6px;
 }
 
 .freshness-banner strong {
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
 }
 
 .freshness-banner small {
-  margin-top: 2px;
   color: var(--muted);
   font-size: 10.5px;
-  line-height: 1.4;
   font-weight: 650;
 }
 

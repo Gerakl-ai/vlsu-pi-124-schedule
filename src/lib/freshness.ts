@@ -65,19 +65,22 @@ export function freshnessNotice(fetchedAt: string | undefined, now = Date.now())
   const age = formatAge(ageMs);
   const date = formatDate(captured);
 
+  // Одна короткая строка вместо блока из двух предложений: сказать о возрасте
+  // нужно, но это не повод занимать четверть экрана и пугать формулировками.
+  // Человеку важна дата, а не то, какой сервис не ответил.
   if (ageMs < STALE_AFTER_MS) {
     return {
       level: "aging",
       warn: true,
       title: `Расписание от ${date}`,
-      detail: `ВлГУ не присылает обновления ${age}. Показан последний сохранённый снимок.`
+      detail: ""
     };
   }
 
   return {
     level: "stale",
     warn: true,
-    title: `Расписание устарело — ${date}`,
-    detail: `Обновлений нет ${age}. Сверьтесь с расписанием на сайте ВлГУ, прежде чем идти на пару.`
+    title: `Расписание от ${date}`,
+    detail: `это ${age} назад — стоит свериться с ВлГУ`
   };
 }
