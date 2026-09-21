@@ -65,6 +65,7 @@ import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/sch
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
+import { RELEASE_CHANNEL } from "./release";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
@@ -1095,6 +1096,12 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
       {open && (
         <div className="provenance-body">
           <dl className="provenance-facts">
+            <div>
+              {/* Видимый номер версии: без него не отличить «не работает» от
+                  «показывается старая версия из кэша». */}
+              <dt>Версия</dt>
+              <dd className="provenance-hash">{RELEASE_CHANNEL}</dd>
+            </div>
             <div>
               <dt>Источник</dt>
               <dd>{sourceLabel}</dd>
