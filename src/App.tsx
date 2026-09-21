@@ -169,12 +169,6 @@ function MotionScene() {
 
 import type { HeroMode } from "./lib/heroCopy";
 
-interface StudyWindow {
-  after: string;
-  before: string;
-  minutes: number;
-}
-
 interface NextStudyDay {
   dayIndex: number;
   dayName: string;
@@ -223,17 +217,6 @@ function formatDuration(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const leftMinutes = minutes % 60;
   return leftMinutes ? `${hours} ч ${leftMinutes} мин` : `${hours} ч`;
-}
-
-function buildStudyWindows(lessons: LessonSlot[]): StudyWindow[] {
-  return lessons
-    .slice(0, -1)
-    .map((lesson, index) => {
-      const nextLesson = lessons[index + 1];
-      const minutes = minutesFromTime(nextLesson.start) - minutesFromTime(lesson.end);
-      return minutes >= MIN_STUDY_WINDOW ? { after: lesson.end, before: nextLesson.start, minutes } : null;
-    })
-    .filter(Boolean) as StudyWindow[];
 }
 
 function findNextStudyDay(lessons: LessonSlot[], weekMode: WeekMode, date: Date): NextStudyDay | null {
@@ -422,7 +405,6 @@ export function App() {
   const progress = current ? lessonProgress(current, nowDate) : dayCompleted || freeStudyDay ? 100 : 0;
   const remaining = heroLesson && current ? minutesUntilEnd(heroLesson, nowDate) : 0;
   const nextStudyDay = schedule ? findNextStudyDay(schedule.allLessons, selectedWeekMode, selectedDate) : null;
-  const studyWindows = buildStudyWindows(todayLessons);
   const isSessionSchedule = Boolean(schedule?.allLessons.length && hasDatedLessons(schedule.allLessons));
 
   const refreshSchedule = useCallback(async () => {
@@ -895,7 +877,6 @@ export function App() {
               current={current}
               next={next}
               nextStudyDay={nextStudyDay}
-              studyWindows={studyWindows}
               nextLabel={nextLabel}
               lessons={displayLessons}
               weekMode={selectedWeekMode}
@@ -1192,7 +1173,6 @@ function TodayView({
   current,
   next,
   nextStudyDay,
-  studyWindows,
   nextLabel,
   lessons,
   weekMode,
@@ -1226,7 +1206,6 @@ function TodayView({
   current?: LessonSlot;
   next?: LessonSlot;
   nextStudyDay: NextStudyDay | null;
-  studyWindows: StudyWindow[];
   nextLabel: string;
   lessons: LessonSlot[];
   weekMode: WeekMode;
@@ -1325,8 +1304,6 @@ function TodayView({
       </div>
 
       <div className="today-detail-scroll">
-        <DayWindowsRow studyWindows={studyWindows} />
-
         {focusNote && (
           <button className="focus-note-card" type="button" onClick={onOpenNotes}>
             <span className="focus-note-icon"><BookCheck size={22} /></span>
@@ -1368,29 +1345,6 @@ function TodayView({
         />
       </div>
     </div>
-  );
-}
-
-/**
- * Окна между парами — единственный факт дня, которого нет ни в карточке, ни в
- * ленте занятий. Остальные плитки прежней сводки (прогресс, «дальше») лишь
- * пересказывали карточку, поэтому убраны.
- *
- * Это статус, а не кнопка: ни рамки, ни тени, ни стрелки — нажимать тут нечего.
- */
-function DayWindowsRow({ studyWindows }: { studyWindows: StudyWindow[] }) {
-  const nearest = studyWindows[0];
-  if (!nearest) return null;
-
-  const more = studyWindows.length - 1;
-  return (
-    <p className="day-windows-row">
-      <Clock3 size={15} aria-hidden="true" />
-      <span>
-        Окно {formatDuration(nearest.minutes)} · {nearest.after}-{nearest.before}
-        {more > 0 ? ` и ещё ${more}` : ""}
-      </span>
-    </p>
   );
 }
 

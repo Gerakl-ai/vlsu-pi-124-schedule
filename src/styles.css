@@ -468,7 +468,6 @@ select,
 }
 
 
-
 .group-brand-mark strong,
 .group-brand-mark small {
   position: relative;
@@ -5398,22 +5397,6 @@ button.day-title > svg {
   font-weight: 650;
 }
 
-/* Окна между парами — статус, а не кнопка: без рамки, тени и стрелки. */
-.day-windows-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0 0 10px;
-  padding: 0 2px;
-  color: var(--muted);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.day-windows-row > svg {
-  flex: none;
-  opacity: .8;
-}
 
 /* Выбор подгруппы предлагается прямо там, где видно обе: внутри раскрытой пары. */
 .subgroup-picker {
