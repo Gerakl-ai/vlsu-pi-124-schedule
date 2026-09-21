@@ -1,5 +1,6 @@
 import type { LessonSlot, NotificationCapability, ReminderSettings, WeekMode } from "../types";
 import { currentDayIndex, minutesFromTime, nowMinutes, selectDayLessons } from "./time";
+import { assetUrl } from "./assetUrl";
 
 const REMINDER_TIMER_KEY = "lad.reminder.timer.v2";
 const NOTIFICATION_TIMEOUT_MS = 1800;
@@ -145,8 +146,8 @@ export async function sendLocalNotification(title: string, body: string, tag = "
     await registration.showNotification(title, {
       body,
       tag,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
+      icon: assetUrl("icons/icon-192.png"),
+      badge: assetUrl("icons/icon-192.png"),
       data: { url: "/" }
     });
     return;
@@ -155,7 +156,7 @@ export async function sendLocalNotification(title: string, body: string, tag = "
   new Notification(title, {
     body,
     tag,
-    icon: "/icons/icon-192.png"
+    icon: assetUrl("icons/icon-192.png")
   });
 }
 

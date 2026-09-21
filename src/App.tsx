@@ -63,6 +63,7 @@ import {
 import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/scheduleApi";
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
+import { assetUrl } from "./lib/assetUrl";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
 import { readReminderSettings, writeReminderSettings } from "./lib/storage";
@@ -99,8 +100,8 @@ const WEEK_DAYS = ["Понедельник", "Вторник", "Среда", "Ч
 const WEEK_DAYS_SHORT = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
 const WEEK_DATE_FORMATTER = new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" });
 const REMINDER_OPTIONS = [5, 10, 15, 30];
-const HERO_VISUAL_DARK = "/images/hero-obsidian-campus.jpg";
-const HERO_VISUAL_LIGHT = "/images/hero-porcelain-campus.jpg";
+const HERO_VISUAL_DARK = assetUrl("images/hero-obsidian-campus.jpg");
+const HERO_VISUAL_LIGHT = assetUrl("images/hero-porcelain-campus.jpg");
 const MIN_STUDY_WINDOW = 20;
 const STARTUP_NETWORK_BUDGET_MS = 1_000;
 const INITIAL_GROUP_LINK = parseGroupLink(window.location.search);
