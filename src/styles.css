@@ -2806,10 +2806,9 @@ button.day-title > svg {
   padding: 16px;
 }
 
-.capability-card > svg,
-.personal-data-icon {
-  animation: settings-icon-float 4.6s ease-in-out infinite;
-}
+/* Вечное покачивание убрано: значок стоит вплотную к раскрывающейся панели
+   «Откуда данные», и непрерывное движение читается как дёрганье вёрстки.
+   Постоянная анимация рядом с текстом мешает, а не украшает. */
 
 .capability-card {
   display: grid;
@@ -5644,4 +5643,27 @@ button.day-title > svg {
 
 :root[data-theme-mode="light"] .timeline-gap span {
   background: var(--surface-strong);
+}
+
+/* Предупреждение об отсутствии копии. Показывается, только пока записи есть
+   и копия ни разу не делалась, — и исчезает навсегда после первого экспорта. */
+.backup-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  border: 1px solid color-mix(in srgb, var(--warning) 32%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--warning) 9%, transparent);
+  color: var(--text);
+  font-size: 10.5px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.backup-warning > svg {
+  flex: none;
+  margin-top: 1px;
+  color: var(--warning);
 }

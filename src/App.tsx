@@ -65,6 +65,7 @@ import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/sch
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
+import { markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { RELEASE_CHANNEL } from "./release";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
@@ -1939,6 +1940,7 @@ function SettingsView({
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
+  const [backupMade, setBackupMade] = useState(() => readBackupMade());
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
     : schedule?.source === "static-snapshot"
@@ -2076,8 +2078,17 @@ function SettingsView({
             <p>Неофициальное приложение для студентов ВлГУ. Расписание берётся из публичного снимка, собранного заранее; заметки и вложения никуда не отправляются и остаются на устройстве.</p>
             <p>Нет аккаунта, аналитики и облачной обработки записей: разбор заметок выполняется целиком в браузере.</p>
           </details>
+          {notes.length > 0 && !backupMade && (
+            <p className="backup-warning" role="status">
+              <TriangleAlert size={14} aria-hidden="true" />
+              <span>
+                Копия не создавалась. Записи есть только на этом устройстве — если
+                удалить приложение, они исчезнут вместе с ним.
+              </span>
+            </p>
+          )}
           <div className="backup-actions">
-            <button type="button" onClick={() => downloadNotesBackup(notes)} disabled={!notes.length}>
+            <button type="button" onClick={() => { downloadNotesBackup(notes); markBackupMade(); setBackupMade(true); }} disabled={!notes.length}>
               <Download size={17} /> Экспорт
             </button>
             <button type="button" onClick={() => importInputRef.current?.click()}>
