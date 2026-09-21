@@ -1,6 +1,6 @@
-import type { NoteKind, NoteStatus, SmartNote } from "./noteTypes";
+import type { NoteFolder, NoteKind, NoteStatus, SmartNote } from "./noteTypes";
 
-const BACKUP_VERSION = 5;
+const BACKUP_VERSION = 6;
 const NOTE_KINDS = new Set<NoteKind>(["note", "task", "homework", "wish", "idea"]);
 const NOTE_STATUSES = new Set<NoteStatus>(["open", "done"]);
 
@@ -9,6 +9,7 @@ interface NotesBackup {
   version: number;
   exportedAt: string;
   notes: SmartNote[];
+  folders: NoteFolder[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -81,17 +82,18 @@ function isSmartNote(value: unknown): value is SmartNote {
   );
 }
 
-export function createNotesBackup(notes: SmartNote[]): NotesBackup {
+export function createNotesBackup(notes: SmartNote[], folders: NoteFolder[] = []): NotesBackup {
   return {
     app: "lad",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
-    notes
+    notes,
+    folders: folders.filter((folder) => !folder.system)
   };
 }
 
-export function downloadNotesBackup(notes: SmartNote[]) {
-  const payload = JSON.stringify(createNotesBackup(notes), null, 2);
+export function downloadNotesBackup(notes: SmartNote[], folders: NoteFolder[] = []) {
+  const payload = JSON.stringify(createNotesBackup(notes, folders), null, 2);
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -105,10 +107,19 @@ export function downloadNotesBackup(notes: SmartNote[]) {
 }
 
 export function parseNotesBackup(raw: string): SmartNote[] {
+  return parseNotesArchive(raw).notes;
+}
+
+export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: NoteFolder[] } {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
+  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, 5, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
     throw new Error("Unsupported notes backup");
   }
   if (!parsed.notes.every(isSmartNote)) throw new Error("Invalid notes backup");
-  return parsed.notes;
+  const folders = parsed.folders ?? [];
+  if (!Array.isArray(folders) || !folders.every((folder) => isRecord(folder)
+    && typeof folder.id === "string" && typeof folder.name === "string" && folder.name.trim().length > 0
+    && typeof folder.color === "string" && /^#[0-9a-f]{6}$/i.test(folder.color)
+    && folder.system === false && isDateString(folder.createdAt))) throw new Error("Invalid folders backup");
+  return { notes: parsed.notes, folders: folders as NoteFolder[] };
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createNotesBackup, parseNotesBackup } from "./noteBackup";
+import { createNotesBackup, parseNotesBackup, parseNotesArchive } from "./noteBackup";
 import type { SmartNote } from "./noteTypes";
 
 const manualDeadlineNote: SmartNote = {
@@ -21,9 +21,17 @@ const manualDeadlineNote: SmartNote = {
 };
 
 describe("notes backup", () => {
+  it("preserves empty custom folders and their colors", () => {
+    const folder = { id: "custom", name: "Монтаж", color: "#123456", system: false, createdAt: manualDeadlineNote.createdAt };
+    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [folder])))).toEqual({ notes: [], folders: [folder] });
+  });
+
+  it("rejects invalid folders before importing", () => {
+    expect(() => parseNotesArchive(JSON.stringify({ ...createNotesBackup([manualDeadlineNote]), folders: [{ id: "bad" }] }))).toThrow("Invalid folders backup");
+  });
   it("preserves manual deadline metadata in the current version", () => {
     const backup = createNotesBackup([manualDeadlineNote]);
-    expect(backup.version).toBe(5);
+    expect(backup.version).toBe(6);
     expect(parseNotesBackup(JSON.stringify(backup))).toEqual([manualDeadlineNote]);
   });
 

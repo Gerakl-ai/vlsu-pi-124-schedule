@@ -42,10 +42,10 @@ import {
   Waves
 } from "lucide-react";
 import type { AppTab, ApiStatus, LessonSlot, NotificationCapability, ReminderSettings, ScheduleState, WeekMode } from "./types";
-import { downloadNotesBackup, parseNotesBackup } from "./features/notes/noteBackup";
+import { downloadNotesBackup, parseNotesArchive } from "./features/notes/noteBackup";
 import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
-import type { NoteComposerRequest, SmartNote } from "./features/notes/noteTypes";
+import type { NoteComposerRequest, NoteFolder, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
@@ -954,6 +954,7 @@ export function App() {
               onThemeOpen={() => setThemeSheetOpen(true)}
               notes={smartNotes.notes}
               onImportNotes={smartNotes.importNotes}
+              folders={smartNotes.folders}
             />
           )}
         </div>
@@ -1920,6 +1921,7 @@ function SettingsView({
   customThemeName,
   onThemeOpen,
   notes,
+  folders,
   onImportNotes
 }: {
   settings: ReminderSettings;
@@ -1934,7 +1936,8 @@ function SettingsView({
   customThemeName: string;
   onThemeOpen: () => void;
   notes: SmartNote[];
-  onImportNotes: (notes: SmartNote[]) => Promise<number>;
+  folders: NoteFolder[];
+  onImportNotes: (notes: SmartNote[], folders?: NoteFolder[]) => Promise<number>;
 }) {
   const activeTheme = THEMES.find((theme) => theme.id === themeId) ?? THEMES[0];
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
@@ -1956,8 +1959,9 @@ function SettingsView({
   async function importBackup(file?: File) {
     if (!file) return;
     try {
-      const imported = await onImportNotes(parseNotesBackup(await file.text()));
-      setBackupNotice(imported ? `Добавлено или обновлено записей: ${imported}` : "Все записи уже актуальны.");
+      const archive = parseNotesArchive(await file.text());
+      const imported = await onImportNotes(archive.notes, archive.folders);
+      setBackupNotice(`${imported ? `Добавлено или обновлено записей: ${imported}.` : "Все записи уже актуальны."}${archive.folders.length ? " Папки восстановлены; существующие сохранены." : ""}`);
     } catch {
       setBackupNotice("Не удалось прочитать копию. Выберите JSON-файл, созданный в «Лад».");
     } finally {
@@ -2059,6 +2063,12 @@ function SettingsView({
             </div>
           </header>
           <p>Записи хранятся на устройстве. Резервная копия переносит их без аккаунта и облачной синхронизации.</p>
+          <details className="privacy-details">
+            <summary>Не вижу прежние записи</summary>
+            <p>Сейчас открыт адрес {window.location.hostname}. У каждого домена и браузера отдельное хранилище. Записи со старого адреса автоматически сюда не переносятся.</p>
+            <p>Откройте прежнее приложение, выберите «Настройки → Экспорт» и импортируйте полученный файл здесь. До сохранения копии не удаляйте старое приложение и не очищайте данные сайта.</p>
+            <p>Копия содержит сохранённые записи, встроенные фотографии и пользовательские папки. Несохранённые черновики в неё не входят.</p>
+          </details>
           <div className="privacy-map" aria-label="Как приложение работает с данными">
             <div>
               <ShieldCheck size={18} />
@@ -2088,7 +2098,7 @@ function SettingsView({
             </p>
           )}
           <div className="backup-actions">
-            <button type="button" onClick={() => { downloadNotesBackup(notes); markBackupMade(); setBackupMade(true); }} disabled={!notes.length}>
+            <button type="button" onClick={() => { downloadNotesBackup(notes, folders); markBackupMade(); setBackupMade(true); }} disabled={!notes.length && !folders.some((folder) => !folder.system)}>
               <Download size={17} /> Экспорт
             </button>
             <button type="button" onClick={() => importInputRef.current?.click()}>

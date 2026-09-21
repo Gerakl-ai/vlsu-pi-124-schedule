@@ -255,12 +255,23 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
     await removeFolder(folderId);
   }, [folders]);
 
-  const importNotes = useCallback(async (incoming: SmartNote[]) => {
+  const importNotes = useCallback(async (incoming: SmartNote[], incomingFolders: NoteFolder[] = []) => {
+    const folderNames = new Set(folders.map((folder) => folder.name.trim().toLocaleLowerCase()));
+    const addedFolders: NoteFolder[] = [];
+    for (const folder of incomingFolders) {
+      const name = folder.name.trim().toLocaleLowerCase();
+      if (folderNames.has(name)) continue;
+      folderNames.add(name);
+      const restored = { ...folder, id: createId("folder"), system: false };
+      await storeFolder(restored);
+      addedFolders.push(restored);
+    }
+    if (addedFolders.length) setFolders((current) => [...current, ...addedFolders]);
     let importedCount = 0;
     const merged = new Map(notes.map((note) => [note.id, note]));
     incoming.forEach((note) => {
       const existing = merged.get(note.id);
-      if (!existing || note.updatedAt > existing.updatedAt) {
+      if (!existing || Date.parse(note.updatedAt) > Date.parse(existing.updatedAt)) {
         merged.set(note.id, {
           ...normalizeStoredNote(note),
           classificationPending: false
@@ -272,7 +283,7 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
     setNotes(mergedNotes);
     for (const note of mergedNotes) await storeNote(note);
     return importedCount;
-  }, [notes]);
+  }, [notes, folders]);
 
   const classifyDraft = useCallback((text: string) => classifyNote(text, subjects, spaces), [spaces, subjects]);
 
