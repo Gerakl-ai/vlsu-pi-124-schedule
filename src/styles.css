@@ -5576,3 +5576,63 @@ button.day-title > svg {
 .provenance-failures {
   color: var(--warning);
 }
+
+/* ------------------------------------------------------------------ *
+ * Светлые темы: тёплая бумага
+ *
+ * Карточки лежали на кремовом фоне с чёрными и синевато-серыми тенями —
+ * на тёплом фоне такая тень читается не как объём, а как грязь, и весь экран
+ * выглядит сырым. Здесь тени перекрашены в тон бумаги, границы чуть собраны,
+ * а скругления увеличены: мягкой теме жёсткие 8 пикселей не идут.
+ *
+ * Ничего не добавлено — только исправлено то, что рисовалось под тёмную тему.
+ * ------------------------------------------------------------------ */
+
+:root[data-theme-mode="light"] {
+  --paper-shadow-soft: 0 10px 28px rgba(120, 74, 44, .10), 0 2px 7px rgba(120, 74, 44, .055);
+  --paper-shadow-lift: 0 20px 48px rgba(120, 74, 44, .15), 0 4px 12px rgba(120, 74, 44, .07);
+  --paper-line: rgba(120, 74, 44, .16);
+}
+
+:root[data-theme-mode="light"] .timeline-card,
+:root[data-theme-mode="light"] .week-map,
+:root[data-theme-mode="light"] .settings-panel,
+:root[data-theme-mode="light"] .focus-note-card,
+:root[data-theme-mode="light"] .next-card,
+:root[data-theme-mode="light"] .empty-state {
+  border-color: var(--paper-line);
+  box-shadow: var(--paper-shadow-soft);
+}
+
+:root[data-theme-mode="light"] .hero-card {
+  border-color: var(--paper-line);
+  box-shadow: var(--paper-shadow-lift);
+}
+
+/* Карточка дня — главный объект экрана, ей можно больше мягкости. */
+:root[data-theme-mode="light"] .hero-card,
+:root[data-theme-mode="light"] .timeline-card,
+:root[data-theme-mode="light"] .settings-panel,
+:root[data-theme-mode="light"] .week-map {
+  border-radius: 16px;
+}
+
+:root[data-theme-mode="light"] .focus-note-card,
+:root[data-theme-mode="light"] .next-card,
+:root[data-theme-mode="light"] .empty-state,
+:root[data-theme-mode="light"] .freshness-banner {
+  border-radius: 12px;
+}
+
+/* Полоса возраста — предупреждение, а не тревога: приглушаем заливку,
+   чтобы она не была самым громким пятном над расписанием. */
+:root[data-theme-mode="light"] .freshness-banner {
+  border-color: color-mix(in srgb, var(--warning) 26%, transparent);
+  background: color-mix(in srgb, var(--warning) 7%, var(--surface-strong));
+  box-shadow: none;
+}
+
+:root[data-theme-mode="light"] .freshness-banner.level-stale {
+  border-color: color-mix(in srgb, var(--ruby) 30%, transparent);
+  background: color-mix(in srgb, var(--ruby) 7%, var(--surface-strong));
+}

@@ -14,7 +14,9 @@
     <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
     <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
     <!-- iOS не понимает SVG и не применяет маску, поэтому здесь нужна готовая PNG. -->
-    <link rel="apple-touch-icon" href="/icons/icon-512.png" />
+    <!-- iOS сам скругляет иконку, поэтому отдаём вариант без скруглений:
+         иначе углы срезаются дважды и по краю видны артефакты. -->
+    <link rel="apple-touch-icon" href="/icons/icon-maskable-512.png" />
     <link rel="preload" href="/icons/icon-192.png" as="image" />
     <script>
       (() => {
