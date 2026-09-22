@@ -5667,3 +5667,61 @@ button.day-title > svg {
   margin-top: 1px;
   color: var(--warning);
 }
+
+/* Desktop uses the available width; phone and landscape layouts stay independent. */
+@media (min-width: 1100px) and (min-height: 650px) {
+  .phone-frame {
+    width: min(100%, 1200px);
+    height: calc(var(--app-viewport-height) - 48px);
+    min-height: 0;
+  }
+
+  .content-scroll {
+    padding: 20px 28px 28px;
+    scrollbar-width: thin;
+  }
+
+  .topbar { padding: 20px 28px 12px; }
+  .brand h1 { font-size: 26px; }
+  .sync-line { font-size: 12px; }
+
+  .today-view,
+  .week-view,
+  .notes-view {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+    gap: 24px;
+  }
+
+  .today-primary,
+  .week-overview,
+  .notes-dashboard {
+    display: grid;
+    gap: 14px;
+    position: sticky;
+    top: 0;
+    min-width: 0;
+  }
+
+  .today-detail-scroll,
+  .week-list,
+  .notes-list,
+  .notes-empty { min-width: 0; }
+
+  .today-detail-scroll { display: grid; gap: 14px; }
+
+  .hero-card h2 { font-size: 28px; line-height: 1.16; }
+  .hero-card.compact-title h2 { font-size: 25px; }
+  .hero-card.dense-title h2 { font-size: 23px; }
+  .lesson-title { font-size: 18px; }
+  .settings-view { max-width: 940px; margin-inline: auto; }
+
+  .bottom-nav {
+    align-self: center;
+    width: 600px;
+    flex-shrink: 0;
+  }
+
+  .bottom-nav button { font-size: 12px; }
+}
