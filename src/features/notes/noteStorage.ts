@@ -3,6 +3,7 @@ import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
 
 const DB_NAME = "lad-personal";
 const DB_VERSION = 2;
+const DB_OPEN_TIMEOUT_MS = 1500;
 const NOTES_STORE = "notes";
 const FOLDERS_STORE = "folders";
 const DRAFTS_STORE = "drafts";
@@ -47,7 +48,19 @@ function openDatabase(): Promise<IDBDatabase> {
     }
 
     const request = indexedDB.open(DB_NAME, DB_VERSION);
+    let settled = false;
+    const fail = (error: Error | DOMException) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      reject(error);
+    };
+    const timeout = setTimeout(() => fail(new Error("IndexedDB open timed out")), DB_OPEN_TIMEOUT_MS);
     request.onupgradeneeded = () => {
+      if (settled) {
+        request.transaction?.abort();
+        return;
+      }
       const database = request.result;
       if (!database.objectStoreNames.contains(NOTES_STORE)) {
         const store = database.createObjectStore(NOTES_STORE, { keyPath: "id" });
@@ -62,8 +75,19 @@ function openDatabase(): Promise<IDBDatabase> {
         database.createObjectStore(DRAFTS_STORE, { keyPath: "id" });
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error ?? new Error("IndexedDB failed"));
+    request.onsuccess = () => {
+      const database = request.result;
+      if (settled) {
+        database.close();
+        return;
+      }
+      settled = true;
+      clearTimeout(timeout);
+      database.onversionchange = () => database.close();
+      resolve(database);
+    };
+    request.onerror = () => fail(request.error ?? new Error("IndexedDB failed"));
+    request.onblocked = () => fail(new Error("IndexedDB upgrade blocked"));
   });
 }
 
@@ -118,7 +142,7 @@ export async function loadNotes(): Promise<SmartNote[]> {
     const merged = new Map(fallbackNotes.map((note) => [note.id, note]));
     storedNotes.forEach((note) => {
       const fallback = merged.get(note.id);
-      if (!fallback || note.updatedAt >= fallback.updatedAt) merged.set(note.id, note);
+      if (!fallback || Date.parse(note.updatedAt) >= Date.parse(fallback.updatedAt)) merged.set(note.id, note);
     });
     notes = [...merged.values()];
   } catch {
