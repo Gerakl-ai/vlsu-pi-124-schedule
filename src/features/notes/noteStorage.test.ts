@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { loadNotes, normalizeStoredNote } from "./noteStorage";
+import { loadFolders, loadNotes, normalizeStoredNote, storeFolder } from "./noteStorage";
 import type { SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -44,6 +44,31 @@ describe("note database recovery", () => {
     });
     return request;
   }
+
+  it("retains fallback-only folders when IndexedDB becomes readable again", async () => {
+    const request = setup();
+    const folder = { id: "custom", name: "Монтаж", color: "#123456", system: false, createdAt: baseNote.createdAt };
+    localStorage.setItem("lad.note-folders.fallback", JSON.stringify([folder]));
+    const resultRequest: Record<string, any> = {};
+    request.result = { close: vi.fn(), transaction: () => ({ objectStore: () => ({ getAll: () => resultRequest }) }) };
+    const pending = loadFolders();
+    request.onsuccess();
+    await Promise.resolve();
+    resultRequest.result = [];
+    resultRequest.onsuccess();
+    expect(await pending).toContainEqual(folder);
+    expect(JSON.parse(localStorage.getItem("lad.note-folders.fallback")!)).toContainEqual(folder);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("mirrors a new folder before waiting for a stalled database", async () => {
+    setup();
+    const folder = { id: "new", name: "Репетиция", color: "#123456", system: false, createdAt: baseNote.createdAt };
+    const pending = storeFolder(folder);
+    expect(JSON.parse(localStorage.getItem("lad.note-folders.fallback")!)).toContainEqual(folder);
+    await vi.advanceTimersByTimeAsync(1500);
+    await pending;
+  });
 
   it("uses the mirror on a stalled open and closes a late connection", async () => {
     const request = setup();

@@ -193,31 +193,32 @@ function mergeDefaultFolders(stored: NoteFolder[]) {
 }
 
 export async function loadFolders(): Promise<NoteFolder[]> {
+  const fallback = readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []);
   try {
     const stored = await getAll<NoteFolder>(FOLDERS_STORE);
-    const folders = mergeDefaultFolders(stored);
-    await Promise.all(DEFAULT_NOTE_FOLDERS.map((folder) => putValue(FOLDERS_STORE, folder)));
+    const merged = new Map(fallback.map((folder) => [folder.id, folder]));
+    stored.forEach((folder) => merged.set(folder.id, folder));
+    const folders = mergeDefaultFolders([...merged.values()]);
+    writeFallback(FOLDERS_FALLBACK_KEY, folders);
     return folders;
   } catch {
-    return mergeDefaultFolders(readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []));
+    return mergeDefaultFolders(fallback);
   }
 }
 
 export async function storeFolder(folder: NoteFolder): Promise<void> {
+  const folders = readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []).filter((item) => item.id !== folder.id);
+  writeFallback(FOLDERS_FALLBACK_KEY, [...folders, folder]);
   try {
     await putValue(FOLDERS_STORE, folder);
-  } catch {
-    const folders = readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []).filter((item) => item.id !== folder.id);
-    writeFallback(FOLDERS_FALLBACK_KEY, [...folders, folder]);
-  }
+  } catch { /* The mirror remains available when IndexedDB is unavailable. */ }
 }
 
 export async function removeFolder(folderId: string): Promise<void> {
+  writeFallback(FOLDERS_FALLBACK_KEY, readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []).filter((folder) => folder.id !== folderId));
   try {
     await deleteValue(FOLDERS_STORE, folderId);
-  } catch {
-    writeFallback(FOLDERS_FALLBACK_KEY, readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []).filter((folder) => folder.id !== folderId));
-  }
+  } catch { /* Pending database deletions still need tombstone reconciliation. */ }
 }
 
 export async function loadDraft(draftId: string): Promise<NoteDraft | null> {
