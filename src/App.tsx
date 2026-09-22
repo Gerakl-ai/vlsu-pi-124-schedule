@@ -47,6 +47,7 @@ import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
 import type { NoteComposerRequest, NoteFolder, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
+import { personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
@@ -325,6 +326,15 @@ export function App() {
   const [NotesView, setNotesView] = useState<NotesViewComponent | null>(null);
   const [tabMotion, setTabMotion] = useState<{ id: number; direction: "forward" | "backward" }>({ id: 0, direction: "forward" });
   const contentScrollRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (!tabMotion.id || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
+    const animation = view?.animate([
+      { transform: `translate3d(${tabMotion.direction === "forward" ? 36 : -36}px,0,0)` },
+      { transform: "translate3d(0,0,0)" }
+    ], { duration: 280, easing: "cubic-bezier(.22,.8,.25,1)" });
+    return () => animation?.cancel();
+  }, [tabMotion]);
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
@@ -688,6 +698,8 @@ export function App() {
   }, [navigateToTab, selectedDate]);
 
   const hideGestureFeedback = useCallback(() => {
+    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
+    if (view) view.style.removeProperty("translate");
     const feedback = gestureFeedbackRef.current;
     if (!feedback) return;
     feedback.dataset.visible = "false";
@@ -702,6 +714,10 @@ export function App() {
     }
 
     const { deltaX, startX, viewportWidth } = gesture;
+    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
+    if (view && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      view.style.translate = `${Math.max(-72, Math.min(72, deltaX * .24))}px 0`;
+    }
     const fromLeftEdge = startX <= SCREEN_SWIPE_EDGE_PX && deltaX > 0;
     const fromRightEdge = startX >= viewportWidth - SCREEN_SWIPE_EDGE_PX && deltaX < 0;
     const tab = adjacentTab(activeTab, deltaX);
@@ -854,7 +870,6 @@ export function App() {
             <strong data-gesture-label />
             <small>свайп</small>
           </div>
-          {tabMotion.id > 0 && <span key={tabMotion.id} className={`tab-motion-veil ${tabMotion.direction}`} aria-hidden="true" />}
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
@@ -1234,6 +1249,8 @@ function TodayView({
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
   const titleClass = heroSubject.length > 44 ? "dense-title" : heroSubject.length > 30 ? "compact-title" : "";
+  const personalEvents = usePersonalEvents();
+  const selectedPersonalEvents = personalEventsOnDate(personalEvents, selectedDate);
   const minutesToNext = next && isSelectedToday ? minutesUntilStart(next, now) : 0;
   const hero = heroCopy({
     mode: heroMode,
@@ -1281,6 +1298,11 @@ function TodayView({
           <button className="date-step" type="button" onClick={() => moveDay(1)} aria-label="Следующий день"><ChevronRight size={21} /></button>
         </div>
 
+        {selectedPersonalEvents.length > 0 && <section className="personal-day-events" aria-label="Личные события">
+          {selectedPersonalEvents.map((event) => <button type="button" key={event.id} onClick={onOpenCalendar}>
+            <CalendarDays size={18} /><span><strong>{event.title}</strong><small>{new Date(event.start).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}–{new Date(event.end).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}{event.location ? ` · ${event.location}` : ""}</small></span><ChevronRight size={18} />
+          </button>)}
+        </section>}
         <section className={`hero-card mode-${heroMode} ${titleClass} ${dayCompleted ? "completed-day" : ""} ${lightHero ? "light-hero" : ""}`}>
           <img className="hero-visual hero-visual-backdrop" src={heroVisual} alt="" aria-hidden="true" />
           <img className="hero-visual hero-visual-fit" src={heroVisual} alt="" aria-hidden="true" />

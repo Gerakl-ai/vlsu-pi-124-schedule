@@ -23,7 +23,7 @@ interface NoteComposerProps {
   onSave: (input: NoteDocumentInput, noteId?: string) => Promise<void>;
 }
 
-type DraftState = "idle" | "saving" | "saved";
+type DraftState = "idle" | "saving" | "saved" | "error";
 type ShareState = "idle" | "working" | "done" | "error";
 
 export function NoteComposer({ note, folders, open, initialSeed = "", initialDueAt, initialLessonContext, voiceStartToken = 0, classifyDraft, onClose, onDelete, onSave }: NoteComposerProps) {
@@ -38,11 +38,12 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   const [shareState, setShareState] = useState<ShareState>("idle");
   const [hydrating, setHydrating] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(false);
   const [draftState, setDraftState] = useState<DraftState>("idle");
   const [editorKey, setEditorKey] = useState(0);
   const draftRevisionRef = useRef(0);
   const hydratedDraftRef = useRef<string | null>(null);
-  const draftWriteRef = useRef<Promise<void>>(Promise.resolve());
+  const draftWriteRef = useRef<Promise<boolean>>(Promise.resolve(true));
   const shareResetTimerRef = useRef<number | undefined>(undefined);
   const draftId = note?.id ?? (initialLessonContext
     ? `new-${initialLessonContext.lessonId}-${initialLessonContext.date}-${initialLessonContext.intent}`
@@ -84,13 +85,14 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
     hydratedDraftRef.current = draftId;
     setHydrating(false);
     setSaving(false);
+    setSaveError(false);
     setShareState("idle");
     setDeadlineOpen(Boolean(initialDueAt));
     setDraftState(restoredDraft ? "saved" : "idle");
   }, [draftId, initialDueAt, initialLessonContext, initialSeed, note, noteSavedAt, open]);
 
   const persistDraft = useCallback(async () => {
-    if (!open || hydrating || hydratedDraftRef.current !== draftId) return;
+    if (!open || hydrating || hydratedDraftRef.current !== draftId) return false;
     const revision = draftRevisionRef.current;
     setDraftState("saving");
     const snapshot = {
@@ -107,8 +109,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
       .catch(() => undefined)
       .then(() => storeDraft(snapshot));
     draftWriteRef.current = write;
-    await write;
-    if (revision === draftRevisionRef.current) setDraftState("saved");
+    const persisted = await write;
+    if (revision === draftRevisionRef.current) setDraftState(persisted ? "saved" : "error");
+    return persisted;
   }, [contentHtml, deadlineTouched, deadlineValue, draftId, hydrating, lessonContext, open, pinned, spaceOverride, text]);
 
   useEffect(() => {
@@ -127,7 +130,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   }, []);
 
   const closeComposer = useCallback(() => {
-    void persistDraft().finally(onClose);
+    void persistDraft().then((persisted) => {
+      if (persisted) onClose();
+    });
   }, [onClose, persistDraft]);
 
   useEffect(() => {
@@ -184,6 +189,7 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
   async function submit() {
     if (!hasContent || saving) return;
     setSaving(true);
+    setSaveError(false);
     try {
       await onSave({
         text: text.trim(),
@@ -196,6 +202,8 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
       await draftWriteRef.current.catch(() => undefined);
       await removeDraft(draftId);
       onClose();
+    } catch {
+      setSaveError(true);
     } finally {
       setSaving(false);
     }
@@ -226,9 +234,9 @@ export function NoteComposer({ note, folders, open, initialSeed = "", initialDue
           <div>
             <span>{note ? "Редактирование" : "Новая запись"}</span>
             <h2 id="composer-title">{note ? note.title : "Чистый лист"}</h2>
-            <small className={`draft-status ${draftState}`} aria-label={draftState === "saving" ? "Сохраняем черновик" : "Черновик защищён"}>
+            <small className={`draft-status ${draftState}`} role="status">
               {draftState === "saving" ? <LoaderCircle className="spin" size={11} /> : <Save size={11} />}
-              Черновик защищён
+              {saveError || draftState === "error" ? "Не сохранено: поделитесь текстом" : draftState === "saving" ? "Сохраняем черновик…" : draftState === "saved" ? "Черновик сохранён" : "Черновик"}
             </small>
           </div>
           <button className="composer-done" type="button" onClick={() => void submit()} disabled={!hasContent || saving} aria-label="Сохранить запись">

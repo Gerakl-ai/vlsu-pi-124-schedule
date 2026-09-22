@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
-import { loadFolders, loadNotes, normalizeStoredNote, storeFolder } from "./noteStorage";
+import { loadFolders, loadNotes, normalizeStoredNote, storeDraft, storeFolder, storeNote } from "./noteStorage";
 import type { SmartNote } from "./noteTypes";
 
 const baseNote: SmartNote = {
@@ -44,6 +44,25 @@ describe("note database recovery", () => {
     });
     return request;
   }
+
+  it.each([true, false])("reports draft durability when the mirror works=%s", async (mirrorWorks) => {
+    const request = setup();
+    if (!mirrorWorks) vi.stubGlobal("localStorage", {
+      getItem: () => null,
+      setItem: () => { throw new DOMException("Full", "QuotaExceededError"); }
+    });
+    const pending = storeDraft({ id: "new", text: "Keep me", contentHtml: "<p>Keep me</p>", pinned: false, updatedAt: baseNote.updatedAt });
+    request.onerror();
+    expect(await pending).toBe(mirrorWorks);
+  });
+
+  it("does not confirm a note when both stores reject it", async () => {
+    const request = setup();
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => { throw new Error("quota"); } });
+    const pending = storeNote(baseNote);
+    request.onerror();
+    expect(await pending).toBe(false);
+  });
 
   it("retains fallback-only folders when IndexedDB becomes readable again", async () => {
     const request = setup();

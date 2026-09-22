@@ -144,8 +144,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
       ...classification,
       ...deadline
     };
+    if (!await storeNote(note)) throw new Error("Не удалось сохранить запись на устройстве");
     setNotes((current) => sortNotes([note, ...current]));
-    await storeNote(note);
     return note;
   }, [group, spaces, subjects]);
 
@@ -173,8 +173,8 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
       ...scope,
       ...deadline
     };
+    if (!await storeNote(note)) throw new Error("Не удалось сохранить запись на устройстве");
     setNotes((current) => sortNotes(current.map((item) => item.id === noteId ? note : item)));
-    await storeNote(note);
     return note;
   }, [group, notes, spaces, subjects]);
 

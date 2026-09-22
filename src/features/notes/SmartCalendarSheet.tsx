@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  CalendarPlus,
   ChevronLeft,
   ChevronRight,
   Clock3,
@@ -15,6 +16,8 @@ import { createPortal } from "react-dom";
 import { currentDayIndex, dateKeyFromDate, relativeDayLabel, selectDayLessons, weekModeForDate } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
+import { personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./personalEvents";
+import { PersonalEventForm } from "./PersonalEventForm";
 
 interface SmartCalendarSheetProps {
   lessons: LessonSlot[];
@@ -35,8 +38,9 @@ interface CalendarEvent {
   start: Date;
   end: Date;
   location?: string;
-  type: "lesson" | "note";
+  type: "lesson" | "note" | "personal";
   noteId?: string;
+  personalId?: string;
 }
 
 const WEEKDAYS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"];
@@ -72,7 +76,7 @@ function notesForDate(notes: SmartNote[], date: Date) {
   ));
 }
 
-function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode): CalendarEvent[] {
+function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, weekMode: WeekMode, personalEvents: PersonalEvent[]): CalendarEvent[] {
   const classEvents = lessonsForDate(lessons, date, weekMode).map((lesson) => ({
     id: `lesson-${lesson.id}-${dateKeyFromDate(date)}`,
     title: lesson.subject,
@@ -83,7 +87,7 @@ function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, we
     type: "lesson" as const
   }));
   const noteEvents = notesForDate(notes, date).map((note) => {
-    const start = new Date(note.dueAt!);
+    const start = note.dueAt ? new Date(note.dueAt) : timeOnDate(date, note.lessonContext?.start ?? "09:00");
     const end = new Date(start.getTime() + 30 * 60_000);
     return {
       id: `note-${note.id}`,
@@ -95,7 +99,11 @@ function eventsForDate(lessons: LessonSlot[], notes: SmartNote[], date: Date, we
       noteId: note.id
     };
   });
-  return [...classEvents, ...noteEvents].sort((a, b) => a.start.getTime() - b.start.getTime());
+  const personal = personalEventsOnDate(personalEvents, date).map((event) => ({
+    id: `personal-${event.id}`, personalId: event.id, title: event.title, detail: event.description,
+    start: new Date(event.start), end: new Date(event.end), location: event.location, type: "personal" as const
+  }));
+  return [...classEvents, ...noteEvents, ...personal].sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
 function monthCells(month: Date) {
@@ -180,6 +188,12 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
 }
 
 export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
+  const personalEvents = usePersonalEvents();
+  const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(null);
+  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const suppressClickUntil = useRef(0);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   const [today, setToday] = useState(() => startOfDay(new Date()));
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
@@ -188,14 +202,15 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
   const exportResetTimer = useRef<number | undefined>(undefined);
   const cells = useMemo(() => monthCells(month), [month]);
   const selectedEvents = useMemo(
-    () => eventsForDate(lessons, notes, selectedDate, weekMode),
-    [lessons, notes, selectedDate, weekMode]
+    () => eventsForDate(lessons, notes, selectedDate, weekMode, personalEvents),
+    [lessons, notes, selectedDate, weekMode, personalEvents]
   );
   const monthEvents = useMemo(
     () => cells
       .filter((date) => date.getMonth() === month.getMonth() && date.getFullYear() === month.getFullYear())
-      .flatMap((date) => eventsForDate(lessons, notes, date, weekMode)),
-    [cells, lessons, month, notes, weekMode]
+      .flatMap((date) => eventsForDate(lessons, notes, date, weekMode, personalEvents))
+      .filter((event, index, all) => all.findIndex((item) => item.id === event.id) === index),
+    [cells, lessons, month, notes, weekMode, personalEvents]
   );
 
   useEffect(() => {
@@ -206,7 +221,8 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     setSelectedDate(initial);
     setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
     setExportState("idle");
-    const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && onClose();
+    setEditingEvent(null);
+    const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && closeRef.current();
     let midnightTimer: number | undefined;
     const scheduleMidnightRefresh = () => {
       const now = new Date();
@@ -223,7 +239,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
       if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
       if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
     };
-  }, [initialDate, onClose, open]);
+  }, [initialDate, open]);
 
   if (!open) return null;
 
@@ -273,7 +289,9 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
 
   const layer = (
     <div className="sheet-layer calendar-layer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="smart-calendar" role="dialog" aria-modal="true" aria-labelledby="smart-calendar-title" data-lesson-count={lessons.length} data-week-mode={weekMode}>
+      <section className="smart-calendar" role="dialog" aria-modal="true" aria-labelledby="smart-calendar-title" data-lesson-count={lessons.length} data-week-mode={weekMode} onClickCapture={(event) => {
+        if (Date.now() < suppressClickUntil.current && (event.target as Element).closest(".calendar-grid")) { event.preventDefault(); event.stopPropagation(); }
+      }}>
         <div className="sheet-handle" aria-hidden="true" />
         <header className="calendar-header">
           <div>
@@ -285,6 +303,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
           </button>
         </header>
 
+        {editingEvent ? <PersonalEventForm date={selectedDate} event={editingEvent === "new" ? undefined : editingEvent} onClose={() => setEditingEvent(null)} /> : <>
         <div className="calendar-month-nav">
           <button type="button" onClick={() => moveMonth(-1)} aria-label="Предыдущий месяц">
             <ChevronLeft size={19} />
@@ -301,11 +320,25 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
         <div className="calendar-weekdays" aria-hidden="true">
           {WEEKDAYS.map((day) => <span key={day}>{day}</span>)}
         </div>
-        <div key={monthKey} className={`calendar-grid motion-${monthMotion}`} aria-label={monthLabel}>
+        <div key={monthKey} className={`calendar-grid motion-${monthMotion}`} aria-label={monthLabel}
+          style={{ touchAction: "pan-y" }}
+          onPointerDown={(event) => { if (event.isPrimary) swipe.current = { x: event.clientX, y: event.clientY }; }}
+          onPointerCancel={() => { swipe.current = null; }}
+          onPointerUp={(event) => {
+            const origin = swipe.current;
+            swipe.current = null;
+            if (!origin) return;
+            const dx = event.clientX - origin.x;
+            const dy = event.clientY - origin.y;
+            if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              suppressClickUntil.current = Date.now() + 350;
+              moveMonth(dx < 0 ? 1 : -1);
+            }
+          }}>
           {cells.map((date) => {
             const key = dateKeyFromDate(date);
             const dayLessons = lessonsForDate(lessons, date, weekMode);
-            const dayNotes = notesForDate(notes, date);
+            const dayNotes = [...notesForDate(notes, date), ...personalEventsOnDate(personalEvents, date)];
             const selected = key === dateKeyFromDate(selectedDate);
             const isToday = key === dateKeyFromDate(today);
             return (
@@ -316,7 +349,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
                 onClick={() => selectCalendarDate(date)}
                 aria-pressed={selected}
                 aria-current={isToday ? "date" : undefined}
-                aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "запись", "записи", "записей")}`}
+                aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "событие", "события", "событий")}`}
               >
                 <span>{date.getDate()}</span>
                 <i className="calendar-dots" aria-hidden="true">
@@ -338,6 +371,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
             <button type="button" onClick={() => { onClose(); onCreateForDate(selectedDate); }} aria-label="Создать запись на выбранную дату" title="Новая запись">
               <NotebookPen size={18} />
             </button>
+            <button type="button" onClick={() => setEditingEvent("new")} aria-label="Добавить событие" title="Добавить событие"><CalendarPlus size={20} /></button>
           </header>
           <div key={dateKeyFromDate(selectedDate)} className="calendar-event-list calendar-event-list-enter">
             {selectedEvents.length ? selectedEvents.map((event) => {
@@ -353,6 +387,8 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
                 <button className="calendar-event note note-action" type="button" key={event.id} onClick={() => onOpenNote(event.noteId!)} aria-label={`Открыть запись: ${event.title}`}>
                   {contents}
                 </button>
+              ) : event.personalId ? (
+                <button className="calendar-event personal note-action" type="button" key={event.id} onClick={() => setEditingEvent(personalEvents.find((item) => item.id === event.personalId) ?? null)} aria-label={`Изменить событие: ${event.title}`}>{contents}</button>
               ) : (
                 <article className="calendar-event lesson" key={event.id}>{contents}</article>
               );
@@ -375,6 +411,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
             <Download size={17} /> {exportState === "done" ? "Готово" : "В календарь"}
           </button>
         </footer>
+        </>}
       </section>
     </div>
   );

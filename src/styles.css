@@ -752,7 +752,7 @@ select,
   top: calc(50% - 22px);
   width: max-content;
   height: 44px;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 6px;
   margin-bottom: -44px;

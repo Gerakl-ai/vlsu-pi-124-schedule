@@ -1,4 +1,4 @@
-import { Check, Palette, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { Check, Moon, Sun, Palette, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { DEFAULT_CUSTOM_THEME, THEMES, type CustomTheme, type ThemeId } from "./theme";
 
@@ -38,15 +38,25 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
 
   useEffect(() => {
     if (!open) return;
-    setCustomOpen(currentTheme === "custom");
     function onKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [currentTheme, onClose, open]);
+  }, [onClose, open]);
+  useEffect(() => { if (open) setCustomOpen(false); }, [open]);
 
   if (!open) return null;
+  const mode = currentTheme === "custom" ? customTheme.mode : THEMES.find((theme) => theme.id === currentTheme)?.isLight ? "light" : "dark";
+  const currentAccent = currentTheme === "custom" ? customTheme.accent : THEMES.find((theme) => theme.id === currentTheme)?.colors[2] ?? DEFAULT_CUSTOM_THEME.accent;
+
+  function quickTheme(nextMode: "light" | "dark", accent?: string) {
+    if (nextMode === mode && accent === undefined) return;
+    const base = nextMode === "light" ? LIGHT_CUSTOM_THEME : DEFAULT_CUSTOM_THEME;
+    const palette = currentTheme === "custom" && nextMode === mode ? customTheme : base;
+    onCustomChange({ ...palette, name: "Моя тема", accent: accent ?? currentAccent });
+    onSelect("custom");
+  }
 
   function updateCustom(patch: Partial<CustomTheme>) {
     onCustomChange({ ...customTheme, ...patch });
@@ -80,7 +90,15 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
           </button>
         </header>
 
-        <div className="theme-grid">
+        <div className="theme-quick-controls">
+          <div className="custom-mode" role="group" aria-label="Режим оформления">
+            <button type="button" className={mode === "light" ? "active" : ""} aria-pressed={mode === "light"} onClick={() => quickTheme("light")}><Sun size={18} /> Светлая</button>
+            <button type="button" className={mode === "dark" ? "active" : ""} aria-pressed={mode === "dark"} onClick={() => quickTheme("dark")}><Moon size={18} /> Тёмная</button>
+          </div>
+          <label>Акцент<input type="color" aria-label="Цвет акцента" value={currentAccent} onChange={(event) => quickTheme(mode, event.target.value)} /></label>
+        </div>
+        <button className="theme-advanced-toggle" type="button" onClick={() => setCustomOpen(!customOpen)} aria-expanded={customOpen}><SlidersHorizontal size={17} /> Точная настройка</button>
+        <details className="theme-presets"><summary>Готовые палитры</summary><div className="theme-grid">
           {THEMES.filter((theme) => !theme.isCustom).map((theme) => {
             const active = currentTheme === theme.id;
             return (
@@ -128,7 +146,7 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
             </span>
             <span className="theme-check" aria-hidden="true">{currentTheme === "custom" && <SlidersHorizontal size={16} />}</span>
           </button>
-        </div>
+        </div></details>
 
         {customOpen && (
           <section className="custom-theme-editor" aria-label="Конструктор своей темы">

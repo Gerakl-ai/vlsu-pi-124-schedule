@@ -35,8 +35,9 @@ function readFallback<T>(key: string, fallback: T): T {
 function writeFallback<T>(key: string, value: T) {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
-    // The current session still keeps the in-memory value when storage is blocked.
+    return false;
   }
 }
 
@@ -172,12 +173,13 @@ export function normalizeStoredNote(note: SmartNote): SmartNote {
   };
 }
 
-export async function storeNote(note: SmartNote): Promise<void> {
+export async function storeNote(note: SmartNote): Promise<boolean> {
   const notes = readFallback<SmartNote[]>(NOTES_FALLBACK_KEY, []).filter((item) => item.id !== note.id);
-  writeFallback(NOTES_FALLBACK_KEY, [...notes, note]);
+  const mirrored = writeFallback(NOTES_FALLBACK_KEY, [...notes, note]);
   try {
     await putValue(NOTES_STORE, note);
-  } catch { /* The synchronous mirror is already up to date. */ }
+    return true;
+  } catch { return mirrored; }
 }
 
 export async function removeNote(noteId: string): Promise<void> {
@@ -243,13 +245,14 @@ export function readDraftSnapshot(draftId: string) {
   return readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {})[draftId] ?? null;
 }
 
-export async function storeDraft(draft: NoteDraft): Promise<void> {
+export async function storeDraft(draft: NoteDraft): Promise<boolean> {
   const drafts = readFallback<Record<string, NoteDraft>>(DRAFTS_FALLBACK_KEY, {});
-  writeFallback(DRAFTS_FALLBACK_KEY, { ...drafts, [draft.id]: draft });
+  const mirrored = writeFallback(DRAFTS_FALLBACK_KEY, { ...drafts, [draft.id]: draft });
   try {
     await putValue(DRAFTS_STORE, draft);
+    return true;
   } catch {
-    // The synchronous mirror already protects the latest text.
+    return mirrored;
   }
 }
 
