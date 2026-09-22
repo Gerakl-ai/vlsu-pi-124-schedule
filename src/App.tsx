@@ -1150,7 +1150,7 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
               </p>
               {status.scheduleFailed > 0 && (
                 <p className="provenance-failures">
-                  ВлГУ не ответил по {status.scheduleFailed} группам — у них осталось прежнее расписание.
+                  Не удалось обновить расписание {status.scheduleFailed} групп. Прежние снимки сохранены там, где они уже были; для остальных групп данных пока нет.
                 </p>
               )}
             </div>
