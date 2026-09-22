@@ -378,17 +378,16 @@
     <script>
       window.__ladBootComplete = false;
       (() => {
-        const release = document.querySelector('meta[name="lad-release"]')?.content || "unknown";
+        const release = "__HTML_RELEASE__";
         const appBase = new URL("%BASE_URL%", window.location.origin);
-        const cachePrefix = `lad-vlsu-scope:${encodeURIComponent(appBase.pathname)}:`;
         let recoveryVisible = false;
 
         function showRecovery(reason) {
           if (window.__ladBootComplete || recoveryVisible) return null;
-          recoveryVisible = true;
           const card = document.querySelector(".launch-card");
           const message = card?.querySelector("p");
           if (!card || !message) return null;
+          recoveryVisible = true;
           message.textContent = reason || "Не удалось открыть интерфейс. Расписание и записи остаются на устройстве.";
           const button = document.createElement("button");
           button.type = "button";
@@ -413,11 +412,24 @@
             if (!response.ok || !latestRelease) {
               throw new Error("release unavailable");
             }
-            const registrations = "serviceWorker" in navigator ? await navigator.serviceWorker.getRegistrations() : [];
-            await Promise.all(registrations.filter((registration) => registration.scope === appBase.href).map((registration) => registration.unregister()));
-            if ("caches" in window) {
-              const names = await caches.keys();
-              await Promise.all(names.filter((name) => name.startsWith(cachePrefix)).map((name) => caches.delete(name)));
+            // Keep the existing offline files and all personal storage until a
+            // complete replacement worker has installed successfully.
+            if ("serviceWorker" in navigator) {
+              const registration = await navigator.serviceWorker.register(new URL("sw.js", appBase).href, { updateViaCache: "none" });
+              await registration.update();
+              const worker = registration.installing || registration.waiting;
+              if (worker && worker.state !== "activated") {
+                await new Promise((resolve, reject) => {
+                  const timer = window.setTimeout(() => reject(new Error("update timeout")), 20000);
+                  worker.addEventListener("statechange", () => {
+                    if (worker.state === "activated" || worker.state === "redundant") {
+                      window.clearTimeout(timer);
+                      if (worker.state === "activated") resolve();
+                      else reject(new Error("update failed"));
+                    }
+                  });
+                });
+              }
             }
             const destination = new URL(appBase);
             destination.search = window.location.search;
@@ -431,10 +443,8 @@
           }
         }
 
-        window.addEventListener("error", (event) => {
-          if (event.target instanceof HTMLScriptElement || event.target instanceof HTMLLinkElement) {
-            showRecovery("Не загрузился файл приложения. Сохранённые данные не пострадали.");
-          }
+        window.addEventListener("error", () => {
+          showRecovery("Не загрузился интерфейс приложения. Сохранённые данные не удалены.");
         }, true);
         window.addEventListener("unhandledrejection", () => showRecovery("Запуск прервался. Сохранённые данные не пострадали."));
         window.setTimeout(() => {
@@ -447,6 +457,15 @@
           } catch {}
           recover(controls.button, controls.message);
         }, 5000);
+        // This check must not depend on React or the window load event: either
+        // can be blocked by a missing script, stylesheet or unreachable image.
+        if ("serviceWorker" in navigator && !["localhost", "127.0.0.1"].includes(location.hostname)) {
+          navigator.serviceWorker.getRegistration(appBase.href)
+            .then((registration) => registration?.update()).catch(() => {});
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (!window.__ladBootComplete) window.location.reload();
+          });
+        }
       })();
     </script>
     <script>

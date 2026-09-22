@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { AppErrorBoundary } from "./components/AppErrorBoundary";
 import { applyTheme, readTheme } from "./features/themes/theme";
-import { RELEASE_CHANNEL } from "./release";
 import "./styles.css";
 import "./theme.css";
 import "./features/notes/notes.css";
@@ -103,7 +102,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
     // Воркер лежит рядом с приложением: на проектном сайте Pages это подкаталог,
     // а не корень. Абсолютный путь дал бы 404 и область видимости всего домена.
     const base = import.meta.env.BASE_URL || "/";
-    const workerUrl = `${base}sw.js?release=${encodeURIComponent(RELEASE_CHANNEL)}`;
+    const workerUrl = `${base}sw.js`;
     navigator.serviceWorker.register(workerUrl, { updateViaCache: "none" })
       .then((registration) => registration.update())
       .catch(() => {
@@ -111,11 +110,8 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
       });
   };
 
-  if (document.readyState === "complete") {
-    window.setTimeout(registerServiceWorker, 0);
-  } else {
-    window.addEventListener("load", registerServiceWorker, { once: true });
-  }
+  // An unreachable image must not prevent installation of the offline shell.
+  window.setTimeout(registerServiceWorker, 0);
 }
 
 if ("serviceWorker" in navigator && import.meta.env.DEV) {

@@ -1,7 +1,10 @@
-// Версия берётся из адреса, по которому зарегистрирован воркер
-// (sw.js?release=...). Так каждый выпуск получает свой кэш автоматически, и
-// установленное приложение не остаётся на старой сборке.
-const RELEASE = new URL(self.location.href).searchParams.get("release") || "dev";
+// Build embeds the release and complete chunk list. An update through an old
+// worker URL must still install the NEW release, not reuse its previous cache.
+const BUILD_RELEASE = "__BUILD_RELEASE__";
+const RELEASE = BUILD_RELEASE.startsWith("__")
+  ? new URL(self.location.href).searchParams.get("release") || "dev"
+  : BUILD_RELEASE;
+const BUILD_ASSETS = /* __BUILD_ASSETS__ */ null;
 
 // Базовый путь выводится из адреса самого воркера: на своём домене это "/",
 // на проектном сайте GitHub Pages — "/<repo>/". Без этого установленное
@@ -87,18 +90,32 @@ async function discoverBuildAssets() {
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async (cache) => {
-      const buildAssets = await discoverBuildAssets();
+      const buildAssets = BUILD_ASSETS ? BUILD_ASSETS.map(path) : await discoverBuildAssets();
+      if (!buildAssets.some((asset) => asset.endsWith(".js"))) throw new Error("Missing offline JavaScript");
       const resources = [...new Set([...APP_SHELL, ...buildAssets])];
       await Promise.all(resources.map(async (resource) => {
-        const response = await fetch(resource, { cache: "no-store" });
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 15000);
+        let response;
+        try {
+          response = await fetch(resource, { cache: "no-store", signal: controller.signal });
+        } finally {
+          clearTimeout(timeout);
+        }
         if (!response.ok || (resource.startsWith(ASSETS_PREFIX) && !validBuildAsset(response, resource))) {
           throw new Error(`Cannot install ${resource}`);
         }
+        if (resource === BASE && !BUILD_RELEASE.startsWith("__")) {
+          const html = await response.clone().text();
+          if (!html.includes(`name="lad-release" content="${RELEASE}"`)) {
+            throw new Error("Shell and worker releases differ");
+          }
+        }
         await cache.put(resource, response);
       }));
+      await self.skipWaiting();
     })
   );
-  self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

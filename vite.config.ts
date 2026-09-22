@@ -1,5 +1,7 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 // В CI берём коммит, локально — время сборки. Главное, чтобы значение менялось
 // каждый раз: от него зависит и адрес service worker, и имя кэша.
@@ -17,7 +19,20 @@ export default defineConfig({
   plugins: [react(), {
     name: "release-html",
     transformIndexHtml(html) {
-      return html.replace(/name="lad-release" content="[^"]*"/, `name="lad-release" content="${release}"`);
+      const boot = html.match(/    <script>\s*window\.__ladBootComplete = false;[\s\S]*?<\/script>/)?.[0];
+      const prepared = boot ? html.replace(boot, "").replace('<meta charset="UTF-8" />', `<meta charset="UTF-8" />\n${boot}`) : html;
+      return prepared.replace('"__HTML_RELEASE__"', JSON.stringify(release))
+        .replace(/<meta name="lad-release" content="[^"]*"/, `<meta name="lad-release" content="${release}"`);
+    }
+  }, {
+    name: "atomic-offline-shell",
+    async writeBundle(options, bundle) {
+      const file = resolve(options.dir || "dist", "sw.js");
+      const assets = Object.keys(bundle).filter((name) => /\.(js|css)$/.test(name));
+      const worker = await readFile(file, "utf8");
+      await writeFile(file, worker
+        .replace('"__BUILD_RELEASE__"', JSON.stringify(release))
+        .replace('/* __BUILD_ASSETS__ */ null', JSON.stringify(assets)));
     }
   }],
   server: {

@@ -41,6 +41,11 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Проверить перед публикацией
+        run: |
+          pnpm test
+          node --check public/sw.js
+
       - name: Собрать приложение
         env:
           # Проектный сайт живёт в подкаталоге с именем репозитория.

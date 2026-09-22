@@ -26,9 +26,11 @@ it.each(['/', '/vlsu-pi-124-schedule/'])('recovery stays inside %s and preserves
       querySelector: (selector) => selector.startsWith('meta') ? { content: 'old' } : { querySelector: () => message, appendChild() {} },
       createElement: () => button
     },
-    navigator: { serviceWorker: { getRegistrations: async () => [base, '/another-app/'].map((scope) => ({
-      scope: origin + scope, unregister: async () => { unregistered.push(scope); }
-    })) } },
+    location: { hostname: 'localhost' },
+    navigator: { serviceWorker: { register: async (url) => {
+      expect(url).toBe(origin + base + 'sw.js');
+      return { update: async () => {} };
+    } } },
     caches: {
       keys: async () => [`lad-vlsu-scope:${encodeURIComponent(base)}:old`, 'portfolio-cache', 'lad-vlsu-v67'],
       delete: async (name) => { removed.push(name); }
@@ -40,8 +42,8 @@ it.each(['/', '/vlsu-pi-124-schedule/'])('recovery stays inside %s and preserves
   button.click();
   await new Promise((resolve) => setTimeout(resolve, 0));
   expect(new URL(fetched[0]).pathname).toBe(base + 'index.html');
-  expect(unregistered).toEqual([base]);
-  expect(removed).toEqual([`lad-vlsu-scope:${encodeURIComponent(base)}:old`]);
+  expect(unregistered).toEqual([]);
+  expect(removed).toEqual([]);
   expect(new URL(destination).pathname).toBe(base);
   expect(new URL(destination).searchParams.get('group')).toBe('abc');
   expect(new URL(destination).searchParams.get('lad-recovered')).toBe('new');
