@@ -82,6 +82,7 @@ import {
   addDays,
   dateForWeekDay,
   dateKeyFromDate,
+  relativeDayLabel,
   findCurrentAndNext,
   formatUpdatedAt,
   formatWeekMode,
@@ -1250,7 +1251,7 @@ function TodayView({
   const calendarDay = selectedDate.getDate();
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(selectedDate).replace(".", "");
   const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
-  const dateEyebrow = isSelectedToday ? "Сегодня" : isSelectedPast ? "Прошедший день" : "Выбранный день";
+  const dateEyebrow = relativeDayLabel(selectedDate, now);
 
   function moveDay(offset: number) {
     onShiftDate(offset > 0 ? 1 : -1);

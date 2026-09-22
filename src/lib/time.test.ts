@@ -1,5 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { selectedWeekModeForDate, vlsuWeekModeForDate, weekModeForDate, weekModeFromSnapshot } from "./time";
+import { relativeDayLabel, selectedWeekModeForDate, vlsuWeekModeForDate, weekModeForDate, weekModeFromSnapshot } from "./time";
+
+describe("relativeDayLabel", () => {
+  it.each([
+    ["2026-12-30T23:59:00", "Позавчера"],
+    ["2026-12-31T23:59:00", "Вчера"],
+    ["2027-01-01T23:59:00", "Сегодня"],
+    ["2027-01-02T00:01:00", "Завтра"],
+    ["2027-01-03T00:01:00", "Послезавтра"],
+    ["2027-01-04T00:01:00", "Через 3 дня"],
+    ["2026-12-28T00:01:00", "4 дня назад"],
+    ["2027-02-01T00:01:00", "Через 31 день"]
+  ])("labels %s across month/year boundaries", (target, expected) => {
+    expect(relativeDayLabel(new Date(target), new Date("2027-01-01T00:01:00"))).toBe(expected);
+  });
+});
 
 describe("weekModeForDate", () => {
   const base = new Date("2026-09-02T12:00:00");

@@ -28,6 +28,16 @@ export function dateKeyFromDate(date = new Date()) {
   return `${year}-${month}-${day}`;
 }
 
+const RELATIVE_DAY_FORMATTER = new Intl.RelativeTimeFormat("ru-RU", { numeric: "auto" });
+
+export function relativeDayLabel(date: Date, today = new Date()) {
+  // Compare calendar dates, not elapsed hours (midnight and DST must not shift labels).
+  const stamp = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
+  const distance = Math.round((stamp(date) - stamp(today)) / 86_400_000);
+  const label = RELATIVE_DAY_FORMATTER.format(distance, "day");
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function addDays(date: Date, days: number) {
   const next = new Date(date);
   next.setHours(0, 0, 0, 0);

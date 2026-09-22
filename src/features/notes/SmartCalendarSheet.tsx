@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { currentDayIndex, dateKeyFromDate, selectDayLessons, weekModeForDate } from "../../lib/time";
+import { currentDayIndex, dateKeyFromDate, relativeDayLabel, selectDayLessons, weekModeForDate } from "../../lib/time";
 import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
 
@@ -127,20 +127,6 @@ function formatCount(count: number, one: string, few: string, many: string) {
   if (mod10 === 1 && mod100 !== 11) return `${count} ${one}`;
   if ([2, 3, 4].includes(mod10) && ![12, 13, 14].includes(mod100)) return `${count} ${few}`;
   return `${count} ${many}`;
-}
-
-function dayDistance(date: Date, origin: Date) {
-  const stamp = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
-  return Math.round((stamp(date) - stamp(origin)) / 86_400_000);
-}
-
-function relativeDayLabel(date: Date, today: Date) {
-  const distance = dayDistance(date, today);
-  if (distance === 0) return "Сегодня";
-  if (distance === 1) return "Завтра";
-  if (distance === -1) return "Вчера";
-  if (distance > 1) return `Через ${formatCount(distance, "день", "дня", "дней")}`;
-  return `${formatCount(Math.abs(distance), "день", "дня", "дней")} назад`;
 }
 
 function relativeMonthLabel(month: Date, today: Date) {
