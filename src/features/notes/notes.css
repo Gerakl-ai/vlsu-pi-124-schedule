@@ -3093,8 +3093,10 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 .personal-day-events span { display: grid; gap: 4px; min-width: 0; overflow-wrap: anywhere; }
 .personal-day-events small { color: var(--muted); }
 .theme-quick-controls { display: grid; gap: 18px; padding: 12px 0 20px; }
-.theme-quick-controls .custom-mode { display: grid; grid-template-columns: 1fr 1fr; }
-.theme-quick-controls button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; }
+.theme-quick-controls .custom-mode { display: grid; grid-template-columns: 1fr 1fr; height: auto; padding: 4px; }
+.theme-quick-controls button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; height: auto; font-size: 14px; }
 .theme-quick-controls label { display: flex; justify-content: space-between; align-items: center; }
 .theme-quick-controls input[type="color"] { width: 64px; height: 44px; padding: 4px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); }
+.theme-advanced-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); color: var(--text); font: inherit; font-size: 14px; }
+.theme-presets summary { min-height: 44px; padding: 14px 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .theme-presets summary { min-height: 44px; cursor: pointer; padding: 12px 0; }
