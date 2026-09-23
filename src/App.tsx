@@ -1283,7 +1283,7 @@ function TodayView({
   }
 
   return (
-    <div className={`view-stack today-view ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
+    <div className={`view-stack today-view ${!lessons.length && !focusNote ? "no-day-details" : ""} ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
       <div className="today-primary">
         <div className="today-date-navigator">
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
@@ -1341,6 +1341,9 @@ function TodayView({
             </div>
           )}
         </section>
+        {!lessons.length && <button className="free-day-calendar" type="button" onClick={onOpenCalendar}>
+          <CalendarDays size={20} /><span>Календарь дня</span><ChevronRight size={18} />
+        </button>}
       </div>
 
       <div className="today-detail-scroll">
@@ -1362,6 +1365,7 @@ function TodayView({
             <div>
               <span>Следующая пара</span>
               <strong>{lessonKeySubject(next) || nextLabel}</strong>
+              {next && <small><Clock3 size={14} /> {next.start}–{next.end}</small>}
               {next?.room && <small><MapPin size={14} /> {next.room}</small>}
             </div>
           </section>
@@ -1421,27 +1425,13 @@ function Timeline({
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  if (!lessons.length) {
-    return (
-      <section className="empty-state">
-        <Sparkles size={28} />
-        <h3>{isSelectedToday ? "Сегодня пар нет" : "На этот день пар нет"}</h3>
-        <p>{isSelectedToday ? "Можно спокойно свериться с неделей или включить напоминания на завтра." : "Свайпни дату или открой календарь, чтобы выбрать другой день."}</p>
-      </section>
-    );
-  }
+  if (!lessons.length) return null;
 
   const completedCount = isSelectedPast
     ? lessons.length
     : isSelectedToday
       ? lessons.filter((lesson) => lessonTimingState(lesson, now) === "past").length
       : 0;
-  const focusLesson = current ?? next;
-  const focusCopy = current
-    ? `${minutesUntilEnd(current, now)} мин до конца`
-    : next
-      ? isSelectedToday ? `${minutesUntilStart(next, now)} мин до начала` : `Начало в ${next.start}`
-    : isSelectedPast ? "День завершён" : isSelectedToday ? "Все пары на сегодня пройдены" : "День в плане";
   const timelineLabel = isSelectedToday
     ? "Сегодня"
     : new Intl.DateTimeFormat("ru-RU", { day: "numeric", month: "short" }).format(selectedDate).replace(".", "");
@@ -1451,13 +1441,9 @@ function Timeline({
       <div className="timeline-summary">
         <div>
           <span>{timelineLabel}</span>
-          <strong>{completedCount}/{lessons.length} пройдено</strong>
+          <strong>{isSelectedToday || isSelectedPast ? `${completedCount}/${lessons.length} пройдено` : `Занятий: ${lessons.length}`}</strong>
         </div>
-        {/* Строка нужна, только когда есть что сказать про ближайшую пару.
-            Без неё рядом стояли «4/4 пройдено» и «Все пары на сегодня
-            пройдены» — об одном и том же, да ещё и в третий раз после
-            карточки дня. */}
-        {focusLesson && <p>{`${focusCopy}: ${lessonKeySubject(focusLesson)}`}</p>}
+        <p>{lessons[0].start}–{lessons[lessons.length - 1].end}</p>
       </div>
       {lessons.map((lesson, index) => {
         // Перерыв рисуется там, где он и происходит — между парами. Раньше окна
