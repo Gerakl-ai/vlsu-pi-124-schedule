@@ -704,8 +704,6 @@ export function App() {
   }, [navigateToTab, selectedDate]);
 
   const hideGestureFeedback = useCallback(() => {
-    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
-    if (view) view.style.removeProperty("translate");
     const feedback = gestureFeedbackRef.current;
     if (!feedback) return;
     feedback.dataset.visible = "false";
@@ -720,10 +718,6 @@ export function App() {
     }
 
     const { deltaX, startX, viewportWidth } = gesture;
-    const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
-    if (view && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      view.style.translate = `${Math.max(-72, Math.min(72, deltaX * .24))}px 0`;
-    }
     const fromLeftEdge = startX <= SCREEN_SWIPE_EDGE_PX && deltaX > 0;
     const fromRightEdge = startX >= viewportWidth - SCREEN_SWIPE_EDGE_PX && deltaX < 0;
     const tab = adjacentTab(activeTab, deltaX);
@@ -1292,10 +1286,11 @@ function TodayView({
   return (
     <div className={`view-stack today-view ${!lessons.length && !focusNote ? "no-day-details" : ""}`}>
       <div className="today-primary">
-        <div key={dateKeyFromDate(selectedDate)} className={`today-date-navigator ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
+        <div className="today-date-navigator">
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
           <button
-            className="today-date-launch"
+            key={dateKeyFromDate(selectedDate)}
+            className={`today-date-launch ${motionDirection ? `day-motion-${motionDirection}` : ""}`}
             type="button"
             onClick={onOpenCalendar}
             aria-label={`Открыть календарь: ${calendarLabel}`}

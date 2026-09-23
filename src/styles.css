@@ -896,21 +896,21 @@ select,
   display: contents;
 }
 
-.today-date-navigator.day-motion-forward {
-  animation: day-view-forward .3s cubic-bezier(.18,.8,.2,1) both;
+.today-date-launch.day-motion-forward {
+  animation: day-view-forward .24s cubic-bezier(.2,.7,.2,1) both;
 }
 
-.today-date-navigator.day-motion-backward {
-  animation: day-view-backward .3s cubic-bezier(.18,.8,.2,1) both;
+.today-date-launch.day-motion-backward {
+  animation: day-view-backward .24s cubic-bezier(.2,.7,.2,1) both;
 }
 
 @keyframes day-view-forward {
-  from { opacity: .72; transform: translate3d(14px, 0, 0); }
+  from { opacity: .82; transform: translate3d(8px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @keyframes day-view-backward {
-  from { opacity: .72; transform: translate3d(-14px, 0, 0); }
+  from { opacity: .82; transform: translate3d(-8px, 0, 0); }
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 

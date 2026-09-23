@@ -2170,25 +2170,51 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
   text-align: center;
 }
 
-.calendar-grid {
+.calendar-grid-track {
+  position: relative;
   min-height: 238px;
   flex: 1 1 334px;
+  overflow: hidden;
+  contain: layout paint;
+}
+
+.calendar-grid {
+  position: absolute;
+  inset: 0;
   grid-template-rows: repeat(6, minmax(0, 1fr));
   gap: 3px;
-  transform-origin: center;
-  will-change: transform, opacity;
 }
 
-.calendar-grid.motion-next {
-  animation: calendar-grid-next .42s cubic-bezier(.2,.82,.2,1) both;
+.calendar-grid.arriving-next {
+  animation: calendar-arrive-next .32s cubic-bezier(.22,.7,.2,1) both;
 }
 
-.calendar-grid.motion-previous {
-  animation: calendar-grid-previous .42s cubic-bezier(.2,.82,.2,1) both;
+.calendar-grid.arriving-previous {
+  animation: calendar-arrive-previous .32s cubic-bezier(.22,.7,.2,1) both;
 }
 
-.calendar-grid.motion-today {
-  animation: calendar-grid-today .42s cubic-bezier(.2,.82,.2,1) both;
+.calendar-grid.departing-next {
+  animation: calendar-depart-next .32s cubic-bezier(.22,.7,.2,1) both;
+  pointer-events: none;
+}
+
+.calendar-grid.departing-previous {
+  animation: calendar-depart-previous .32s cubic-bezier(.22,.7,.2,1) both;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .calendar-grid.arriving-next,
+  .calendar-grid.arriving-previous,
+  .calendar-grid.departing-next,
+  .calendar-grid.departing-previous {
+    animation: none;
+  }
+
+  .calendar-grid.departing-next,
+  .calendar-grid.departing-previous {
+    visibility: hidden;
+  }
 }
 
 .calendar-grid > button {
@@ -2312,19 +2338,24 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 
 .calendar-event-list::-webkit-scrollbar { display: none; }
 
-@keyframes calendar-grid-next {
-  from { opacity: 0; transform: translate3d(18px, 0, 0) scale(.985); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes calendar-arrive-next {
+  from { opacity: .55; transform: translate3d(100%, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes calendar-grid-previous {
-  from { opacity: 0; transform: translate3d(-18px, 0, 0) scale(.985); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes calendar-arrive-previous {
+  from { opacity: .55; transform: translate3d(-100%, 0, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes calendar-grid-today {
-  from { opacity: .25; transform: translate3d(0, -5px, 0) scale(.975); }
-  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+@keyframes calendar-depart-next {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: .55; transform: translate3d(-100%, 0, 0); }
+}
+
+@keyframes calendar-depart-previous {
+  from { opacity: 1; transform: translate3d(0, 0, 0); }
+  to { opacity: .55; transform: translate3d(100%, 0, 0); }
 }
 
 @keyframes calendar-agenda-enter {
@@ -3095,8 +3126,11 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
     padding: 12px 14px 34px;
   }
 }
-.personal-event-form { display: grid; gap: 16px; overflow-y: auto; min-height: 0; padding: 4px 2px 20px; }
-.personal-event-form header, .personal-event-form footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.personal-event-form { display: flex; flex: 1 1 auto; flex-direction: column; gap: 16px; overflow-y: auto; min-height: 0; padding: 4px 2px 8px; overscroll-behavior: contain; }
+.personal-event-form > label, .personal-event-times, .personal-event-form > p { flex: 0 0 auto; }
+.personal-event-form header, .personal-event-form footer { position: sticky; z-index: 1; display: flex; flex: 0 0 auto; align-items: center; justify-content: space-between; gap: 12px; background: var(--theme-panel-solid); }
+.personal-event-form header { top: -4px; padding: 6px 0 8px; }
+.personal-event-form footer { bottom: -8px; margin-top: auto; padding: 8px 0; border-top: 1px solid var(--theme-panel-border); }
 .personal-event-form h3 { margin: 0; font-size: 20px; }
 .personal-event-form label { display: grid; gap: 7px; min-width: 0; color: var(--muted); font-size: 14px; }
 .personal-event-form input, .personal-event-form textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); color: var(--text); font: inherit; font-size: 16px; }

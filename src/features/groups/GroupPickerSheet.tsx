@@ -235,7 +235,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           {!activeInstitute && filteredInstitutes.map((institute) => (
             <button key={institute.id} type="button" className="group-picker-row" onClick={() => chooseInstitute(institute)}>
               <span className="institute-badge" data-visual={institute.visualKey}>{institute.shortName}</span>
-              <span className="group-picker-copy"><strong>{institute.shortName}</strong><small>{institute.name}</small></span>
+              <span className="group-picker-copy"><strong>{institute.name}</strong></span>
               <ChevronRight size={20} />
             </button>
           ))}

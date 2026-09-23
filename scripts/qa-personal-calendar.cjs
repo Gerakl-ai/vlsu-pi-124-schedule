@@ -34,6 +34,13 @@ const fs = require('node:fs');
       await page.getByLabel('Окончание', { exact: true }).fill(`${day}T20:00`);
       await page.getByLabel('Место', { exact: true }).fill('Зал 2');
       await page.getByLabel('Описание', { exact: true }).fill('Прогон новой постановки');
+      const formGeometry = await page.evaluate(() => {
+        const rect = (selector) => document.querySelector(selector)?.getBoundingClientRect().toJSON();
+        return { viewport: innerHeight, sheet: rect('.smart-calendar'), form: rect('.personal-event-form'), formHeader: rect('.personal-event-form header'), title: rect('.personal-event-form input'), footer: rect('.personal-event-form footer') };
+      });
+      assert.ok(formGeometry.formHeader.top >= 0 && formGeometry.formHeader.bottom <= formGeometry.viewport);
+      assert.ok(formGeometry.footer.top >= 0 && formGeometry.footer.bottom <= formGeometry.viewport);
+      console.log(JSON.stringify({ viewport, formGeometry }));
       await page.screenshot({ path: `artifacts/qa/personal-calendar/form-${viewport.width}.png` });
       await page.getByRole('button', { name: 'Сохранить', exact: true }).click();
       await page.reload({ waitUntil: 'domcontentloaded' });

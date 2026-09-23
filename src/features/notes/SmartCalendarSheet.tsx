@@ -197,7 +197,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
   const [today, setToday] = useState(() => startOfDay(new Date()));
   const [month, setMonth] = useState(() => new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDate, setSelectedDate] = useState(today);
-  const [monthMotion, setMonthMotion] = useState<"next" | "previous" | "today">("today");
+  const [monthTransition, setMonthTransition] = useState<{ from: Date; direction: "next" | "previous" } | null>(null);
   const [exportState, setExportState] = useState<"idle" | "working" | "done">("idle");
   const exportResetTimer = useRef<number | undefined>(undefined);
   const cells = useMemo(() => monthCells(month), [month]);
@@ -220,6 +220,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     setToday(current);
     setSelectedDate(initial);
     setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
+    setMonthTransition(null);
     setExportState("idle");
     setEditingEvent(null);
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && closeRef.current();
@@ -241,6 +242,12 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     };
   }, [initialDate, open]);
 
+  useEffect(() => {
+    if (!monthTransition) return;
+    const timer = window.setTimeout(() => setMonthTransition(null), 340);
+    return () => window.clearTimeout(timer);
+  }, [monthTransition]);
+
   if (!open) return null;
 
   async function exportEvents(events: CalendarEvent[], fileName: string, title: string) {
@@ -258,7 +265,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
 
   function moveMonth(offset: number) {
     const target = new Date(month.getFullYear(), month.getMonth() + offset, 1);
-    setMonthMotion(offset > 0 ? "next" : "previous");
+    setMonthTransition({ from: month, direction: offset > 0 ? "next" : "previous" });
     setMonth(target);
     setSelectedDate(target);
   }
@@ -267,7 +274,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     const target = startOfDay(date);
     const distance = (target.getFullYear() - month.getFullYear()) * 12 + target.getMonth() - month.getMonth();
     if (distance !== 0) {
-      setMonthMotion(distance > 0 ? "next" : "previous");
+      setMonthTransition({ from: month, direction: distance > 0 ? "next" : "previous" });
       setMonth(new Date(target.getFullYear(), target.getMonth(), 1));
     }
     setSelectedDate(target);
@@ -276,7 +283,8 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
   function goToToday() {
     const current = startOfDay(new Date());
     setToday(current);
-    setMonthMotion("today");
+    const distance = (current.getFullYear() - month.getFullYear()) * 12 + current.getMonth() - month.getMonth();
+    setMonthTransition(distance ? { from: month, direction: distance > 0 ? "next" : "previous" } : null);
     setMonth(new Date(current.getFullYear(), current.getMonth(), 1));
     setSelectedDate(current);
   }
@@ -286,6 +294,34 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
   const selectedRelation = relativeDayLabel(selectedDate, today);
   const monthRelation = relativeMonthLabel(month, today);
   const monthKey = `${month.getFullYear()}-${month.getMonth()}`;
+
+  function renderMonthCells(gridMonth: Date, interactive: boolean) {
+    return monthCells(gridMonth).map((date) => {
+      const key = dateKeyFromDate(date);
+      const dayLessons = lessonsForDate(lessons, date, weekMode);
+      const dayNotes = [...notesForDate(notes, date), ...personalEventsOnDate(personalEvents, date)];
+      const selected = key === dateKeyFromDate(selectedDate);
+      const isToday = key === dateKeyFromDate(today);
+      return (
+        <button
+          key={key}
+          className={`${date.getMonth() !== gridMonth.getMonth() ? "outside" : ""} ${selected ? "selected" : ""} ${isToday ? "today" : ""}`}
+          type="button"
+          disabled={!interactive}
+          onClick={() => selectCalendarDate(date)}
+          aria-pressed={selected}
+          aria-current={isToday ? "date" : undefined}
+          aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "событие", "события", "событий")}`}
+        >
+          <span>{date.getDate()}</span>
+          <i className="calendar-dots" aria-hidden="true">
+            {dayLessons.length > 0 && <b className="lesson-dot" />}
+            {dayNotes.length > 0 && <b className="note-dot" />}
+          </i>
+        </button>
+      );
+    });
+  }
 
   const layer = (
     <div className="sheet-layer calendar-layer" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
@@ -320,22 +356,13 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
         <div className="calendar-weekdays" aria-hidden="true">
           {WEEKDAYS.map((day) => <span key={day}>{day}</span>)}
         </div>
-        <div key={monthKey} className={`calendar-grid motion-${monthMotion}`} aria-label={monthLabel}
+        <div className="calendar-grid-track" aria-label={monthLabel}
           style={{ touchAction: "pan-y" }}
           onPointerDown={(event) => { if (event.isPrimary) swipe.current = { x: event.clientX, y: event.clientY }; }}
-          onPointerMove={(event) => {
-            const origin = swipe.current;
-            if (!origin) return;
-            const dx = event.clientX - origin.x;
-            const dy = event.clientY - origin.y;
-            if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy) * 1.2) return;
-            event.currentTarget.style.translate = `${Math.max(-72, Math.min(72, dx * .28))}px 0`;
-          }}
-          onPointerCancel={(event) => { swipe.current = null; event.currentTarget.style.translate = ""; }}
+          onPointerCancel={() => { swipe.current = null; }}
           onPointerUp={(event) => {
             const origin = swipe.current;
             swipe.current = null;
-            event.currentTarget.style.translate = "";
             if (!origin) return;
             const dx = event.clientX - origin.x;
             const dy = event.clientY - origin.y;
@@ -344,30 +371,8 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
               moveMonth(dx < 0 ? 1 : -1);
             }
           }}>
-          {cells.map((date) => {
-            const key = dateKeyFromDate(date);
-            const dayLessons = lessonsForDate(lessons, date, weekMode);
-            const dayNotes = [...notesForDate(notes, date), ...personalEventsOnDate(personalEvents, date)];
-            const selected = key === dateKeyFromDate(selectedDate);
-            const isToday = key === dateKeyFromDate(today);
-            return (
-              <button
-                key={key}
-                className={`${date.getMonth() !== month.getMonth() ? "outside" : ""} ${selected ? "selected" : ""} ${isToday ? "today" : ""}`}
-                type="button"
-                onClick={() => selectCalendarDate(date)}
-                aria-pressed={selected}
-                aria-current={isToday ? "date" : undefined}
-                aria-label={`${date.toLocaleDateString("ru-RU")}: ${formatCount(dayLessons.length, "пара", "пары", "пар")}, ${formatCount(dayNotes.length, "событие", "события", "событий")}`}
-              >
-                <span>{date.getDate()}</span>
-                <i className="calendar-dots" aria-hidden="true">
-                  {dayLessons.length > 0 && <b className="lesson-dot" />}
-                  {dayNotes.length > 0 && <b className="note-dot" />}
-                </i>
-              </button>
-            );
-          })}
+          {monthTransition && <div key={`from-${monthTransition.from.getTime()}`} className={`calendar-grid departing-${monthTransition.direction}`} aria-hidden="true">{renderMonthCells(monthTransition.from, false)}</div>}
+          <div key={monthKey} className={`calendar-grid ${monthTransition ? `arriving-${monthTransition.direction}` : ""}`}>{renderMonthCells(month, true)}</div>
         </div>
 
         <section className="calendar-agenda" aria-label={`События: ${selectedLabel}`}>
