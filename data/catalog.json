@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-09-23T04:45:38.216Z",
-  "groupCount": 966,
+  "capturedAt": "2026-09-23T11:37:30.986Z",
+  "groupCount": 965,
   "instituteCount": 14,
   "institutes": [
     {
@@ -804,7 +804,7 @@
       "shortName": "ГИ"
     },
     {
-      "groupCount": 145,
+      "groupCount": 144,
       "groups": [
         {
           "course": "5 курс",
@@ -1285,14 +1285,6 @@
           ],
           "name": "ЗСвд-425",
           "nrec": "a1998278cc0f86b8d244f72dc48c5279"
-        },
-        {
-          "course": "1 курс",
-          "forms": [
-            "extramural"
-          ],
-          "name": "ЗСд-126",
-          "nrec": "8cb15b631ad2e95380d4e224330d7c9a"
         },
         {
           "course": "3 курс",
@@ -7844,10 +7836,10 @@
     }
   ],
   "provenance": {
-    "commit": "6e0b8e246a375d4fab49640780bca48c892e7383",
-    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/6e0b8e246a375d4fab49640780bca48c892e7383",
+    "commit": "96350f16982667ff5b710ff124184339949bd073",
+    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/96350f16982667ff5b710ff124184339949bd073",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/35819632000"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/35855598729"
   },
   "schemaVersion": 3
 }
