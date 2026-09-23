@@ -64,6 +64,14 @@ describe("note database recovery", () => {
     expect(await pending).toBe(false);
   });
 
+  it("does not confirm a folder when both stores reject it", async () => {
+    const request = setup();
+    vi.stubGlobal("localStorage", { getItem: () => null, setItem: () => { throw new Error("quota"); } });
+    const pending = storeFolder({ id: "folder", name: "Проект", color: "#123456", system: false, createdAt: baseNote.createdAt });
+    request.onerror();
+    expect(await pending).toBe(false);
+  });
+
   it("retains fallback-only folders when IndexedDB becomes readable again", async () => {
     const request = setup();
     const folder = { id: "custom", name: "Монтаж", color: "#123456", system: false, createdAt: baseNote.createdAt };

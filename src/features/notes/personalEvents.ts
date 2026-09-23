@@ -50,6 +50,27 @@ export function deletePersonalEvent(id: string) {
   write(readPersonalEvents().filter((item) => item.id !== id));
 }
 
+export function mergePersonalEvents(current: PersonalEvent[], incoming: PersonalEvent[]) {
+  if (!incoming.every(validPersonalEvent)) throw new Error("Invalid calendar backup");
+  const events = [...current];
+  let conflicts = 0;
+  const signature = (event: PersonalEvent) => JSON.stringify([event.title, Date.parse(event.start), Date.parse(event.end), event.location, event.description]);
+  for (const event of incoming) {
+    // Re-importing an archive must not duplicate previously recovered conflicts.
+    if (events.some((item) => signature(item) === signature(event))) continue;
+    const collision = events.some((item) => item.id === event.id);
+    events.push(collision ? { ...event, id: crypto.randomUUID() } : event);
+    if (collision) conflicts += 1;
+  }
+  return { events, added: events.length - current.length, conflicts };
+}
+
+export function importPersonalEvents(incoming: PersonalEvent[]) {
+  const result = mergePersonalEvents(readPersonalEvents(), incoming);
+  if (result.added) write(result.events);
+  return result;
+}
+
 function subscribe(notify: () => void) {
   const onStorage = (event: StorageEvent) => { if (event.key === KEY || event.key === null) notify(); };
   window.addEventListener(CHANGED, notify);

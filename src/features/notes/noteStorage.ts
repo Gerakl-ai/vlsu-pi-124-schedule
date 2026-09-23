@@ -208,12 +208,13 @@ export async function loadFolders(): Promise<NoteFolder[]> {
   }
 }
 
-export async function storeFolder(folder: NoteFolder): Promise<void> {
+export async function storeFolder(folder: NoteFolder): Promise<boolean> {
   const folders = readFallback<NoteFolder[]>(FOLDERS_FALLBACK_KEY, []).filter((item) => item.id !== folder.id);
-  writeFallback(FOLDERS_FALLBACK_KEY, [...folders, folder]);
+  const mirrored = writeFallback(FOLDERS_FALLBACK_KEY, [...folders, folder]);
   try {
     await putValue(FOLDERS_STORE, folder);
-  } catch { /* The mirror remains available when IndexedDB is unavailable. */ }
+    return true;
+  } catch { return mirrored; }
 }
 
 export async function removeFolder(folderId: string): Promise<void> {

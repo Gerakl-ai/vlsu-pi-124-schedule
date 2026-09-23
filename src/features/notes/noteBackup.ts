@@ -1,6 +1,7 @@
 import type { NoteFolder, NoteKind, NoteStatus, SmartNote } from "./noteTypes";
+import { validPersonalEvent, type PersonalEvent } from "./personalEvents";
 
-const BACKUP_VERSION = 6;
+const BACKUP_VERSION = 7;
 const NOTE_KINDS = new Set<NoteKind>(["note", "task", "homework", "wish", "idea"]);
 const NOTE_STATUSES = new Set<NoteStatus>(["open", "done"]);
 
@@ -10,6 +11,7 @@ interface NotesBackup {
   exportedAt: string;
   notes: SmartNote[];
   folders: NoteFolder[];
+  events: PersonalEvent[];
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -82,18 +84,19 @@ function isSmartNote(value: unknown): value is SmartNote {
   );
 }
 
-export function createNotesBackup(notes: SmartNote[], folders: NoteFolder[] = []): NotesBackup {
+export function createNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = []): NotesBackup {
   return {
     app: "lad",
     version: BACKUP_VERSION,
     exportedAt: new Date().toISOString(),
     notes,
-    folders: folders.filter((folder) => !folder.system)
+    folders: folders.filter((folder) => !folder.system),
+    events
   };
 }
 
-export function downloadNotesBackup(notes: SmartNote[], folders: NoteFolder[] = []) {
-  const payload = JSON.stringify(createNotesBackup(notes, folders), null, 2);
+export function downloadNotesBackup(notes: SmartNote[], folders: NoteFolder[] = [], events: PersonalEvent[] = []) {
+  const payload = JSON.stringify(createNotesBackup(notes, folders, events), null, 2);
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
@@ -110,9 +113,9 @@ export function parseNotesBackup(raw: string): SmartNote[] {
   return parseNotesArchive(raw).notes;
 }
 
-export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: NoteFolder[] } {
+export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: NoteFolder[]; events: PersonalEvent[] } {
   const parsed: unknown = JSON.parse(raw);
-  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, 5, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
+  if (!isRecord(parsed) || parsed.app !== "lad" || ![1, 2, 3, 4, 5, 6, BACKUP_VERSION].includes(parsed.version as number) || !Array.isArray(parsed.notes)) {
     throw new Error("Unsupported notes backup");
   }
   if (!parsed.notes.every(isSmartNote)) throw new Error("Invalid notes backup");
@@ -121,5 +124,7 @@ export function parseNotesArchive(raw: string): { notes: SmartNote[]; folders: N
     && typeof folder.id === "string" && typeof folder.name === "string" && folder.name.trim().length > 0
     && typeof folder.color === "string" && /^#[0-9a-f]{6}$/i.test(folder.color)
     && folder.system === false && isDateString(folder.createdAt))) throw new Error("Invalid folders backup");
-  return { notes: parsed.notes, folders: folders as NoteFolder[] };
+  const events = parsed.events ?? [];
+  if (!Array.isArray(events) || !events.every(validPersonalEvent)) throw new Error("Invalid calendar backup");
+  return { notes: parsed.notes, folders: folders as NoteFolder[], events };
 }

@@ -47,7 +47,7 @@ import { deadlineForCalendarDate } from "./features/notes/noteDeadline";
 import { createLessonNoteContext, notesLinkedToLesson } from "./features/notes/noteLinking";
 import type { NoteComposerRequest, NoteFolder, SmartNote } from "./features/notes/noteTypes";
 import { useSmartNotes } from "./features/notes/useSmartNotes";
-import { personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
+import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from "./features/notes/personalEvents";
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
@@ -1967,6 +1967,8 @@ function SettingsView({
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
   const [backupMade, setBackupMade] = useState(() => readBackupMade());
+  const personalEvents = usePersonalEvents();
+  const [importBusy, setImportBusy] = useState(false);
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
     : schedule?.source === "static-snapshot"
@@ -1980,14 +1982,25 @@ function SettingsView({
           : "Нет данных";
 
   async function importBackup(file?: File) {
-    if (!file) return;
+    if (!file || importBusy) return;
+    setImportBusy(true);
+    let archive: ReturnType<typeof parseNotesArchive>;
     try {
-      const archive = parseNotesArchive(await file.text());
-      const imported = await onImportNotes(archive.notes, archive.folders);
-      setBackupNotice(`${imported ? `Добавлено или обновлено записей: ${imported}.` : "Все записи уже актуальны."}${archive.folders.length ? " Папки восстановлены; существующие сохранены." : ""}`);
+      archive = parseNotesArchive(await file.text());
     } catch {
       setBackupNotice("Не удалось прочитать копию. Выберите JSON-файл, созданный в «Лад».");
+      setImportBusy(false);
+      if (importInputRef.current) importInputRef.current.value = "";
+      return;
+    }
+    try {
+      const imported = await onImportNotes(archive.notes, archive.folders);
+      const calendar = importPersonalEvents(archive.events);
+      setBackupNotice(`${imported ? `Добавлено или обновлено записей: ${imported}.` : "Все записи уже актуальны."}${archive.folders.length ? " Папки восстановлены; существующие сохранены." : ""} Событий добавлено: ${calendar.added}.${calendar.conflicts ? ` Сохранены оба варианта событий: ${calendar.conflicts}.` : ""}`);
+    } catch {
+      setBackupNotice("Импорт не завершён: устройству не удалось сохранить данные. Часть копии могла восстановиться. Сохраните исходный файл и повторите импорт после освобождения места.");
     } finally {
+      setImportBusy(false);
       if (importInputRef.current) importInputRef.current.value = "";
     }
   }
@@ -2111,7 +2124,7 @@ function SettingsView({
             <p>Неофициальное приложение для студентов ВлГУ. Расписание берётся из публичного снимка, собранного заранее; заметки и вложения никуда не отправляются и остаются на устройстве.</p>
             <p>Нет аккаунта, аналитики и облачной обработки записей: разбор заметок выполняется целиком в браузере.</p>
           </details>
-          {notes.length > 0 && !backupMade && (
+          {(notes.length > 0 || personalEvents.length > 0) && !backupMade && (
             <p className="backup-warning" role="status">
               <TriangleAlert size={14} aria-hidden="true" />
               <span>
@@ -2121,13 +2134,14 @@ function SettingsView({
             </p>
           )}
           <div className="backup-actions">
-            <button type="button" onClick={() => { downloadNotesBackup(notes, folders); markBackupMade(); setBackupMade(true); }} disabled={!notes.length && !folders.some((folder) => !folder.system)}>
+            <button type="button" onClick={() => { downloadNotesBackup(notes, folders, personalEvents); markBackupMade(); setBackupMade(true); }} disabled={importBusy || (!notes.length && !personalEvents.length && !folders.some((folder) => !folder.system))}>
               <Download size={17} /> Экспорт
             </button>
-            <button type="button" onClick={() => importInputRef.current?.click()}>
+            <button type="button" disabled={importBusy} onClick={() => importInputRef.current?.click()}>
               <Upload size={17} /> Импорт
             </button>
           </div>
+          <p className="backup-notice">Копия содержит записи, папки и личные события календаря.</p>
           <input
             ref={importInputRef}
             className="visually-hidden"

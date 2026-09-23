@@ -21,9 +21,19 @@ const manualDeadlineNote: SmartNote = {
 };
 
 describe("notes backup", () => {
+  it("round-trips calendar details independently of academic notes", () => {
+    const event = { id: "event", title: "Баня", start: "2026-09-23T18:00:00+03:00", end: "2026-09-23T20:00:00+03:00", location: "Центр", description: "Встреча" };
+    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [], [event]))).events).toEqual([event]);
+  });
+  it("accepts version 6 without calendar data", () => {
+    expect(parseNotesArchive(JSON.stringify({ app: "lad", version: 6, notes: [], folders: [] })).events).toEqual([]);
+  });
+  it("rejects malformed calendar events before importing any notes", () => {
+    expect(() => parseNotesArchive(JSON.stringify({ ...createNotesBackup([manualDeadlineNote]), events: [{ id: "bad" }] }))).toThrow("Invalid calendar backup");
+  });
   it("preserves empty custom folders and their colors", () => {
     const folder = { id: "custom", name: "Монтаж", color: "#123456", system: false, createdAt: manualDeadlineNote.createdAt };
-    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [folder])))).toEqual({ notes: [], folders: [folder] });
+    expect(parseNotesArchive(JSON.stringify(createNotesBackup([], [folder])))).toEqual({ notes: [], folders: [folder], events: [] });
   });
 
   it("rejects invalid folders before importing", () => {
@@ -31,7 +41,7 @@ describe("notes backup", () => {
   });
   it("preserves manual deadline metadata in the current version", () => {
     const backup = createNotesBackup([manualDeadlineNote]);
-    expect(backup.version).toBe(6);
+    expect(backup.version).toBe(7);
     expect(parseNotesBackup(JSON.stringify(backup))).toEqual([manualDeadlineNote]);
   });
 

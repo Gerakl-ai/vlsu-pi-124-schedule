@@ -257,16 +257,14 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
 
   const importNotes = useCallback(async (incoming: SmartNote[], incomingFolders: NoteFolder[] = []) => {
     const folderNames = new Set(folders.map((folder) => folder.name.trim().toLocaleLowerCase()));
-    const addedFolders: NoteFolder[] = [];
     for (const folder of incomingFolders) {
       const name = folder.name.trim().toLocaleLowerCase();
       if (folderNames.has(name)) continue;
       folderNames.add(name);
       const restored = { ...folder, id: createId("folder"), system: false };
-      await storeFolder(restored);
-      addedFolders.push(restored);
+      if (!await storeFolder(restored)) throw new Error("Не удалось сохранить папку");
+      setFolders((current) => [...current, restored]);
     }
-    if (addedFolders.length) setFolders((current) => [...current, ...addedFolders]);
     let importedCount = 0;
     const merged = new Map(notes.map((note) => [note.id, note]));
     incoming.forEach((note) => {
@@ -280,8 +278,11 @@ export function useSmartNotes(lessons: LessonSlot[], weekMode: WeekMode, group: 
       }
     });
     const mergedNotes = sortNotes([...merged.values()]);
-    setNotes(mergedNotes);
-    for (const note of mergedNotes) await storeNote(note);
+    for (const note of mergedNotes) {
+      if (notes.find((existing) => existing.id === note.id) === note) continue;
+      if (!await storeNote(note)) throw new Error("Не удалось сохранить запись");
+      setNotes((current) => sortNotes([...current.filter((existing) => existing.id !== note.id), note]));
+    }
     return importedCount;
   }, [notes, folders]);
 
