@@ -1005,6 +1005,24 @@
   transform: scale(.97);
 }
 
+.notes-empty-recovery {
+  display: block;
+  max-width: 100%;
+  margin: 12px auto 0;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--cyan);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.notes-empty-recovery:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
 .composer-layer {
   z-index: 44;
   top: var(--visual-viewport-offset-top);

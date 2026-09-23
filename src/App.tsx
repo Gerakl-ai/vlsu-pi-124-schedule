@@ -66,7 +66,7 @@ import { activeWeekMode, loadSchedule, normalizeCachedSchedule } from "./lib/sch
 import { heroCopy } from "./lib/heroCopy";
 import { freshnessNotice } from "./lib/freshness";
 import { assetUrl } from "./lib/assetUrl";
-import { markBackupMade, readBackupMade } from "./features/notes/backupState";
+import { backupSignature, markBackupMade, readBackupMade } from "./features/notes/backupState";
 import { RELEASE_CHANNEL } from "./release";
 import { lessonView, readSubgroup, writeSubgroup, type SubgroupChoice } from "./lib/subgroup";
 import { fetchCrawlStatus, type CrawlStatus } from "./lib/staticData";
@@ -955,6 +955,7 @@ export function App() {
                 onUpdate={smartNotes.updateNote}
                 onCalendarRequestHandled={() => setCalendarRequestToken(0)}
                 onComposerRequestHandled={() => setComposerRequest(null)}
+                onOpenSettings={() => navigateToTab("settings")}
               />
             ) : <section className="notes-loading" aria-label="Открываем записи"><span /><span /><span /></section>
           )}
@@ -1973,8 +1974,13 @@ function SettingsView({
   const activeThemeName = themeId === "custom" ? customThemeName || "Своя тема" : activeTheme.name;
   const importInputRef = useRef<HTMLInputElement>(null);
   const [backupNotice, setBackupNotice] = useState("");
-  const [backupMade, setBackupMade] = useState(() => readBackupMade());
+  const [pendingBackupSignature, setPendingBackupSignature] = useState<string | null>(null);
   const personalEvents = usePersonalEvents();
+  const currentBackupSignature = useMemo(
+    () => backupSignature({ notes, folders: folders.filter((folder) => !folder.system), events: personalEvents }),
+    [notes, folders, personalEvents]
+  );
+  const backupMade = readBackupMade(currentBackupSignature);
   const [importBusy, setImportBusy] = useState(false);
   const scheduleSource = schedule?.source === "live"
     ? "ВлГУ · проверено"
@@ -2135,19 +2141,39 @@ function SettingsView({
             <p className="backup-warning" role="status">
               <TriangleAlert size={14} aria-hidden="true" />
               <span>
-                Копия не создавалась. Записи есть только на этом устройстве — если
-                удалить приложение, они исчезнут вместе с ним.
+                Нет подтверждённой копии текущих записей. Если удалить приложение,
+                изменения без копии могут исчезнуть.
               </span>
             </p>
           )}
           <div className="backup-actions">
-            <button type="button" onClick={() => { downloadNotesBackup(notes, folders, personalEvents); markBackupMade(); setBackupMade(true); }} disabled={importBusy || (!notes.length && !personalEvents.length && !folders.some((folder) => !folder.system))}>
+            <button type="button" onClick={() => {
+              try {
+                downloadNotesBackup(notes, folders, personalEvents);
+                setPendingBackupSignature(currentBackupSignature);
+                setBackupNotice("Проверьте, что JSON-файл сохранился в «Файлах» или загрузках, затем подтвердите ниже.");
+              } catch {
+                setPendingBackupSignature(null);
+                setBackupNotice("Не удалось начать экспорт. Попробуйте ещё раз.");
+              }
+            }} disabled={importBusy || (!notes.length && !personalEvents.length && !folders.some((folder) => !folder.system))}>
               <Download size={17} /> Экспорт
             </button>
             <button type="button" disabled={importBusy} onClick={() => importInputRef.current?.click()}>
               <Upload size={17} /> Импорт
             </button>
           </div>
+          {pendingBackupSignature && (
+            <button className="backup-confirm" type="button" onClick={() => {
+              markBackupMade(pendingBackupSignature);
+              setPendingBackupSignature(null);
+              setBackupNotice(pendingBackupSignature === currentBackupSignature
+                ? "Копия подтверждена. Храните файл отдельно от приложения."
+                : "Файл сохранён, но записи уже изменились. Создайте новую копию.");
+            }}>
+              <CheckCircle2 size={17} /> Файл сохранён
+            </button>
+          )}
           <p className="backup-notice">Копия содержит записи, папки и личные события календаря.</p>
           <input
             ref={importInputRef}

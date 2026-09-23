@@ -1,29 +1,26 @@
-/**
- * Делалась ли резервная копия записей.
- *
- * Записи никогда не покидают устройство — это и была задумка. Обратная сторона:
- * удаление приложения уносит их с собой, и восстановить неоткуда. Так уже
- * произошло: приложение переустановили, чтобы починить иконку, и записи
- * исчезли вместе с ним.
- *
- * Кнопка «Экспорт» была на месте, но о ней не знали, пока не стало поздно.
- * Поэтому приложение теперь говорит об этом само, пока записи ещё есть.
- */
+// A download click does not prove that Safari saved the file.
+const BACKUP_KEY = "lad.notes.backup-verified-at";
 
-const BACKUP_KEY = "lad.notes.backup-at";
+export function backupSignature(data: unknown): string {
+  const serialized = JSON.stringify(data);
+  let hash = 2166136261;
+  for (let index = 0; index < serialized.length; index += 1) {
+    hash = Math.imul(hash ^ serialized.charCodeAt(index), 16777619);
+  }
+  return `${serialized.length}:${(hash >>> 0).toString(16)}`;
+}
 
-export function readBackupMade() {
+export function readBackupMade(signature: string) {
   try {
-    return Boolean(localStorage.getItem(BACKUP_KEY));
+    return localStorage.getItem(BACKUP_KEY) === signature;
   } catch {
-    // Нет доступа к хранилищу — лучше промолчать, чем пугать зря.
-    return true;
+    return false;
   }
 }
 
-export function markBackupMade() {
+export function markBackupMade(signature: string) {
   try {
-    localStorage.setItem(BACKUP_KEY, new Date().toISOString());
+    localStorage.setItem(BACKUP_KEY, signature);
   } catch {
     // Отметка — удобство, а не условие работы.
   }

@@ -82,6 +82,7 @@ interface NotesViewProps {
   onUpdate: (noteId: string, input: NoteDocumentInput) => Promise<SmartNote | undefined>;
   onCalendarRequestHandled: () => void;
   onComposerRequestHandled: () => void;
+  onOpenSettings: () => void;
 }
 
 interface SmartFilter {
@@ -132,7 +133,8 @@ export function NotesView({
   onTogglePinned,
   onUpdate,
   onCalendarRequestHandled,
-  onComposerRequestHandled
+  onComposerRequestHandled,
+  onOpenSettings
 }: NotesViewProps) {
   const [activeFilter, setActiveFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -522,6 +524,11 @@ export function NotesView({
               >
                 <SquarePen size={17} />
                 Создать запись
+              </button>
+            )}
+            {!query && ready && notes.length === 0 && (
+              <button className="notes-empty-recovery" type="button" onClick={onOpenSettings}>
+                Были записи на другом адресе? Открыть импорт
               </button>
             )}
           </div>

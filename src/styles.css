@@ -3182,8 +3182,28 @@ button.day-title > svg {
   cursor: not-allowed;
 }
 
+.backup-confirm {
+  min-height: 42px;
+  margin-top: 10px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background: var(--theme-control);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.backup-confirm:active { transform: scale(.98); }
+.backup-confirm:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
 .backup-notice {
-  color: var(--green) !important;
+  color: var(--muted);
 }
 
 .visually-hidden {
