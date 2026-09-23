@@ -1085,19 +1085,23 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
   const [statusState, setStatusState] = useState<"idle" | "loading" | "missing">("idle");
 
   useEffect(() => {
-    if (!open || status || statusState === "loading") return;
+    if (!open) return;
     setStatusState("loading");
     const controller = new AbortController();
+    let active = true;
+    const timeout = window.setTimeout(() => controller.abort(), 8000);
     fetchCrawlStatus(controller.signal)
       .then((value) => {
+        if (!active) return;
         setStatus(value);
         setStatusState("idle");
       })
-      .catch(() => setStatusState("missing"));
-    return () => controller.abort();
-  }, [open, status, statusState]);
+      .catch(() => { if (active) setStatusState("missing"); })
+      .finally(() => window.clearTimeout(timeout));
+    return () => { active = false; window.clearTimeout(timeout); controller.abort(); };
+  }, [open]);
 
-  const provenance = schedule?.provenance ?? status?.provenance ?? null;
+  const provenance = schedule?.provenance ?? null;
   const capturedAt = schedule?.fetchedAt ? formatUpdatedAt(schedule.fetchedAt) : null;
 
   return (
@@ -1141,23 +1145,24 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
           {provenance ? (
             <div className="provenance-links">
               <a href={provenance.commitUrl} target="_blank" rel="noreferrer noopener">
-                Открыть коммит с этими данными
+                Код сборщика этого снимка
               </a>
               {provenance.runUrl && (
                 <a href={provenance.runUrl} target="_blank" rel="noreferrer noopener">
-                  Журнал обхода API ВлГУ
+                  Журнал получения этого снимка
                 </a>
               )}
             </div>
           ) : (
             <p className="provenance-note">
-              Снимок собран вручную, вне автоматического обхода, поэтому ссылки на коммит у него нет.
+              {schedule ? "Происхождение этого снимка не зафиксировано. Актуальность данных нужно сверить с ВлГУ." : "Расписание ещё не получено."}
             </p>
           )}
 
           {status && (
             <div className="provenance-crawl">
               <strong>Последний обход</strong>
+              <p>{formatUpdatedAt(status.finishedAt ?? status.startedAt)}</p>
               <p>
                 {status.institutes} институтов, {status.groupsInCatalog} групп в каталоге.
                 {status.scheduleAttempted > 0
@@ -1169,11 +1174,14 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
                   Не удалось обновить расписание {status.scheduleFailed} групп. Прежние снимки сохранены там, где они уже были; для остальных групп данных пока нет.
                 </p>
               )}
+              {status.provenance?.runUrl && <div className="provenance-links"><a href={status.provenance.runUrl} target="_blank" rel="noreferrer noopener">Журнал последнего обхода</a></div>}
+              <p className="provenance-note">Результат обхода не подтверждает происхождение и актуальность ранее сохранённых снимков.</p>
             </div>
           )}
 
+          {statusState === "loading" && <p className="provenance-note" role="status">Загрузка отчёта…</p>}
           {statusState === "missing" && (
-            <p className="provenance-note">Отчёт об обходе недоступен: данные загружены не из снимка.</p>
+            <p className="provenance-note">Не удалось загрузить отчёт об обходе. Это не меняет сохранённое расписание.</p>
           )}
         </div>
       )}
