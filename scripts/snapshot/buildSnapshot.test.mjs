@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
-import { instituteShortName, scheduleQuality, sha256, stableStringify } from "./buildSnapshot.mjs";
-import { decodePayload } from "./vlsuClient.mjs";
+import { collectCoverage, instituteShortName, isEmptyScheduleResponse, scheduleQuality, sha256, stableStringify } from "./buildSnapshot.mjs";
+import { decodePayload, UpstreamError } from "./vlsuClient.mjs";
 
 describe("stableStringify", () => {
   it("не зависит от порядка ключей", () => {
@@ -61,6 +64,50 @@ describe("decodePayload", () => {
 
   it("оставляет пустую строку как есть, чтобы она была распознана как сбой", () => {
     expect(decodePayload("")).toBe("");
+  });
+});
+
+describe("outage probe", () => {
+  it("recognizes only the known empty schedule response", () => {
+    expect(isEmptyScheduleResponse(new UpstreamError("пустой ответ при HTTP 200", {
+      status: 200, path: "/student/GetGroupSchedule"
+    }))).toBe(true);
+    expect(isEmptyScheduleResponse(new UpstreamError("пустой ответ при HTTP 200", {
+      status: 200, path: "/catalogs/GetInstitutes"
+    }))).toBe(false);
+    expect(isEmptyScheduleResponse(new UpstreamError("HTTP 503", {
+      status: 503, path: "/student/GetGroupSchedule"
+    }))).toBe(false);
+  });
+});
+
+describe("coverage manifest", () => {
+  it("advertises only valid files for current catalog groups", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "lad-coverage-"));
+    const nrec = "a".repeat(32);
+    const schedule = [{ type: "Lessons", name: "Понедельник", n1: "111-3, лб, Базы данных" }];
+    try {
+      await mkdir(path.join(root, "schedule"));
+      await writeFile(path.join(root, "schedule", `${nrec}.json`), JSON.stringify({
+        schemaVersion: 3,
+        group: { nrec },
+        semester: 5,
+        schedule,
+        scheduleHash: sha256({ semester: 5, schedule }),
+        capturedAt: "2026-09-08T10:00:00Z"
+      }));
+      await writeFile(path.join(root, "schedule", `${"b".repeat(32)}.json`), "{}");
+
+      const coverage = await collectCoverage(root, [{ groups: [{ nrec }, { nrec: "b".repeat(32) }] }]);
+      expect(coverage.catalogGroups).toBe(2);
+      expect(coverage.available).toBe(1);
+      expect(coverage.groups[nrec]?.capturedAt).toBe("2026-09-08T10:00:00Z");
+    } finally {
+      if (!path.resolve(root).startsWith(path.join(path.resolve(os.tmpdir()), "lad-coverage-"))) {
+        throw new Error("Refusing to remove an unexpected test directory");
+      }
+      await rm(root, { recursive: true, force: true });
+    }
   });
 });
 

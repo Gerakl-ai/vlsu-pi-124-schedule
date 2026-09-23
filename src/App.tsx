@@ -1170,7 +1170,9 @@ function DataProvenancePanel({ schedule, sourceLabel }: { schedule: ScheduleStat
               <p>{formatUpdatedAt(status.finishedAt ?? status.startedAt)}</p>
               <p>
                 {status.institutes} институтов, {status.groupsInCatalog} групп в каталоге.
-                {status.scheduleAttempted > 0
+                {status.scheduleSkipped > 0
+                  ? ` Полный обход отложен: API вернул пустые ответы для ${status.probeEmpty} из ${status.probeAttempted} проверенных групп. Проверенных снимков на CDN: ${status.coverageAvailable}.`
+                  : status.scheduleAttempted > 0
                   ? ` Расписаний получено ${status.scheduleOk} из ${status.scheduleAttempted}.`
                   : " Расписания в этом обходе не запрашивались."}
               </p>

@@ -3559,6 +3559,13 @@ button.day-title > svg {
   color: var(--cyan);
 }
 
+.group-picker-coverage {
+  margin: 0 18px 12px;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
 .group-picker-list {
   min-height: 168px;
   overflow-x: hidden;

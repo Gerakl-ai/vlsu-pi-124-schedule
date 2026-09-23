@@ -625,7 +625,8 @@ export async function loadSchedule(group: GroupProfile): Promise<ScheduleState> 
     const staticState = await loadStaticSchedule(group);
     writeGroupScheduleCache(staticState);
     return staticState;
-  } catch {
+  } catch (error) {
+    if (import.meta.env.PROD && import.meta.env.BASE_URL !== "/") throw error;
     // Снимка для этой группы ещё нет — пробуем прежние источники.
   }
 

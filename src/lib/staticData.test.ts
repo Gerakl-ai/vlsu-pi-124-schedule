@@ -7,6 +7,7 @@ import {
   catalogInstitutes,
   normalizeStaticCatalog,
   normalizeStaticSnapshot,
+  normalizeStaticCoverage,
   resetStaticCatalogCache,
   normalizeCrawlStatus,
   normalizeProvenance,
@@ -108,6 +109,23 @@ describe("normalizeStaticSnapshot", () => {
 
   it("отвергает пустое расписание: это сбой, а не отсутствие занятий", () => {
     expect(() => normalizeStaticSnapshot({ ...snapshotPayload, schedule: [] }, snapshotPayload.group.nrec)).toThrow();
+  });
+});
+
+describe("normalizeStaticCoverage", () => {
+  it("shows only groups with a valid dated snapshot entry", () => {
+    const coverage = normalizeStaticCoverage({
+      schemaVersion: 1,
+      checkedAt: "2026-09-24T00:00:00Z",
+      catalogGroups: 965,
+      available: 2,
+      groups: {
+        [snapshotPayload.group.nrec]: { capturedAt: snapshotPayload.capturedAt, semester: 5, scheduleHash: HASH },
+        broken: { capturedAt: "yesterday", semester: 5, scheduleHash: HASH }
+      }
+    });
+    expect(coverage.available).toBe(1);
+    expect(coverage.groups[snapshotPayload.group.nrec]?.semester).toBe(5);
   });
 });
 

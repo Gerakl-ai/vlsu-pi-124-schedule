@@ -25,12 +25,13 @@
  */
 
 import { createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 
 import {
   STUDY_FORMS,
+  UpstreamError,
   fetchGroupCurrentInfo,
   fetchGroupSchedule,
   fetchGroups,
@@ -111,6 +112,35 @@ function toJsonFile(value) {
   return `${JSON.stringify(JSON.parse(stableStringify(value)), null, 2)}\n`;
 }
 
+export async function collectCoverage(outDir, catalog) {
+  const knownGroups = new Set(catalog.flatMap((institute) => institute.groups.map((group) => group.nrec)));
+  const directory = path.join(outDir, "schedule");
+  const files = await readdir(directory).catch(() => []);
+  const groups = {};
+
+  for (const file of files) {
+    const match = /^([a-f\d]{32})\.json$/i.exec(file);
+    if (!match || !knownGroups.has(match[1])) continue;
+    try {
+      const snapshot = JSON.parse(await readFile(path.join(directory, file), "utf8"));
+      if (snapshot.schemaVersion !== SNAPSHOT_SCHEMA_VERSION
+        || snapshot.group?.nrec !== match[1]
+        || !scheduleQuality(snapshot.schedule)
+        || snapshot.scheduleHash !== sha256({ semester: snapshot.semester, schedule: snapshot.schedule })
+        || !Number.isFinite(Date.parse(snapshot.capturedAt))) continue;
+      groups[match[1]] = {
+        capturedAt: snapshot.capturedAt,
+        semester: snapshot.semester,
+        scheduleHash: snapshot.scheduleHash
+      };
+    } catch {
+      // A corrupt file must not be advertised as available.
+    }
+  }
+
+  return { schemaVersion: 1, checkedAt: new Date().toISOString(), catalogGroups: knownGroups.size, available: Object.keys(groups).length, groups };
+}
+
 /* ------------------------------------------------------------------ *
  * Валидация расписания
  * ------------------------------------------------------------------ */
@@ -142,6 +172,17 @@ export function scheduleQuality(schedule) {
   if (lessonDays > 0 && !hasAnyLesson) warnings.push("empty-week");
 
   return { valid: true, scheduleEntries: schedule.length, lessonDays, examEntries, warnings };
+}
+
+export function isEmptyScheduleResponse(error) {
+  return error instanceof UpstreamError
+    && error.status === 200
+    && error.path === "/student/GetGroupSchedule"
+    && error.message.includes("пустой ответ");
+}
+
+function probeGroupsFromDifferentInstitutes(catalog) {
+  return catalog.flatMap((institute) => institute.groups.length ? [institute.groups[0]] : []).slice(0, 3);
 }
 
 /* ------------------------------------------------------------------ *
@@ -318,6 +359,11 @@ async function main() {
     scheduleAttempted: 0,
     scheduleOk: 0,
     scheduleFailed: 0,
+    probeAttempted: 0,
+    probeEmpty: 0,
+    scheduleSkipped: 0,
+    skipReason: null,
+    coverageAvailable: 0,
     written: { created: 0, updated: 0, unchanged: 0 },
     failures: []
   };
@@ -349,40 +395,54 @@ async function main() {
     const tasks = catalog.flatMap((institute) =>
       institute.groups.map((group) => ({ group, institute }))
     );
-    report.scheduleAttempted = tasks.length;
-
-    await runPolitely(
-      tasks,
-      async ({ group, institute }) => {
-        const file = path.join(outDir, "schedule", `${group.nrec}.json`);
-        try {
-          const snapshot = await buildGroupSnapshot(group, institute);
-          const result = await writeIfChanged(
-            file,
-            toJsonFile({ ...snapshot, capturedAt: startedAt }),
-            args
-          );
-          report.scheduleOk += 1;
-          if (result.includes("creat")) report.written.created += 1;
-          else if (result.includes("updat")) report.written.updated += 1;
-          else report.written.unchanged += 1;
-        } catch (error) {
-          // Плохой ответ не трогает файл на диске: там остаётся последний хороший снимок.
-          report.scheduleFailed += 1;
-          report.failures.push({
-            scope: "schedule",
-            group: group.name,
-            nrec: group.nrec,
-            institute: institute.shortName,
-            reason: error?.message ?? String(error)
-          });
-        }
-      },
-      { concurrency: args.concurrency, delayMs: args.delay }
+    const probes = probeGroupsFromDifferentInstitutes(catalog);
+    report.probeAttempted = probes.length;
+    const probeResults = await Promise.allSettled(
+      probes.map((group) => fetchGroupSchedule(group.nrec, { retries: 0, timeoutMs: 8_000 }))
     );
+    report.probeEmpty = probeResults.filter((result) => result.status === "rejected" && isEmptyScheduleResponse(result.reason)).length;
+    const upstreamUnavailable = probes.length === 3 && report.probeEmpty === 3;
+
+    if (upstreamUnavailable) {
+      report.scheduleSkipped = tasks.length;
+      report.skipReason = "Три группы разных институтов вернули пустой ответ HTTP 200; полный обход отложен";
+      console.warn(`[снимок] ${report.skipReason}. Сохранённые файлы не изменены.`);
+    } else {
+      report.scheduleAttempted = tasks.length;
+      await runPolitely(
+        tasks,
+        async ({ group, institute }) => {
+          const file = path.join(outDir, "schedule", `${group.nrec}.json`);
+          try {
+            const snapshot = await buildGroupSnapshot(group, institute);
+            const result = await writeIfChanged(
+              file,
+              toJsonFile({ ...snapshot, capturedAt: startedAt }),
+              args
+            );
+            report.scheduleOk += 1;
+            if (result.includes("creat")) report.written.created += 1;
+            else if (result.includes("updat")) report.written.updated += 1;
+            else report.written.unchanged += 1;
+          } catch (error) {
+            // Плохой ответ не трогает файл на диске: там остаётся последний хороший снимок.
+            report.scheduleFailed += 1;
+            report.failures.push({
+              scope: "schedule",
+              group: group.name,
+              nrec: group.nrec,
+              institute: institute.shortName,
+              reason: error?.message ?? String(error)
+            });
+          }
+        },
+        { concurrency: args.concurrency, delayMs: args.delay }
+      );
+    }
 
     console.log(
       `[снимок] расписания: успешно ${report.scheduleOk}, сбоев ${report.scheduleFailed}` +
+        `, пропущено ${report.scheduleSkipped}` +
         ` (создано ${report.written.created}, обновлено ${report.written.updated}, без изменений ${report.written.unchanged})`
     );
   }
@@ -391,6 +451,10 @@ async function main() {
   report.durationSeconds = Math.round(
     (Date.parse(report.finishedAt) - Date.parse(report.startedAt)) / 1000
   );
+
+  const coverage = await collectCoverage(outDir, catalog);
+  report.coverageAvailable = coverage.available;
+  await writeIfChanged(path.join(outDir, "coverage.json"), toJsonFile(coverage), args);
 
   const statusResult = await writeIfChanged(
     path.join(outDir, "status.json"),
@@ -407,7 +471,7 @@ async function main() {
   }
 
   // Полностью провалившийся обход — это поломка, и она должна быть заметна в CI.
-  if (!args.catalogOnly && report.scheduleAttempted > 0 && report.scheduleOk === 0) {
+  if (!args.catalogOnly && (report.scheduleSkipped > 0 || (report.scheduleAttempted > 0 && report.scheduleOk === 0))) {
     console.error("[снимок] ни одна группа не получила расписание — обход считается проваленным");
     process.exitCode = 1;
   }

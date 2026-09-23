@@ -57,6 +57,13 @@ export interface StaticScheduleSnapshot {
   provenance?: unknown;
 }
 
+export interface StaticCoverage {
+  checkedAt: string;
+  catalogGroups: number;
+  available: number;
+  groups: Record<string, { capturedAt: string; semester: number | null; scheduleHash: string }>;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object";
 }
@@ -144,6 +151,41 @@ export function loadStaticCatalog(signal?: AbortSignal): Promise<StaticCatalog> 
 
 export function resetStaticCatalogCache() {
   catalogPromise = null;
+}
+
+export function normalizeStaticCoverage(payload: unknown): StaticCoverage {
+  if (!isRecord(payload) || payload.schemaVersion !== 1 || !isRecord(payload.groups)
+    || typeof payload.checkedAt !== "string" || Number.isNaN(Date.parse(payload.checkedAt))) {
+    throw new Error("Карта покрытия имеет неизвестный формат");
+  }
+  const groups: StaticCoverage["groups"] = {};
+  for (const [nrec, item] of Object.entries(payload.groups)) {
+    if (!/^[a-f\d]{32}$/i.test(nrec) || !isRecord(item)
+      || typeof item.capturedAt !== "string" || Number.isNaN(Date.parse(item.capturedAt))
+      || typeof item.scheduleHash !== "string" || !/^[a-f\d]{64}$/i.test(item.scheduleHash)) continue;
+    groups[nrec] = {
+      capturedAt: item.capturedAt,
+      semester: typeof item.semester === "number" ? item.semester : null,
+      scheduleHash: item.scheduleHash
+    };
+  }
+  return {
+    checkedAt: payload.checkedAt,
+    catalogGroups: typeof payload.catalogGroups === "number" ? payload.catalogGroups : 0,
+    available: Object.keys(groups).length,
+    groups
+  };
+}
+
+let coveragePromise: Promise<StaticCoverage> | null = null;
+
+export function loadStaticCoverage(): Promise<StaticCoverage> {
+  if (!coveragePromise) {
+    coveragePromise = fetchJson(staticDataUrl("coverage.json"))
+      .then(normalizeStaticCoverage)
+      .catch((error) => { coveragePromise = null; throw error; });
+  }
+  return coveragePromise;
 }
 
 export function catalogInstitutes(catalog: StaticCatalog): InstituteOption[] {
@@ -261,6 +303,11 @@ export interface CrawlStatus {
   scheduleAttempted: number;
   scheduleOk: number;
   scheduleFailed: number;
+  probeAttempted: number;
+  probeEmpty: number;
+  scheduleSkipped: number;
+  skipReason: string | null;
+  coverageAvailable: number;
   failures: Array<{ scope: string; group?: string; institute?: string; reason: string }>;
   provenance: SnapshotProvenance | null;
 }
@@ -287,6 +334,11 @@ export function normalizeCrawlStatus(payload: unknown): CrawlStatus {
     scheduleAttempted: number(payload.scheduleAttempted),
     scheduleOk: number(payload.scheduleOk),
     scheduleFailed: number(payload.scheduleFailed),
+    probeAttempted: number(payload.probeAttempted),
+    probeEmpty: number(payload.probeEmpty),
+    scheduleSkipped: number(payload.scheduleSkipped),
+    skipReason: typeof payload.skipReason === "string" ? payload.skipReason : null,
+    coverageAvailable: number(payload.coverageAvailable),
     failures: Array.isArray(payload.failures)
       ? payload.failures.filter(isRecord).map((item) => ({
           scope: String(item.scope ?? ""),
