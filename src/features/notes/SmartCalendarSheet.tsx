@@ -323,10 +323,19 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
         <div key={monthKey} className={`calendar-grid motion-${monthMotion}`} aria-label={monthLabel}
           style={{ touchAction: "pan-y" }}
           onPointerDown={(event) => { if (event.isPrimary) swipe.current = { x: event.clientX, y: event.clientY }; }}
-          onPointerCancel={() => { swipe.current = null; }}
+          onPointerMove={(event) => {
+            const origin = swipe.current;
+            if (!origin) return;
+            const dx = event.clientX - origin.x;
+            const dy = event.clientY - origin.y;
+            if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(dy) * 1.2) return;
+            event.currentTarget.style.translate = `${Math.max(-72, Math.min(72, dx * .28))}px 0`;
+          }}
+          onPointerCancel={(event) => { swipe.current = null; event.currentTarget.style.translate = ""; }}
           onPointerUp={(event) => {
             const origin = swipe.current;
             swipe.current = null;
+            event.currentTarget.style.translate = "";
             if (!origin) return;
             const dx = event.clientX - origin.x;
             const dy = event.clientY - origin.y;
@@ -371,7 +380,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
             <button type="button" onClick={() => { onClose(); onCreateForDate(selectedDate); }} aria-label="Создать запись на выбранную дату" title="Новая запись">
               <NotebookPen size={18} />
             </button>
-            <button type="button" onClick={() => setEditingEvent("new")} aria-label="Добавить событие" title="Добавить событие"><CalendarPlus size={20} /></button>
+            <button className="calendar-add-event" type="button" onClick={() => setEditingEvent("new")} aria-label="Добавить событие" title="Добавить событие"><CalendarPlus size={18} /><span>Событие</span></button>
           </header>
           <div key={dateKeyFromDate(selectedDate)} className="calendar-event-list calendar-event-list-enter">
             {selectedEvents.length ? selectedEvents.map((event) => {
@@ -393,7 +402,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
                 <article className="calendar-event lesson" key={event.id}>{contents}</article>
               );
             }) : (
-              <div className="calendar-empty-day"><CalendarDays size={22} /><span>Можно оставить день свободным или добавить запись.</span></div>
+              <div className="calendar-empty-day"><CalendarDays size={22} /><span>На эту дату пока ничего не запланировано.</span></div>
             )}
           </div>
         </section>

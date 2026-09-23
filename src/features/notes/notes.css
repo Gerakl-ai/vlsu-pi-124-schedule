@@ -2107,6 +2107,8 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 .calendar-actions button:active {
   transform: scale(.95);
 }
+.calendar-agenda > header > .calendar-add-event { width: auto; min-width: 105px; height: 40px; display: inline-flex; gap: 6px; padding: 0 10px; font-size: 12px; font-weight: 800; color: var(--bg-deep); border-color: transparent; background: var(--cyan); }
+.calendar-add-event span { font-size: inherit !important; font-weight: inherit !important; color: inherit !important; white-space: nowrap; }
 
 .calendar-month-label {
   min-width: 0;
@@ -3097,6 +3099,12 @@ body:has(.note-composer) .phone-frame > .motion-scene *::after {
 .theme-quick-controls button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; height: auto; font-size: 14px; }
 .theme-quick-controls label { display: flex; justify-content: space-between; align-items: center; }
 .theme-quick-controls input[type="color"] { width: 64px; height: 44px; padding: 4px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); }
+.theme-accent-picker { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.theme-accent-picker > button { width: 36px; min-height: 36px; height: 36px; flex: 0 0 36px; padding: 0; border: 2px solid var(--theme-panel-solid); border-radius: 50%; color: #fff; background: var(--swatch-color); box-shadow: 0 0 0 1px var(--theme-panel-border); }
+.theme-accent-picker > button.active { box-shadow: 0 0 0 2px var(--text), 0 0 17px var(--swatch-color); }
+.theme-accent-picker > button:focus-visible, .theme-accent-custom:focus-within { outline: 2px solid var(--cyan); outline-offset: 3px; }
+.theme-accent-custom { position: relative; display: grid !important; place-items: center; width: 38px; height: 38px; overflow: hidden; border: 1px solid var(--theme-panel-border); border-radius: 50%; color: var(--text); background: var(--theme-control); cursor: pointer; }
+.theme-accent-custom input[type="color"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .theme-advanced-toggle { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 12px; border: 1px solid var(--theme-panel-border); border-radius: 8px; background: var(--theme-control); color: var(--text); font: inherit; font-size: 14px; }
 .theme-presets summary { min-height: 44px; padding: 14px 2px; color: var(--muted); font-size: 14px; cursor: pointer; }
 .theme-presets summary { min-height: 44px; cursor: pointer; padding: 12px 0; }

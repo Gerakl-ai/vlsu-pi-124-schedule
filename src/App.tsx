@@ -51,7 +51,7 @@ import { importPersonalEvents, personalEventsOnDate, usePersonalEvents } from ".
 import { GroupPickerSheet } from "./features/groups/GroupPickerSheet";
 import { parseGroupLink, resolveGroupLink, syncGroupLink } from "./features/groups/groupLinks";
 import { groupBadgeParts, type GroupProfile } from "./features/groups/groupTypes";
-import { readGroupScheduleCache, readKnownGroup, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
+import { readFavoriteGroups, readGroupScheduleCache, readKnownGroup, readRecentGroups, readSelectedGroup, writeSelectedGroup } from "./features/groups/groupStorage";
 import { ThemeSheet } from "./features/themes/ThemeSheet";
 import {
   applyTheme,
@@ -113,6 +113,8 @@ const INITIAL_GROUP_LINK = parseGroupLink(window.location.search);
 const INITIAL_GROUP = (INITIAL_GROUP_LINK ? readKnownGroup(INITIAL_GROUP_LINK.nrec, INITIAL_GROUP_LINK.instituteId) : null) ?? readSelectedGroup();
 const CACHED_SCHEDULE = INITIAL_GROUP ? readGroupScheduleCache(INITIAL_GROUP) : null;
 const INITIAL_SCHEDULE = CACHED_SCHEDULE ? normalizeCachedSchedule(CACHED_SCHEDULE) : null;
+const INITIAL_FALLBACK_GROUP = [...readRecentGroups(), ...readFavoriteGroups()]
+  .find((group) => group.nrec !== INITIAL_GROUP?.nrec && normalizeCachedSchedule(readGroupScheduleCache(group))) ?? null;
 const MOTION_PARTICLES = Array.from({ length: 8 }, (_, index) => index);
 const TAB_ORDER: AppTab[] = ["today", "week", "notes", "settings"];
 const TAB_GESTURE_LABELS: Record<AppTab, string> = {
@@ -330,15 +332,16 @@ export function App() {
     if (!tabMotion.id || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const view = contentScrollRef.current?.querySelector<HTMLElement>(".view-stack");
     const animation = view?.animate([
-      { transform: `translate3d(${tabMotion.direction === "forward" ? 36 : -36}px,0,0)` },
-      { transform: "translate3d(0,0,0)" }
-    ], { duration: 280, easing: "cubic-bezier(.22,.8,.25,1)" });
+      { opacity: 0.86, transform: `translate3d(${tabMotion.direction === "forward" ? 16 : -16}px,0,0)` },
+      { opacity: 1, transform: "translate3d(0,0,0)" }
+    ], { duration: 360, easing: "cubic-bezier(.2,.8,.2,1)" });
     return () => animation?.cancel();
   }, [tabMotion]);
   const pendingTabRef = useRef<AppTab>(activeTab);
   const tabScrollPositionsRef = useRef<Record<AppTab, number>>({ today: 0, week: 0, notes: 0, settings: 0 });
   const scheduleRef = useRef<ScheduleState | null>(schedule);
   const selectedGroupRef = useRef<GroupProfile | null>(selectedGroup);
+  const lastAvailableGroupRef = useRef<GroupProfile | null>(INITIAL_FALLBACK_GROUP);
   const refreshInFlightGroupRef = useRef<string | null>(null);
   const refreshSequenceRef = useRef(0);
   const screenGestureRef = useRef<ActiveScreenGesture | null>(null);
@@ -459,6 +462,9 @@ export function App() {
   }, []);
 
   function selectGroup(group: GroupProfile) {
+    if (selectedGroupRef.current?.nrec !== group.nrec && scheduleRef.current?.groupNrec === selectedGroupRef.current?.nrec) {
+      lastAvailableGroupRef.current = selectedGroupRef.current;
+    }
     const cached = readGroupScheduleCache(group);
     const normalizedCache = cached ? normalizeCachedSchedule(cached) : null;
     selectedGroupRef.current = group;
@@ -868,17 +874,15 @@ export function App() {
           <div className="screen-swipe-feedback" ref={gestureFeedbackRef} data-visible="false" aria-hidden="true">
             <span className="screen-swipe-arrow"><ChevronRight size={18} /></span>
             <strong data-gesture-label />
-            <small>свайп</small>
           </div>
           {isLoading && (activeTab === "today" || activeTab === "week") && <SkeletonView />}
 
           {isScheduleUnavailable && (activeTab === "today" || activeTab === "week") && (
-            <ScheduleUnavailableView onRetry={() => refreshSchedule()} />
+            <ScheduleUnavailableView onRetry={() => refreshSchedule()} onRestore={lastAvailableGroupRef.current ? () => selectGroup(lastAvailableGroupRef.current!) : undefined} />
           )}
 
           {!isLoading && !isScheduleUnavailable && activeTab === "today" && (
             <TodayView
-              key={selectedDateKey}
               subgroup={subgroup}
               onSubgroup={setSubgroup}
               heroSubject={heroSubject}
@@ -1283,9 +1287,9 @@ function TodayView({
   }
 
   return (
-    <div className={`view-stack today-view ${!lessons.length && !focusNote ? "no-day-details" : ""} ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
+    <div className={`view-stack today-view ${!lessons.length && !focusNote ? "no-day-details" : ""}`}>
       <div className="today-primary">
-        <div className="today-date-navigator">
+        <div key={dateKeyFromDate(selectedDate)} className={`today-date-navigator ${motionDirection ? `day-motion-${motionDirection}` : ""}`}>
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
           <button
             className="today-date-launch"
@@ -1665,6 +1669,7 @@ function WeekView({
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
 }) {
   const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
+  const personalEvents = usePersonalEvents();
   if (hasDatedLessons(lessons)) {
     return <SessionScheduleView lessons={lessons} notes={notes} groupNrec={groupNrec} onToggleNote={onToggleNote} onOpenCalendar={onOpenCalendar} onCreateLessonNote={onCreateLessonNote} />;
   }
@@ -1720,6 +1725,7 @@ function WeekView({
       <section className="week-list">
         {dayLoads.map((day) => {
           const isToday = day.dayIndex === today;
+          const dayEvents = personalEventsOnDate(personalEvents, day.date);
           return (
             <article className={`day-block ${isToday ? "current-day" : ""} ${day.count ? "" : "empty-day"}`} key={day.dayName}>
               <button className="day-title" type="button" onClick={() => onSelectDate(day.date)} aria-label={`Открыть расписание: ${day.dayName}`}>
@@ -1766,9 +1772,16 @@ function WeekView({
                     </article>
                   );
                 })
-              ) : (
+              ) : !dayEvents.length ? (
                 <p className="quiet-copy">В расписании на этот день занятий нет.</p>
-              )}
+              ) : null}
+              {dayEvents.map((event) => (
+                <button className="week-personal-event" type="button" key={event.id} onClick={() => onSelectDate(day.date)} aria-label={`Открыть день: ${event.title}`}>
+                  <CalendarDays size={17} aria-hidden="true" />
+                  <span><strong>{event.title}</strong><small>{[new Intl.DateTimeFormat("ru-RU", { hour: "2-digit", minute: "2-digit" }).format(new Date(event.start)), event.location].filter(Boolean).join(" · ")}</small></span>
+                  <ChevronRight size={17} aria-hidden="true" />
+                </button>
+              ))}
             </article>
           );
         })}
@@ -2203,15 +2216,16 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
   );
 }
 
-function ScheduleUnavailableView({ onRetry }: { onRetry: () => void }) {
+function ScheduleUnavailableView({ onRetry, onRestore }: { onRetry: () => void; onRestore?: () => void }) {
   return (
     <section className="schedule-unavailable" role="status" aria-live="polite">
       <span className="schedule-unavailable-icon" aria-hidden="true"><CloudOff size={27} /></span>
       <span className="schedule-unavailable-copy">
         <small>Источник временно недоступен</small>
         <strong>ВлГУ не ответил</strong>
-        <p>На этом устройстве ещё нет сохранённой копии расписания. Записи и настройки продолжают работать.</p>
+        <p>Для этой группы ещё нет сохранённой копии. Офлайн доступны только группы, расписание которых уже удалось загрузить на этом устройстве.</p>
       </span>
+      {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
       <button type="button" onClick={onRetry}>
         <RefreshCw size={17} />
         Повторить

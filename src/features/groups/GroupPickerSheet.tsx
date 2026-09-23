@@ -12,10 +12,11 @@ import {
   WifiOff,
   X
 } from "lucide-react";
-import { loadGroups, loadInstitutes } from "../../lib/scheduleApi";
+import { loadGroups, loadInstitutes, normalizeCachedSchedule } from "../../lib/scheduleApi";
 import {
   readFavoriteGroups,
   readGroupCatalog,
+  readGroupScheduleCache,
   readInstituteCatalog,
   writeGroupCatalog,
   toggleFavoriteGroup,
@@ -202,7 +203,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
                 <div className="group-picker-row-wrap" key={`favorite-${group.nrec}`}>
                   <button type="button" className="group-picker-row group-row" onClick={() => onSelect(group)}>
                     <span className="group-badge"><UsersRound size={19} /></span>
-                    <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.instituteShortName}{group.course ? ` · ${group.course}` : ""}</small></span>
+                    <span className="group-picker-copy"><strong>{group.name}</strong><small>{group.instituteShortName}{group.course ? ` · ${group.course}` : ""}{normalizeCachedSchedule(readGroupScheduleCache(group)) ? " · доступно офлайн" : ""}</small></span>
                     {selectedGroup?.nrec === group.nrec ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                   </button>
                   <button type="button" className="group-favorite-button active" onClick={(event) => toggleFavorite(event, group)} aria-label={`Убрать ${group.name} из избранного`} title="Убрать из избранного">
@@ -225,11 +226,12 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
             const isCurrent = selectedGroup?.nrec === group.nrec;
             const profile = toGroupProfile(activeInstitute, group);
             const isFavorite = favoriteGroups.some((item) => item.nrec === group.nrec);
+            const savedOffline = Boolean(normalizeCachedSchedule(readGroupScheduleCache(profile)));
             return (
               <div className="group-picker-row-wrap" key={group.nrec}>
                 <button type="button" className="group-picker-row group-row" onClick={() => chooseGroup(group)}>
                   <span className="group-badge"><UsersRound size={19} /></span>
-                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{[group.course ?? activeInstitute.shortName, studyFormLabel(group.forms)].filter(Boolean).join(" · ")}</small></span>
+                  <span className="group-picker-copy"><strong>{group.name}</strong><small>{[group.course ?? activeInstitute.shortName, studyFormLabel(group.forms), savedOffline ? "доступно офлайн" : ""].filter(Boolean).join(" · ")}</small></span>
                   {isCurrent ? <Check size={20} className="group-picker-check" /> : <ChevronRight size={20} />}
                 </button>
                 <button type="button" className={`group-favorite-button ${isFavorite ? "active" : ""}`} onClick={(event) => toggleFavorite(event, profile)} aria-label={`${isFavorite ? "Убрать" : "Добавить"} ${group.name} ${isFavorite ? "из" : "в"} избранное`} title={isFavorite ? "Убрать из избранного" : "Добавить в избранное"}>

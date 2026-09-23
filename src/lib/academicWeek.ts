@@ -24,13 +24,24 @@ export function mondayOf(date: Date) {
   return monday;
 }
 
+function calendarWeekDelta(date: Date, start: Date) {
+  const monday = mondayOf(date);
+  const firstMonday = mondayOf(start);
+  const dayStamp = (value: Date) => Date.UTC(value.getFullYear(), value.getMonth(), value.getDate());
+  return Math.round((dayStamp(monday) - dayStamp(firstMonday)) / 604_800_000);
+}
+
+/** Осенний семестр: неделя с 1 сентября считается первой. */
+export function autumnTeachingWeekNumber(date: Date): number | null {
+  if (date.getMonth() < 8 || date.getMonth() > 11) return null;
+  return calendarWeekDelta(date, new Date(date.getFullYear(), 8, 1)) + 1;
+}
+
 export function vlsuWeekModeForDate(date = new Date()): WeekMode {
   const academicYear = date.getMonth() >= 8 ? date.getFullYear() : date.getFullYear() - 1;
   const firstSeptember = new Date(academicYear, 8, 1);
   firstSeptember.setHours(0, 0, 0, 0);
-  const weekDelta = Math.floor(
-    (mondayOf(date).getTime() - mondayOf(firstSeptember).getTime()) / 604_800_000
-  );
+  const weekDelta = calendarWeekDelta(date, firstSeptember);
   return Math.abs(weekDelta) % 2 === 0 ? "numerator" : "denominator";
 }
 

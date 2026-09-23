@@ -1,6 +1,6 @@
-import type { LessonSlot, WeekMode } from "../types";
-import { vlsuWeekModeForDate } from "./academicWeek";
-import { lessonAppliesToWeek } from "./scheduleApi";
+import type { LessonSlot, LessonVariant, WeekMode } from "../types";
+import { autumnTeachingWeekNumber, vlsuWeekModeForDate } from "./academicWeek";
+import { lessonAppliesToWeek, parseLessonText } from "./scheduleApi";
 
 // Расчёт учебной недели живёт в academicWeek.ts, чтобы его могли использовать
 // и разбор расписания, и чтение статических снимков без цикла импортов.
@@ -122,6 +122,27 @@ export function lessonTimingState(lesson: LessonSlot, date = new Date()) {
   return "future";
 }
 
+const TEACHING_WEEK_RANGE = /\(\s*с\s*(\d{1,2})\s*(?:по\s*(\d{1,2})\s*)?нед(?:\.|ели|елю|ель)?\s*\)/iu;
+
+function variantAppliesToTeachingWeek(variant: LessonVariant, weekNumber: number) {
+  const match = variant.rawText.match(TEACHING_WEEK_RANGE);
+  if (!match) return true;
+  const first = Number(match[1]);
+  const last = match[2] ? Number(match[2]) : Number.POSITIVE_INFINITY;
+  return weekNumber >= first && weekNumber <= last;
+}
+
+function lessonForTeachingWeek(lesson: LessonSlot, date: Date): LessonSlot | null {
+  if (lesson.scheduleKind === "exam") return lesson;
+  const weekNumber = autumnTeachingWeekNumber(date);
+  if (weekNumber === null) return lesson;
+  const variants = lesson.variants ?? parseLessonText(lesson.rawText).variants;
+  const active = variants.filter((variant) => variantAppliesToTeachingWeek(variant, weekNumber));
+  if (!active.length) return null;
+  if (active.length === variants.length) return lesson;
+  return { ...lesson, ...parseLessonText(active.map((variant) => variant.rawText).join("\n")) };
+}
+
 export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMode: WeekMode, date = new Date()) {
   const targetDate = dateKeyFromDate(date);
   return lessons
@@ -130,6 +151,8 @@ export function selectDayLessons(lessons: LessonSlot[], dayIndex: number, weekMo
       if (lesson.date) return lesson.date === targetDate;
       return lesson.dayIndex === dayIndex;
     })
+    .map((lesson) => lessonForTeachingWeek(lesson, date))
+    .filter((lesson): lesson is LessonSlot => lesson !== null)
     .sort((a, b) => a.start.localeCompare(b.start) || a.subject.localeCompare(b.subject, "ru"));
 }
 

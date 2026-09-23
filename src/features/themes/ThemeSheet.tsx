@@ -1,5 +1,5 @@
 import { Check, Moon, Sun, Palette, RotateCcw, SlidersHorizontal, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type CSSProperties } from "react";
 import { DEFAULT_CUSTOM_THEME, THEMES, type CustomTheme, type ThemeId } from "./theme";
 
 interface ThemeSheetProps {
@@ -33,6 +33,14 @@ const LIGHT_CUSTOM_THEME: CustomTheme = {
   success: "#16866d"
 };
 
+const QUICK_ACCENTS = [
+  { name: "Терракота", value: "#c9602d" },
+  { name: "Бирюза", value: "#2f7d78" },
+  { name: "Ультрамарин", value: "#4c5bd4" },
+  { name: "Коралл", value: "#db4b50" },
+  { name: "Лайм", value: "#9ab64b" }
+] as const;
+
 export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomChange, onSelect }: ThemeSheetProps) {
   const [customOpen, setCustomOpen] = useState(currentTheme === "custom");
 
@@ -55,7 +63,6 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
     const base = nextMode === "light" ? LIGHT_CUSTOM_THEME : DEFAULT_CUSTOM_THEME;
     const palette = currentTheme === "custom" && nextMode === mode ? customTheme : base;
     onCustomChange({ ...palette, name: "Моя тема", accent: accent ?? currentAccent });
-    onSelect("custom");
   }
 
   function updateCustom(patch: Partial<CustomTheme>) {
@@ -95,7 +102,10 @@ export function ThemeSheet({ currentTheme, customTheme, open, onClose, onCustomC
             <button type="button" className={mode === "light" ? "active" : ""} aria-pressed={mode === "light"} onClick={() => quickTheme("light")}><Sun size={18} /> Светлая</button>
             <button type="button" className={mode === "dark" ? "active" : ""} aria-pressed={mode === "dark"} onClick={() => quickTheme("dark")}><Moon size={18} /> Тёмная</button>
           </div>
-          <label>Акцент<input type="color" aria-label="Цвет акцента" value={currentAccent} onChange={(event) => quickTheme(mode, event.target.value)} /></label>
+          <div className="theme-accent-picker" role="group" aria-label="Акцентный цвет">
+            {QUICK_ACCENTS.map((accent) => <button key={accent.value} type="button" className={currentAccent.toLowerCase() === accent.value ? "active" : ""} style={{ "--swatch-color": accent.value } as CSSProperties} onClick={() => quickTheme(mode, accent.value)} aria-label={accent.name} title={accent.name} aria-pressed={currentAccent.toLowerCase() === accent.value}>{currentAccent.toLowerCase() === accent.value && <Check size={16} />}</button>)}
+            <label className="theme-accent-custom" title="Свой цвет"><Palette size={17} /><input type="color" aria-label="Свой акцентный цвет" value={currentAccent} onChange={(event) => quickTheme(mode, event.target.value)} /></label>
+          </div>
         </div>
         <button className="theme-advanced-toggle" type="button" onClick={() => setCustomOpen(!customOpen)} aria-expanded={customOpen}><SlidersHorizontal size={17} /> Точная настройка</button>
         <details className="theme-presets"><summary>Готовые палитры</summary><div className="theme-grid">
