@@ -12,6 +12,7 @@ const assert = require('node:assert/strict');
     await page.addInitScript((events) => {
       localStorage.setItem('lad.selected-group.v2', JSON.stringify({ id: 'qa', nrec: 'qa', name: 'QA', instituteId: 'qa', instituteName: 'QA', instituteShortName: 'QA', visualKey: 'iite' }));
       if (events && !localStorage.getItem('lad.personal-events.v1')) localStorage.setItem('lad.personal-events.v1', JSON.stringify(events));
+      if (events) localStorage.setItem('lad.notes.fallback', JSON.stringify([{ id: 'qa-note', title: 'Проверка записи', text: 'Проверка записи', kind: 'note', space: 'Входящие', confidence: 1, status: 'open', pinned: false, createdAt: '2026-09-23T09:00:00Z', updatedAt: '2026-09-23T09:00:00Z', classificationSource: 'local' }]));
     }, seedEvents);
     await page.goto(url, { waitUntil: 'domcontentloaded' });
     await page.locator('.bottom-nav').getByRole('button', { name: 'Настройки', exact: true }).click();
@@ -27,6 +28,7 @@ const assert = require('node:assert/strict');
     const buffer = Buffer.concat(chunks);
     const archive = JSON.parse(buffer.toString('utf8'));
     assert.equal(archive.version, 7);
+    assert.equal(archive.notes[0].id, 'qa-note');
     assert.deepEqual(archive.events, [event]);
     const target = await openSettings(null);
     const upload = async (data) => {
@@ -34,6 +36,19 @@ const assert = require('node:assert/strict');
       await target.waitForFunction(() => [...document.querySelectorAll('.backup-notice')].some((node) => node.textContent.includes('Событий добавлено:')));
     };
     await upload(buffer);
+    const restoredNote = await target.evaluate(() => new Promise((resolve, reject) => {
+      const opening = indexedDB.open('lad-personal', 2);
+      opening.onerror = () => reject(opening.error);
+      opening.onsuccess = () => {
+        const db = opening.result;
+        const transaction = db.transaction('notes', 'readonly');
+        const request = transaction.objectStore('notes').get('qa-note');
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+        transaction.oncomplete = () => db.close();
+      };
+    }));
+    assert.equal(restoredNote.text, 'Проверка записи');
     assert.deepEqual(await target.evaluate(() => JSON.parse(localStorage.getItem('lad.personal-events.v1'))), [event]);
     await upload(buffer);
     assert.equal(await target.evaluate(() => JSON.parse(localStorage.getItem('lad.personal-events.v1')).length), 1);

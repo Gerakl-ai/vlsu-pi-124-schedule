@@ -4,6 +4,7 @@ import { LEGACY_PI124_GROUP } from "../groups/groupTypes";
 const DB_NAME = "lad-personal";
 const DB_VERSION = 2;
 const DB_OPEN_TIMEOUT_MS = 1500;
+const DB_OPERATION_TIMEOUT_MS = 2500;
 const NOTES_STORE = "notes";
 const FOLDERS_STORE = "folders";
 const DRAFTS_STORE = "drafts";
@@ -92,47 +93,56 @@ function openDatabase(): Promise<IDBDatabase> {
   });
 }
 
-async function getAll<T>(storeName: string): Promise<T[]> {
+async function runStoreRequest<T>(storeName: string, mode: IDBTransactionMode, operation: (store: IDBObjectStore) => IDBRequest<T>): Promise<T> {
   const database = await openDatabase();
   try {
-    return await new Promise<T[]>((resolve, reject) => {
-      const request = database.transaction(storeName, "readonly").objectStore(storeName).getAll();
-      request.onsuccess = () => resolve(request.result as T[]);
-      request.onerror = () => reject(request.error);
+    return await new Promise<T>((resolve, reject) => {
+      const transaction = database.transaction(storeName, mode);
+      let settled = false;
+      let result: T;
+      const fail = (error: unknown) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        reject(error ?? new Error("IndexedDB transaction failed"));
+      };
+      const timeout = setTimeout(() => {
+        fail(new Error("IndexedDB transaction timed out"));
+        // Abort pending writes so a late commit cannot replace a newer retry.
+        try { transaction.abort(); } catch { /* Already completed or unavailable. */ }
+      }, DB_OPERATION_TIMEOUT_MS);
+      transaction.oncomplete = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        resolve(result);
+      };
+      transaction.onerror = () => fail(transaction.error);
+      transaction.onabort = () => fail(transaction.error);
+      try {
+        const request = operation(transaction.objectStore(storeName));
+        request.onsuccess = () => { result = request.result; };
+        request.onerror = () => fail(request.error);
+      } catch (error) {
+        fail(error);
+        try { transaction.abort(); } catch { /* No active transaction. */ }
+      }
     });
   } finally {
     database.close();
   }
+}
+
+async function getAll<T>(storeName: string): Promise<T[]> {
+  return runStoreRequest<T[]>(storeName, "readonly", (store) => store.getAll());
 }
 
 async function putValue<T>(storeName: string, value: T): Promise<void> {
-  const database = await openDatabase();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
-      transaction.objectStore(storeName).put(value);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error);
-    });
-  } finally {
-    database.close();
-  }
+  await runStoreRequest(storeName, "readwrite", (store) => store.put(value));
 }
 
 async function deleteValue(storeName: string, id: string): Promise<void> {
-  const database = await openDatabase();
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const transaction = database.transaction(storeName, "readwrite");
-      transaction.objectStore(storeName).delete(id);
-      transaction.oncomplete = () => resolve();
-      transaction.onerror = () => reject(transaction.error);
-      transaction.onabort = () => reject(transaction.error);
-    });
-  } finally {
-    database.close();
-  }
+  await runStoreRequest(storeName, "readwrite", (store) => store.delete(id));
 }
 
 export async function loadNotes(): Promise<SmartNote[]> {
