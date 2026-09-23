@@ -151,6 +151,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
 
   const canClose = Boolean(selectedGroup);
   const rows = activeInstitute ? filteredGroups : filteredInstitutes;
+  const showCoverageWarning = Boolean(coverage && coverage.available < coverage.catalogGroups);
 
   const toggleFavorite = (event: React.MouseEvent, group: GroupProfile) => {
     event.stopPropagation();
@@ -172,7 +173,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
 
   return (
     <div className="group-picker-backdrop" role="presentation" data-first-run={!selectedGroup}>
-      <section className="group-picker-sheet" role="dialog" aria-modal="true" aria-labelledby="group-picker-title">
+      <section className={`group-picker-sheet${showCoverageWarning ? " has-coverage" : ""}`} role="dialog" aria-modal="true" aria-labelledby="group-picker-title">
         <header className="group-picker-header">
           {activeInstitute ? (
             <button type="button" className="group-picker-icon" onClick={() => { setActiveInstitute(null); setQuery(""); }} aria-label="Назад к институтам">
@@ -206,7 +207,7 @@ export function GroupPickerSheet({ open, selectedGroup, onClose, onSelect }: Gro
           <span>{activeInstitute ? activeInstitute.name : "Институты ВлГУ"}</span>
           <strong>{rows.length}</strong>
         </div>
-        {coverage && coverage.available < coverage.catalogGroups && (
+        {coverage && showCoverageWarning && (
           <p className="group-picker-coverage">
             Расписание на сервере есть для {coverage.available} из {coverage.catalogGroups} групп. Остальные пока недоступны.
           </p>

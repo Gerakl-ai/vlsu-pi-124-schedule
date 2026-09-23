@@ -3427,6 +3427,10 @@ button.day-title > svg {
   animation: group-sheet-in 240ms cubic-bezier(.22, .8, .22, 1) both;
 }
 
+.group-picker-sheet.has-coverage {
+  grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+}
+
 .group-picker-header {
   min-width: 0;
   display: grid;
