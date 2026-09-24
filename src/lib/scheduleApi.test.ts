@@ -145,6 +145,15 @@ describe("normalizeSchedule", () => {
     });
   });
 
+  it("keeps lessons and exams when the API returns both", () => {
+    const lessons = normalizeSchedule([
+      { type: "Lessons", name: "Понедельник", n1: "111-3, лк, Шутов А.В., Базы данных" },
+      { type: "ExamSession", date: "20.07.2026", time: "09:00", isConsultation: false, name: "Базы данных" }
+    ]);
+    expect(lessons.map((lesson) => lesson.scheduleKind)).toContain("exam");
+    expect(lessons).toHaveLength(2);
+  });
+
   it("repairs legacy cached lessons with merged subgroup text", () => {
     const cached = normalizeCachedSchedule({
       groupNrec: "group",
@@ -224,5 +233,12 @@ describe("schedule snapshot v2", () => {
   it("rejects a snapshot whose semester or week type disagrees with current info", () => {
     expect(() => normalizeGroupScheduleSnapshot({ ...snapshot, weekType: 2 }, nrec)).toThrow("inconsistent");
     expect(() => normalizeGroupScheduleSnapshot({ ...snapshot, semester: 4 }, nrec)).toThrow("inconsistent");
+  });
+
+  it("rejects a snapshot with day names but no actual lessons", () => {
+    expect(() => normalizeGroupScheduleSnapshot({
+      ...snapshot,
+      schedule: [{ type: "Lessons", name: "Понедельник" }]
+    }, nrec)).toThrow("invalid schedule data");
   });
 });

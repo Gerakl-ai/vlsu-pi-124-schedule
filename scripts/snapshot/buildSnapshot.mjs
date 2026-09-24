@@ -169,7 +169,9 @@ export function scheduleQuality(schedule) {
         (pair) => String(item[`n${pair}`] ?? "").trim() || String(item[`z${pair}`] ?? "").trim()
       )
   );
-  if (lessonDays > 0 && !hasAnyLesson) warnings.push("empty-week");
+  // An all-blank timetable is indistinguishable from an upstream outage.
+  // A genuine exam-only response remains useful even without weekly lessons.
+  if (lessonDays > 0 && !hasAnyLesson && examEntries === 0) return null;
 
   return { valid: true, scheduleEntries: schedule.length, lessonDays, examEntries, warnings };
 }

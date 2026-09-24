@@ -110,6 +110,20 @@ describe("normalizeStaticSnapshot", () => {
   it("отвергает пустое расписание: это сбой, а не отсутствие занятий", () => {
     expect(() => normalizeStaticSnapshot({ ...snapshotPayload, schedule: [] }, snapshotPayload.group.nrec)).toThrow();
   });
+
+  it("отвергает дни без пар, даже если качество в файле объявлено валидным", () => {
+    expect(() => normalizeStaticSnapshot({
+      ...snapshotPayload,
+      schedule: [{ type: "Lessons", name: "Понедельник" }]
+    }, snapshotPayload.group.nrec)).toThrow();
+  });
+
+  it("принимает расписание с экзаменом без обычных пар", () => {
+    expect(normalizeStaticSnapshot({
+      ...snapshotPayload,
+      schedule: [{ type: "ExamSession", name: "Экзамен" }]
+    }, snapshotPayload.group.nrec).schedule).toHaveLength(1);
+  });
 });
 
 describe("normalizeStaticCoverage", () => {

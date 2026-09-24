@@ -51,9 +51,17 @@ describe("scheduleQuality", () => {
     expect(quality).toMatchObject({ valid: true, scheduleEntries: 2, lessonDays: 1, examEntries: 1 });
   });
 
-  it("помечает неделю без единого занятия", () => {
+  it("не публикует неделю без единого занятия", () => {
     const quality = scheduleQuality([{ type: "Lessons", name: "Понедельник", n1: "", z1: "" }]);
-    expect(quality?.warnings).toContain("empty-week");
+    expect(quality).toBeNull();
+  });
+
+  it("сохраняет экзаменационную сессию без недельных занятий", () => {
+    const quality = scheduleQuality([
+      { type: "Lessons", name: "Понедельник", n1: "", z1: "" },
+      { type: "ExamSession", name: "Базы данных", date: "10.01.2027", time: "09:00", isConsultation: false }
+    ]);
+    expect(quality?.valid).toBe(true);
   });
 });
 
@@ -82,6 +90,26 @@ describe("outage probe", () => {
 });
 
 describe("coverage manifest", () => {
+  it("does not advertise an all-blank schedule even with a matching hash", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "lad-coverage-"));
+    const nrec = "c".repeat(32);
+    const schedule = [{ type: "Lessons", name: "Понедельник", n1: "", z1: "" }];
+    try {
+      await mkdir(path.join(root, "schedule"));
+      await writeFile(path.join(root, "schedule", `${nrec}.json`), JSON.stringify({
+        schemaVersion: 3, group: { nrec }, semester: 5, schedule,
+        scheduleHash: sha256({ semester: 5, schedule }), capturedAt: "2026-09-08T10:00:00Z"
+      }));
+      const coverage = await collectCoverage(root, [{ groups: [{ nrec }] }]);
+      expect(coverage.available).toBe(0);
+    } finally {
+      if (!path.resolve(root).startsWith(path.join(path.resolve(os.tmpdir()), "lad-coverage-"))) {
+        throw new Error("Refusing to remove an unexpected test directory");
+      }
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("advertises only valid files for current catalog groups", async () => {
     const root = await mkdtemp(path.join(os.tmpdir(), "lad-coverage-"));
     const nrec = "a".repeat(32);

@@ -220,6 +220,12 @@ export function normalizeStaticSnapshot(payload: unknown, expectedNrec: string):
     || typeof payload.group.name !== "string"
     || !Array.isArray(payload.schedule)
     || payload.schedule.length === 0
+    || !payload.schedule.every((item: unknown) => isRecord(item)
+      && typeof item.name === "string"
+      && (item.type === "Lessons" || item.type === "ExamSession"))
+    || !payload.schedule.some((item: Record<string, unknown>) => item.type === "ExamSession"
+      || Array.from({ length: 8 }, (_, index) => index + 1)
+        .some((pair) => String(item[`n${pair}`] ?? "").trim() || String(item[`z${pair}`] ?? "").trim()))
     || typeof payload.scheduleHash !== "string"
     || !/^[a-f\d]{64}$/i.test(payload.scheduleHash)
     || typeof payload.capturedAt !== "string"

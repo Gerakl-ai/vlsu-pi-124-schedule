@@ -38,7 +38,7 @@ function createEnv() {
 describe("Cloudflare worker", () => {
   const groupNrec = "7936a2a43b11b20b01d30f5b00c73166";
   const currentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "ПИ-124", CurrentSemester: 5 };
-  const schedule = [{ type: "Lessons", name: "Понедельник" }];
+  const schedule = [{ type: "Lessons", name: "Понедельник", n1: "111-3, лб, Старовойтов Е.А., Базы данных" }];
 
   it("exposes verifiable deployment metadata", async () => {
     const response = await worker.fetch(new Request("https://app.example/app-api/health"), createEnv());
@@ -109,6 +109,31 @@ describe("Cloudflare worker", () => {
     expect(fallbackPayload.source).toBe("global-snapshot");
     expect(fallbackPayload.contentHash).toBe(firstPayload.contentHash);
     expect(fallbackPayload.schedule).toEqual(schedule);
+    expect(snapshotKv.put).not.toHaveBeenCalledWith(`snapshot:v2:${groupNrec}:5`, expect.any(String));
+    vi.unstubAllGlobals();
+  });
+
+  it("keeps the last valid v2 snapshot when VLSU returns days without lessons", async () => {
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : schedule);
+    }));
+    const first = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const firstPayload = await first.json() as { contentHash: string };
+    snapshotKv.put.mockClear();
+
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
+      const url = String(input instanceof Request ? input.url : input);
+      return jsonResponseForTest(url.endsWith("/GetGroupCurrentInfo") ? currentInfo : [{ type: "Lessons", name: "Понедельник" }]);
+    }));
+    const fallback = await worker.fetch(new Request(`https://app.example/app-api/schedule/${groupNrec}`), env);
+    const payload = await fallback.json() as { source: string; contentHash: string; schedule: unknown[] };
+
+    expect(payload.source).toBe("global-snapshot");
+    expect(payload.contentHash).toBe(firstPayload.contentHash);
+    expect(payload.schedule).toEqual(schedule);
     expect(snapshotKv.put).not.toHaveBeenCalledWith(`snapshot:v2:${groupNrec}:5`, expect.any(String));
     vi.unstubAllGlobals();
   });
@@ -188,7 +213,7 @@ describe("Cloudflare worker", () => {
     const firstWaitUntil: Promise<unknown>[] = [];
     const firstEnv = { ...createEnv(), EDGE_CACHE: createEdgeCache(), SCHEDULE_SNAPSHOT: snapshotKv };
 
-    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest([{ type: "Lessons", name: "Понедельник" }])));
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest(schedule)));
     const live = await worker.fetch(request(), firstEnv, { waitUntil: (promise) => firstWaitUntil.push(promise) });
     await Promise.all(firstWaitUntil);
     expect(live.headers.get("X-Lad-Data-Source")).toBe("live");
@@ -202,7 +227,7 @@ describe("Cloudflare worker", () => {
     expect(snapshot.status).toBe(200);
     expect(snapshot.headers.get("X-Lad-Data-Source")).toBe("global-snapshot");
     expect(snapshot.headers.get("X-Lad-Snapshot-At")).toBeTruthy();
-    expect(await snapshot.json()).toEqual([{ type: "Lessons", name: "Понедельник" }]);
+    expect(await snapshot.json()).toEqual(schedule);
     await Promise.all(secondWaitUntil);
     vi.unstubAllGlobals();
   });
@@ -228,12 +253,32 @@ describe("Cloudflare worker", () => {
     vi.unstubAllGlobals();
   });
 
+  it("does not cache a successful schedule response containing only blank days", async () => {
+    const edgeCache = createEdgeCache();
+    const snapshotKv = createSnapshotKv();
+    const env = { ...createEnv(), EDGE_CACHE: edgeCache, SCHEDULE_SNAPSHOT: snapshotKv };
+    const request = new Request("https://app.example/vlsu-api/student/GetGroupSchedule", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ Nrec: groupNrec, WeekType: 0, WeekDays: "1,2,3,4,5,6" })
+    });
+    const waitUntil: Promise<unknown>[] = [];
+
+    vi.stubGlobal("fetch", vi.fn(async () => jsonResponseForTest([{ type: "Lessons", name: "Понедельник" }])));
+    await worker.fetch(request, env, { waitUntil: (promise) => waitUntil.push(promise) });
+    await Promise.all(waitUntil);
+
+    expect(edgeCache.put).not.toHaveBeenCalled();
+    expect(snapshotKv.put).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   it("refreshes snapshots for groups registered by schedule traffic", async () => {
     const snapshotKv = createSnapshotKv();
     const env = { ...createEnv(), SCHEDULE_SNAPSHOT: snapshotKv };
     const waitUntil: Promise<unknown>[] = [];
     const cronCurrentInfo = { CurrentLesson: "", CurrentWeekType: 1, Name: "PI-124", CurrentSemester: 4 };
-    const cronSchedule = [{ type: "Lessons", name: "Monday" }];
+    const cronSchedule = [{ type: "Lessons", name: "Monday", n1: "111-3, lab, Databases" }];
 
     await snapshotKv.put("v2:active-groups", JSON.stringify([{
       nrec: "7936a2a43b11b20b01d30f5b00c73166",

@@ -446,14 +446,17 @@ function normalizeExamSchedule(sessions: ExamSessionDto[]): LessonSlot[] {
     .sort((a, b) => `${a.date} ${a.start}`.localeCompare(`${b.date} ${b.start}`, "ru"));
 }
 
-function isExamSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): days is ExamSessionDto[] {
-  return days.some((item) => item.type === "ExamSession");
+function hasScheduleContent(days: Array<ScheduleDayDto | ExamSessionDto>): boolean {
+  return days.some((item) => {
+    if (item.type === "ExamSession") return true;
+    if (!isScheduleDay(item)) return false;
+    return PAIR_TIMES.some((_, index) => Boolean(item[`n${index + 1}`]?.trim() || item[`z${index + 1}`]?.trim()));
+  });
 }
 
 export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>): LessonSlot[] {
-  if (isExamSchedule(days)) return normalizeExamSchedule(days);
-
-  const classDays = days as ScheduleDayDto[];
+  const classDays = days.filter(isScheduleDay);
+  const sessions = days.filter(isExamSession);
   const lessons: LessonSlot[] = [];
 
   classDays.forEach((day, index) => {
@@ -475,7 +478,7 @@ export function normalizeSchedule(days: Array<ScheduleDayDto | ExamSessionDto>):
     });
   });
 
-  return lessons;
+  return lessons.concat(normalizeExamSchedule(sessions));
 }
 
 export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: string): ScheduleState {
@@ -503,7 +506,7 @@ export function normalizeGroupScheduleSnapshot(payload: unknown, expectedNrec: s
   }
 
   const days = payload.schedule as Array<ScheduleDayDto | ExamSessionDto>;
-  if (days.length === 0 || days.some((day) => !isScheduleDay(day) && !isExamSession(day))) {
+  if (days.length === 0 || days.some((day) => !isScheduleDay(day) && !isExamSession(day)) || !hasScheduleContent(days)) {
     throw new Error("Schedule snapshot v2 contains invalid schedule data");
   }
   const lessonDays = days.filter(isScheduleDay).length;
@@ -584,6 +587,9 @@ async function fetchSchedule(nrec: string, metadata?: RequestMetadata) {
   const days = unwrapArrayPayload<ScheduleDayDto | ExamSessionDto>(payload, "schedule");
   if (days.some((day) => !isScheduleDay(day) && !isExamSession(day))) {
     throw new Error("VLSU API returned an invalid schedule item");
+  }
+  if (!hasScheduleContent(days)) {
+    throw new Error("VLSU API returned an empty schedule");
   }
 
   return normalizeSchedule(days);

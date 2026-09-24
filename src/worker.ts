@@ -199,6 +199,10 @@ function scheduleQuality(value: unknown): GroupSnapshotQuality | null {
   const lessonDays = value.filter((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "Lessons" && typeof (item as { name?: unknown }).name === "string").length;
   const examEntries = value.filter((item) => item && typeof item === "object" && (item as { type?: unknown }).type === "ExamSession" && typeof (item as { name?: unknown }).name === "string").length;
   if (lessonDays + examEntries !== value.length || lessonDays + examEntries === 0) return null;
+  const hasLesson = value.some((item) => item?.type === "Lessons"
+    && Array.from({ length: 8 }, (_, index) => index + 1)
+      .some((pair) => String(item[`n${pair}`] ?? "").trim() || String(item[`z${pair}`] ?? "").trim()));
+  if (lessonDays > 0 && !hasLesson && examEntries === 0) return null;
   return {
     valid: true,
     scheduleEntries: value.length,
@@ -270,8 +274,7 @@ function isUsefulVlsuPayload(apiPath: string, payload: unknown) {
   }
 
   if (apiPath === "student/GetGroupSchedule") {
-    return Array.isArray(payload)
-      && payload.some((item) => item && typeof item === "object" && ["Lessons", "ExamSession"].includes((item as { type?: string }).type ?? ""));
+    return scheduleQuality(payload) !== null;
   }
 
   if (apiPath === "catalogs/GetInstitutes" || apiPath === "student/GetStudGroups") {
