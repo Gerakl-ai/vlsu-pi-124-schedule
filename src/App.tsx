@@ -81,6 +81,7 @@ import {
   resolveScreenSwipe,
   SCREEN_SWIPE_EDGE_PX
 } from "./lib/screenGestures";
+import { weekStartForMode } from "./lib/academicWeek";
 import {
   currentDayIndex,
   addDays,
@@ -1641,23 +1642,20 @@ function LessonRow({
 interface WeekDayLoad {
   count: number;
   date: Date;
-  dayIndex: number;
   dayName: string;
-  firstLesson?: LessonSlot;
   lessons: LessonSlot[];
   short: string;
 }
 
 function buildWeekLoads(lessons: LessonSlot[], weekMode: WeekMode): WeekDayLoad[] {
+  const weekStart = weekStartForMode(weekMode);
   return WEEK_DAYS.map((dayName, index) => {
-    const date = dateForWeekDay(index + 1);
+    const date = dateForWeekDay(index + 1, weekStart);
     const dayLessons = selectDayLessons(lessons, index + 1, weekMode, date);
     return {
       count: dayLessons.length,
       date,
-      dayIndex: index + 1,
       dayName,
-      firstLesson: dayLessons[0],
       lessons: dayLessons,
       short: WEEK_DAYS_SHORT[index]
     };
@@ -1695,7 +1693,7 @@ function WeekView({
 
   const dayLoads = buildWeekLoads(lessons, weekMode);
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
-  const today = currentDayIndex();
+  const todayKey = dateKeyFromDate(new Date());
   const weekRange = `${WEEK_DATE_FORMATTER.format(dayLoads[0].date)} – ${WEEK_DATE_FORMATTER.format(dayLoads[dayLoads.length - 1].date)}`;
 
   return (
@@ -1736,7 +1734,7 @@ function WeekView({
 
       <section className="week-list">
         {dayLoads.map((day) => {
-          const isToday = day.dayIndex === today;
+          const isToday = dateKeyFromDate(day.date) === todayKey;
           const dayEvents = personalEventsOnDate(personalEvents, day.date);
           return (
             <article className={`day-block ${isToday ? "current-day" : ""} ${day.count ? "" : "empty-day"}`} key={day.dayName}>
@@ -1909,7 +1907,7 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
 }
 
 function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelectDate: (date: Date) => void }) {
-  const today = currentDayIndex();
+  const todayKey = dateKeyFromDate(new Date());
   const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
 
@@ -1923,11 +1921,11 @@ function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelect
         {dayLoads.map((day) => (
           <button
             type="button"
-            className={`week-rhythm-day ${day.dayIndex === today ? "active" : ""}`}
+            className={`week-rhythm-day ${dateKeyFromDate(day.date) === todayKey ? "active" : ""}`}
             key={day.dayName}
             onClick={() => onSelectDate(day.date)}
             aria-label={`Открыть ${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
-            aria-current={day.dayIndex === today ? "date" : undefined}
+            aria-current={dateKeyFromDate(day.date) === todayKey ? "date" : undefined}
           >
             <span className="week-rhythm-meter" aria-hidden="true"><i style={{ height: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} /></span>
             <strong>{day.short}</strong>

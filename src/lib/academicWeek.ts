@@ -49,3 +49,12 @@ export function vlsuWeekModeForDate(date = new Date()): WeekMode {
 export function vlsuWeekTypeForDate(date = new Date()): 1 | 2 {
   return vlsuWeekModeForDate(date) === "numerator" ? 1 : 2;
 }
+
+/** Nearest upcoming Monday whose calendar parity matches the requested timetable. */
+export function weekStartForMode(mode: WeekMode, baseDate = new Date()): Date {
+  const monday = mondayOf(baseDate);
+  if (mode !== "all" && vlsuWeekModeForDate(monday) !== mode) {
+    monday.setDate(monday.getDate() + 7);
+  }
+  return monday;
+}
