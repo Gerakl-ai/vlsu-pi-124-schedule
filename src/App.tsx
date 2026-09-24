@@ -1695,31 +1695,24 @@ function WeekView({
 
   const dayLoads = buildWeekLoads(lessons, weekMode);
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
-  const busiestDay = dayLoads.reduce((peak, day) => day.count > peak.count ? day : peak, dayLoads[0]);
   const today = currentDayIndex();
-  const todayShort = WEEK_DAYS_SHORT[today - 1] ?? "Вс";
-  const todayDate = new Date();
+  const weekRange = `${WEEK_DATE_FORMATTER.format(dayLoads[0].date)} – ${WEEK_DATE_FORMATTER.format(dayLoads[dayLoads.length - 1].date)}`;
 
   return (
     <div className="view-stack week-view">
       <div className="week-overview">
-        <section className="week-toolbar">
+        <section className="week-toolbar week-primary-toolbar">
           <div className="week-toolbar-copy">
-            <span><Activity size={13} /> Учебный ритм</span>
-            <h2>{formatWeekMode(weekMode)}</h2>
-            <p>{formatLessonCount(totalLessons)} · пик {busiestDay.count ? `${busiestDay.short}, ${busiestDay.count}` : "не задан"}</p>
-          </div>
-          <div className="week-index-visual" aria-label={`Сегодня ${todayShort}, ${todayDate.getDate()} число`}>
-            <span>{todayShort}</span>
-            <strong>{String(todayDate.getDate()).padStart(2, "0")}</strong>
-            <small>сегодня</small>
+            <span><Activity size={13} /> Расписание</span>
+            <h2>Неделя</h2>
+            <p>{weekRange} · {formatLessonCount(totalLessons)}</p>
           </div>
           <button className="week-calendar-button" type="button" onClick={onOpenCalendar} aria-label="Открыть календарь расписания" title="Календарь">
             <CalendarDays size={22} />
           </button>
         </section>
 
-        <WeekMap dayLoads={dayLoads} weekMode={weekMode} />
+        <WeekMap dayLoads={dayLoads} onSelectDate={onSelectDate} />
 
         <div className="mode-switch" role="radiogroup" aria-label="Тип недели">
           {[
@@ -1915,42 +1908,31 @@ function SessionScheduleView({ lessons, notes, groupNrec, onToggleNote, onOpenCa
   );
 }
 
-function WeekMap({ dayLoads, weekMode }: { dayLoads: WeekDayLoad[]; weekMode: WeekMode }) {
+function WeekMap({ dayLoads, onSelectDate }: { dayLoads: WeekDayLoad[]; onSelectDate: (date: Date) => void }) {
   const today = currentDayIndex();
   const maxCount = Math.max(1, ...dayLoads.map((day) => day.count));
   const totalLessons = dayLoads.reduce((sum, day) => sum + day.count, 0);
-  const activeDays = dayLoads.filter((day) => day.count > 0).length;
-  const busiestDay = dayLoads.reduce((peak, day) => day.count > peak.count ? day : peak, dayLoads[0]);
-  const earliestStart = dayLoads.flatMap((day) => day.lessons).sort((a, b) => a.start.localeCompare(b.start))[0]?.start ?? "—";
 
   return (
-    <section className="week-map" aria-label="Карта нагрузки недели">
+    <section className="week-map week-rhythm" aria-label="Нагрузка по дням недели">
       <div className="week-map-head">
-        <div>
-          <span>Карта нагрузки</span>
-          <small>{formatWeekMode(weekMode)}</small>
-        </div>
-        <strong><Activity size={14} /> {formatLessonCount(totalLessons)}</strong>
+        <span>По дням</span>
+        <strong>{formatLessonCount(totalLessons)}</strong>
       </div>
-      <div className="week-map-insights" aria-label="Сводка недели">
-        <div><small>Пик</small><strong>{busiestDay.count ? `${busiestDay.short} · ${busiestDay.count}` : "Свободно"}</strong></div>
-        <div><small>Старт</small><strong>{earliestStart}</strong></div>
-        <div><small>Дней</small><strong>{activeDays} из 6</strong></div>
-      </div>
-      <div className="week-map-grid">
+      <div className="week-rhythm-grid">
         {dayLoads.map((day) => (
-          <div
-            className={`week-map-day ${day.dayIndex === today ? "active" : ""} ${day.count ? "" : "empty"}`}
+          <button
+            type="button"
+            className={`week-rhythm-day ${day.dayIndex === today ? "active" : ""}`}
             key={day.dayName}
-            title={`${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
+            onClick={() => onSelectDate(day.date)}
+            aria-label={`Открыть ${day.dayName}: ${day.count ? formatLessonCount(day.count) : "без пар"}`}
             aria-current={day.dayIndex === today ? "date" : undefined}
           >
-            <div className="week-map-bar" aria-hidden="true">
-              <span style={{ height: day.count ? `${Math.max(18, Math.round((day.count / maxCount) * 100))}%` : "8%" }} />
-            </div>
+            <span className="week-rhythm-meter" aria-hidden="true"><i style={{ height: day.count ? `${Math.max(16, Math.round((day.count / maxCount) * 100))}%` : "3px" }} /></span>
             <strong>{day.short}</strong>
-            <small>{day.count ? `${day.count} · ${day.firstLesson?.start}` : "0"}</small>
-          </div>
+            <small>{day.count}</small>
+          </button>
         ))}
       </div>
     </section>

@@ -2332,53 +2332,6 @@ select,
   color: var(--cyan);
 }
 
-.week-map-insights {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border-top: 1px solid rgba(var(--accent-soft-rgb), .11);
-  border-bottom: 1px solid rgba(var(--accent-soft-rgb), .11);
-  background: linear-gradient(90deg, rgba(var(--accent-rgb), .045), transparent 48%, rgba(var(--accent-soft-rgb), .035));
-}
-
-.week-map-insights > div {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-  padding: 9px 8px;
-}
-
-.week-map-insights > div + div {
-  border-left: 1px solid rgba(var(--accent-soft-rgb), .11);
-}
-
-.week-map-insights small,
-.week-map-insights strong {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.week-map-insights small {
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 850;
-  text-transform: uppercase;
-}
-
-.week-map-insights strong {
-  color: var(--text);
-  font-size: 11.5px;
-  font-weight: 920;
-}
-
-.week-map-grid {
-  display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
-  min-height: 124px;
-}
-
 .session-map-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2427,94 +2380,96 @@ select,
   font-weight: 850;
 }
 
-.week-map-day {
-  position: relative;
-  min-width: 0;
+.week-primary-toolbar {
+  min-height: 88px;
+  padding: 14px 16px;
+}
+
+.week-primary-toolbar::before,
+.week-primary-toolbar::after {
+  animation: none;
+}
+
+.week-primary-toolbar .week-toolbar-copy p {
+  max-width: none;
+  white-space: normal;
+  font-size: 11px;
+}
+
+.week-map.week-rhythm {
+  gap: 8px;
+  padding: 11px 12px;
+}
+
+.week-rhythm-grid {
   display: grid;
-  grid-template-rows: minmax(68px, 1fr) auto auto;
-  gap: 6px;
-  padding: 8px 6px 9px;
-  border: 1px solid rgba(159, 179, 196, 0.15);
-  border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(var(--accent-rgb), .055), transparent 48%),
-    color-mix(in srgb, var(--theme-panel-solid) 62%, transparent);
-  overflow: hidden;
-  transition: transform .28s cubic-bezier(.2,.82,.2,1), border-color .25s ease, box-shadow .25s ease;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 4px;
 }
 
-.week-map-day.active {
-  border-color: rgba(var(--accent-rgb), 0.5);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.14), 0 0 24px rgba(var(--accent-rgb), 0.15);
-  transform: translateY(-2px);
+.week-rhythm-day {
+  min-width: 0;
+  min-height: 62px;
+  display: grid;
+  justify-items: center;
+  grid-template-rows: 26px auto auto;
+  gap: 1px;
+  padding: 4px 2px 3px;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease, transform .2s ease;
 }
 
-.week-map-day.active::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, transparent 0 36%, rgba(var(--accent-rgb), .1) 49%, transparent 62%);
-  transform: translateY(-72%);
-  animation: active-day-scan 4.8s ease-in-out infinite;
+.week-rhythm-day:hover,
+.week-rhythm-day:focus-visible,
+.week-rhythm-day.active {
+  border-color: rgba(var(--accent-rgb), .35);
+  background: rgba(var(--accent-rgb), .1);
 }
 
-.week-map-day.empty {
-  opacity: 0.72;
+.week-rhythm-day:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 1px;
 }
 
-.week-map-bar {
-  position: relative;
-  align-self: stretch;
-  width: 100%;
+.week-rhythm-day:active {
+  transform: scale(.95);
+}
+
+.week-rhythm-meter {
+  width: 22px;
+  height: 26px;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding: 5px;
-  border-radius: 6px;
-  background:
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.035) 0 1px, transparent 1px 12px),
-    color-mix(in srgb, var(--bg-deep) 38%, transparent);
 }
 
-.week-map-bar span {
-  width: 100%;
-  max-width: 24px;
-  border-radius: 6px;
+.week-rhythm-meter i {
+  display: block;
+  width: 16px;
+  min-height: 3px;
+  border-radius: 4px 4px 2px 2px;
   background: linear-gradient(180deg, var(--cyan), var(--blue));
-  background-size: 100% 220%;
-  box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.28);
-  transition: height 0.55s cubic-bezier(.2,.8,.2,1);
-  animation: week-bar-flow 4.2s ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), .2);
+  transition: height .35s ease;
 }
 
-.week-map-day:nth-child(2) .week-map-bar span { animation-delay: -.7s; }
-.week-map-day:nth-child(3) .week-map-bar span { animation-delay: -1.4s; }
-.week-map-day:nth-child(4) .week-map-bar span { animation-delay: -2.1s; }
-.week-map-day:nth-child(5) .week-map-bar span { animation-delay: -2.8s; }
-.week-map-day:nth-child(6) .week-map-bar span { animation-delay: -3.5s; }
-
-.week-map-day.empty .week-map-bar span {
-  background: rgba(159, 179, 196, 0.28);
-  box-shadow: none;
+.week-rhythm-day.active .week-rhythm-meter i {
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), .4);
 }
 
-.week-map-day strong,
-.week-map-day small {
-  min-width: 0;
-  text-align: center;
+.week-rhythm-day strong {
+  font-size: 11px;
+  line-height: 1;
 }
 
-.week-map-day strong {
-  color: var(--text);
-  font-size: 12px;
-  font-weight: 950;
-}
-
-.week-map-day small {
+.week-rhythm-day small {
   color: var(--muted);
-  font-size: 10.5px;
-  font-weight: 850;
+  font-size: 9px;
+  line-height: 1;
 }
 
 .mode-switch {
@@ -4123,17 +4078,6 @@ button.day-title > svg {
   50% { opacity: .95; }
 }
 
-@keyframes active-day-scan {
-  0%, 20% { transform: translateY(-72%); opacity: 0; }
-  32% { opacity: .8; }
-  72%, 100% { transform: translateY(72%); opacity: 0; }
-}
-
-@keyframes week-bar-flow {
-  0%, 100% { background-position: 0 0; filter: brightness(.94); }
-  50% { background-position: 0 100%; filter: brightness(1.18); }
-}
-
 @keyframes week-grid-drift {
   from { transform: translate3d(-7px,2px,0) skewX(-9deg); opacity: .38; }
   to { transform: translate3d(12px,-3px,0) skewX(-7deg); opacity: .62; }
@@ -4536,11 +4480,6 @@ button.day-title > svg {
   .week-map {
     gap: 12px;
     padding: 14px;
-  }
-
-  .week-map-grid {
-    min-height: 112px;
-    gap: 6px;
   }
 
   .lesson-row-button {
@@ -5036,14 +4975,6 @@ button.day-title > svg {
     font-size: 9.5px;
   }
 
-  .week-overview .week-index-visual {
-    display: none;
-  }
-
-  .week-overview .week-index-visual strong {
-    font-size: 21px;
-  }
-
   .week-overview .week-map {
     gap: 8px;
     padding: 10px;
@@ -5053,44 +4984,8 @@ button.day-title > svg {
     font-size: 10.5px;
   }
 
-  .week-overview .week-map-head small {
-    display: none;
-  }
-
   .week-overview .week-map-head strong {
     font-size: 11px;
-  }
-
-  .week-overview .week-map-insights > div {
-    gap: 1px;
-    padding: 6px 5px;
-  }
-
-  .week-overview .week-map-insights small {
-    font-size: 7.5px;
-  }
-
-  .week-overview .week-map-insights strong {
-    font-size: 9.5px;
-  }
-
-  .week-overview .week-map-grid {
-    min-height: 82px;
-    gap: 4px;
-  }
-
-  .week-overview .week-map-day {
-    grid-template-rows: minmax(38px, 1fr) auto auto;
-    gap: 3px;
-    padding: 5px 3px 6px;
-  }
-
-  .week-overview .week-map-day strong {
-    font-size: 10px;
-  }
-
-  .week-overview .week-map-day small {
-    font-size: 8px;
   }
 
   .week-overview .mode-switch button {
