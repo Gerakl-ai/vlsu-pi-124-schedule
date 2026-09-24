@@ -19,6 +19,7 @@ import {
   TriangleAlert,
   BookCheck,
   CalendarDays,
+  CalendarX2,
   CheckCircle2,
   ChevronDown,
   ChevronLeft,
@@ -26,6 +27,7 @@ import {
   Clock3,
   CloudOff,
   Download,
+  ExternalLink,
   Grid2X2,
   HardDrive,
   Info,
@@ -2242,11 +2244,14 @@ function BottomNav({ activeTab, onTabChange }: { activeTab: AppTab; onTabChange:
 function ScheduleUnavailableView({ onRetry, onRestore }: { onRetry: () => void; onRestore?: () => void }) {
   return (
     <section className="schedule-unavailable" role="status" aria-live="polite">
-      <span className="schedule-unavailable-icon" aria-hidden="true"><CloudOff size={27} /></span>
+      <span className="schedule-unavailable-icon" aria-hidden="true"><CalendarX2 size={27} /></span>
       <span className="schedule-unavailable-copy">
-        <small>Источник временно недоступен</small>
-        <strong>ВлГУ не ответил</strong>
-        <p>Для этой группы ещё нет сохранённой копии. Офлайн доступны только группы, расписание которых уже удалось загрузить на этом устройстве.</p>
+        <small>Данных для группы пока нет</small>
+        <strong>Расписание не получено</strong>
+        <p>Проверенный снимок этой группы ещё не опубликован и не сохранён на устройстве. Повторите загрузку позже или сверьтесь с первоисточником.</p>
+        <a href="https://www.vlsu.ru/studentu/raspisanie-zanjatii/" target="_blank" rel="noopener noreferrer">
+          Официальная страница ВлГУ <ExternalLink size={14} aria-hidden="true" />
+        </a>
       </span>
       {onRestore && <button type="button" onClick={onRestore}>Вернуться к прошлой группе</button>}
       <button type="button" onClick={onRetry}>

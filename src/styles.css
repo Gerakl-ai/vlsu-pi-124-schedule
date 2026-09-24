@@ -3323,6 +3323,18 @@ button.day-title > svg {
   line-height: 1.4;
 }
 
+.schedule-unavailable-copy a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 9px;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .schedule-unavailable button {
   grid-column: 1 / -1;
   min-height: 44px;
