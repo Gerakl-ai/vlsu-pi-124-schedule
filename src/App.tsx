@@ -855,7 +855,7 @@ export function App() {
           onPointerCancelCapture={cancelScreenGesture}
           onClickCapture={suppressClickAfterGesture}
         >
-          {freshness?.warn && (
+          {freshness?.warn && (activeTab === "today" || activeTab === "week") && (
             <p className={`freshness-banner level-${freshness.level}`} role="status">
               <TriangleAlert size={14} aria-hidden="true" />
               <span>

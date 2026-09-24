@@ -107,11 +107,12 @@ export function readKnownGroup(nrec: string, instituteId?: string): GroupProfile
 
 export function readGroupScheduleCache(group: GroupProfile): ScheduleState | null {
   const current = readJson<ScheduleState>(scheduleCacheKey(group.nrec));
-  if (current) return current;
+  if (current) return current.groupNrec === group.nrec ? current : null;
 
   if (group.nrec !== LEGACY_PI124_GROUP.nrec) return null;
   const legacy = readJson<ScheduleState>(LEGACY_SCHEDULE_CACHE_KEY);
-  if (legacy) writeJson(scheduleCacheKey(group.nrec), legacy);
+  if (legacy?.groupNrec !== group.nrec) return null;
+  writeJson(scheduleCacheKey(group.nrec), legacy);
   return legacy;
 }
 

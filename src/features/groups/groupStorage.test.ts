@@ -60,6 +60,46 @@ describe("group storage", () => {
     expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toBeNull();
   });
 
+  it("never displays a snapshot stored under another group's key", () => {
+    const other = { ...LEGACY_PI124_GROUP, id: "other", nrec: "other", name: "ИВТ-101" };
+    const schedule: ScheduleState = {
+      groupNrec: LEGACY_PI124_GROUP.nrec,
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "ПИ-124", semester: 5 },
+      allLessons: [],
+      fetchedAt: "2026-09-15T08:00:00.000Z"
+    };
+    localStorage.setItem("lad.schedule.v2:other", JSON.stringify(schedule));
+
+    expect(readGroupScheduleCache(other)).toBeNull();
+    expect(localStorage.getItem("lad.schedule.v2:other")).toBeTruthy();
+  });
+
+  it("does not migrate a legacy snapshot that belongs to another group", () => {
+    const foreignSchedule: ScheduleState = {
+      groupNrec: "other",
+      currentInfo: { currentLesson: "", currentWeekType: 1, name: "ИВТ-101", semester: 1 },
+      allLessons: [],
+      fetchedAt: "2026-09-15T08:00:00.000Z"
+    };
+    localStorage.setItem("pi124.schedule.cache", JSON.stringify(foreignSchedule));
+
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toBeNull();
+    expect(localStorage.getItem("pi124.schedule.cache")).toBeTruthy();
+    expect(localStorage.getItem(`lad.schedule.v2:${LEGACY_PI124_GROUP.nrec}`)).toBeNull();
+  });
+
+  it("preserves a mismatched current PI-124 cache even when legacy data exists", () => {
+    const key = `lad.schedule.v2:${LEGACY_PI124_GROUP.nrec}`;
+    const mismatched = { groupNrec: "other", fetchedAt: "2026-09-15T08:00:00.000Z" };
+    const old = { groupNrec: LEGACY_PI124_GROUP.nrec, fetchedAt: "2026-09-14T08:00:00.000Z" };
+    localStorage.setItem(key, JSON.stringify(mismatched));
+    localStorage.setItem("pi124.schedule.cache", JSON.stringify(old));
+
+    expect(readGroupScheduleCache(LEGACY_PI124_GROUP)).toBeNull();
+    expect(localStorage.getItem(key)).toBe(JSON.stringify(mismatched));
+    expect(localStorage.getItem("pi124.schedule.cache")).toBe(JSON.stringify(old));
+  });
+
   it("keeps recent and favorite groups as full offline profiles", () => {
     const other = { ...LEGACY_PI124_GROUP, id: "other", nrec: "other", name: "ИВТ-101" };
     writeSelectedGroup(other);
