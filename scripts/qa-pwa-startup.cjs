@@ -57,8 +57,12 @@ const group = {
   const context = await browser.newContext({ viewport: { width: 402, height: 874 } });
   const page = await context.newPage();
   const issues = [];
+  const failedResponses = [];
   let offlineMode = false;
   page.on("pageerror", (error) => issues.push(`pageerror: ${error.message}`));
+  page.on("response", (response) => {
+    if (response.status() >= 400) failedResponses.push(`${response.status()} ${new URL(response.url()).pathname}`);
+  });
   page.on("console", (message) => {
     const text = message.text();
     const expectedOfflineFailure = offlineMode && text.includes("ERR_INTERNET_DISCONNECTED");
@@ -114,11 +118,19 @@ const group = {
       };
     });
 
+    const expectedDataFailures = failedResponses.filter((response) => /^(?:404|504) \/data\//.test(response));
+    const unexpectedResponses = failedResponses.filter((response) => !expectedDataFailures.includes(response));
+    const unexpectedIssues = issues.filter((issue) => !issue.startsWith("error: Failed to load resource:"));
+    if (issues.length - unexpectedIssues.length !== expectedDataFailures.length + unexpectedResponses.length) {
+      unexpectedIssues.push("Unmatched browser resource error");
+    }
     const result = {
       warmOnline,
       invalidDoubleAssetPaths: cachedPaths.filter((item) => item.includes("/assets/assets/")),
       offlineRecovery,
-      issues
+      expectedDataFailures,
+      unexpectedResponses,
+      issues: unexpectedIssues
     };
     fs.writeFileSync(path.join(outputDir, "metrics.json"), `${JSON.stringify(result, null, 2)}\n`);
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -131,7 +143,7 @@ const group = {
     if (offlineRecovery.navGap !== 0 || offlineRecovery.horizontalOverflow !== 0) {
       throw new Error("Mobile viewport geometry regressed");
     }
-    if (issues.length) throw new Error(`Browser issues: ${issues.join(" | ")}`);
+    if (unexpectedResponses.length || unexpectedIssues.length) throw new Error(`Browser issues: ${[...unexpectedResponses, ...unexpectedIssues].join(" | ")}`);
   } finally {
     await browser.close();
   }

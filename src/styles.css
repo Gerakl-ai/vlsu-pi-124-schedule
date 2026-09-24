@@ -896,23 +896,27 @@ select,
   display: contents;
 }
 
-.today-date-launch.day-motion-forward {
-  animation: day-view-forward .24s cubic-bezier(.2,.7,.2,1) both;
+.today-add-event {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  color: var(--cyan);
+  border: 1px solid var(--theme-panel-border);
+  border-radius: 8px;
+  background: var(--theme-control);
+  font: inherit;
+  font-weight: 750;
+  text-align: left;
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease;
 }
 
-.today-date-launch.day-motion-backward {
-  animation: day-view-backward .24s cubic-bezier(.2,.7,.2,1) both;
-}
-
-@keyframes day-view-forward {
-  from { opacity: .82; transform: translate3d(8px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
-@keyframes day-view-backward {
-  from { opacity: .82; transform: translate3d(-8px, 0, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
+.today-add-event svg:last-child { margin-left: auto; }
+.today-add-event:hover { background: var(--theme-control-active); }
+.today-add-event:active { transform: scale(.985); }
 
 .today-date-navigator {
   min-width: 0;

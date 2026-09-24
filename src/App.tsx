@@ -19,6 +19,7 @@ import {
   TriangleAlert,
   BookCheck,
   CalendarDays,
+  CalendarPlus,
   CalendarX2,
   CheckCircle2,
   ChevronDown,
@@ -319,6 +320,7 @@ export function App() {
   const [themeSheetOpen, setThemeSheetOpen] = useState(false);
   const [groupPickerOpen, setGroupPickerOpen] = useState(() => !INITIAL_GROUP);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [calendarCreateEvent, setCalendarCreateEvent] = useState(false);
   const [calendarRequestToken, setCalendarRequestToken] = useState(0);
   const [composerRequest, setComposerRequest] = useState<NoteComposerRequest | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
@@ -908,6 +910,7 @@ export function App() {
               onToggleNote={smartNotes.toggleNote}
               onOpenNotes={() => navigateToTab("notes")}
               onOpenCalendar={() => setCalendarOpen(true)}
+              onCreateEvent={() => { setCalendarCreateEvent(true); setCalendarOpen(true); }}
               onShiftDate={shiftSelectedDay}
               motionDirection={dayMotionDirection}
               onCreateLessonNote={openLessonComposer}
@@ -985,7 +988,8 @@ export function App() {
               open={calendarOpen}
               weekMode={currentWeek}
               initialDate={selectedDate}
-              onClose={() => setCalendarOpen(false)}
+              createEventOnOpen={calendarCreateEvent}
+              onClose={() => { setCalendarOpen(false); setCalendarCreateEvent(false); }}
               onCreateForDate={openComposerForDate}
               onOpenNote={() => navigateToTab("notes")}
               onSelectDate={showScheduleDate}
@@ -1222,6 +1226,7 @@ function TodayView({
   onToggleNote,
   onOpenNotes,
   onOpenCalendar,
+  onCreateEvent,
   onShiftDate,
   motionDirection,
   onCreateLessonNote
@@ -1255,6 +1260,7 @@ function TodayView({
   onToggleNote: (noteId: string) => void;
   onOpenNotes: () => void;
   onOpenCalendar: () => void;
+  onCreateEvent: () => void;
   onShiftDate: (offset: -1 | 1) => void;
   motionDirection: "forward" | "backward" | null;
   onCreateLessonNote: (lesson: LessonSlot, date: Date, intent: "note" | "homework") => void;
@@ -1280,6 +1286,17 @@ function TodayView({
   const calendarMonth = new Intl.DateTimeFormat("ru-RU", { month: "short" }).format(selectedDate).replace(".", "");
   const calendarLabel = new Intl.DateTimeFormat("ru-RU", { weekday: "long", day: "numeric", month: "long" }).format(selectedDate);
   const dateEyebrow = relativeDayLabel(selectedDate, now);
+  const dateCopyRef = useRef<HTMLSpanElement>(null);
+  const dateKey = dateKeyFromDate(selectedDate);
+
+  useLayoutEffect(() => {
+    if (!motionDirection || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const animation = dateCopyRef.current?.animate([
+      { opacity: 0.78, transform: `translate3d(${motionDirection === "forward" ? 6 : -6}px,0,0)` },
+      { opacity: 1, transform: "translate3d(0,0,0)" }
+    ], { duration: 190, easing: "cubic-bezier(.2,.8,.2,1)" });
+    return () => animation?.cancel();
+  }, [dateKey, motionDirection]);
 
   function moveDay(offset: number) {
     onShiftDate(offset > 0 ? 1 : -1);
@@ -1291,8 +1308,7 @@ function TodayView({
         <div className="today-date-navigator">
           <button className="date-step" type="button" onClick={() => moveDay(-1)} aria-label="Предыдущий день"><ChevronLeft size={21} /></button>
           <button
-            key={dateKeyFromDate(selectedDate)}
-            className={`today-date-launch ${motionDirection ? `day-motion-${motionDirection}` : ""}`}
+            className="today-date-launch"
             type="button"
             onClick={onOpenCalendar}
             aria-label={`Открыть календарь: ${calendarLabel}`}
@@ -1302,7 +1318,7 @@ function TodayView({
               <small>{calendarMonth}</small>
               <strong>{calendarDay}</strong>
             </span>
-            <span className="today-date-copy">
+            <span className="today-date-copy" ref={dateCopyRef}>
               <small><CalendarDays size={14} /> {dateEyebrow}</small>
               <strong>{calendarLabel}</strong>
             </span>
@@ -1351,6 +1367,9 @@ function TodayView({
       </div>
 
       <div className="today-detail-scroll">
+        <button className="today-add-event" type="button" onClick={onCreateEvent}>
+          <CalendarPlus size={18} /> Добавить событие <ChevronRight size={17} />
+        </button>
         {focusNote && (
           <button className="focus-note-card" type="button" onClick={onOpenNotes}>
             <span className="focus-note-icon"><BookCheck size={22} /></span>

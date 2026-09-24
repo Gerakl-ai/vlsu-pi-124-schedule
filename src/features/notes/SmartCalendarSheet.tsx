@@ -18,6 +18,7 @@ import type { LessonSlot, WeekMode } from "../../types";
 import type { SmartNote } from "./noteTypes";
 import { personalEventsOnDate, usePersonalEvents, type PersonalEvent } from "./personalEvents";
 import { PersonalEventForm } from "./PersonalEventForm";
+import { shiftCalendarMonth } from "./calendarMonth";
 
 interface SmartCalendarSheetProps {
   lessons: LessonSlot[];
@@ -25,6 +26,7 @@ interface SmartCalendarSheetProps {
   open: boolean;
   weekMode: WeekMode;
   initialDate?: Date;
+  createEventOnOpen?: boolean;
   onClose: () => void;
   onCreateForDate: (date: Date) => void;
   onOpenNote: (noteId: string) => void;
@@ -187,7 +189,7 @@ async function shareCalendar(events: CalendarEvent[], fileName: string, title: s
   return true;
 }
 
-export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
+export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate, createEventOnOpen = false, onClose, onCreateForDate, onOpenNote, onSelectDate }: SmartCalendarSheetProps) {
   const personalEvents = usePersonalEvents();
   const [editingEvent, setEditingEvent] = useState<PersonalEvent | "new" | null>(null);
   const swipe = useRef<{ x: number; y: number } | null>(null);
@@ -222,7 +224,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     setMonth(new Date(initial.getFullYear(), initial.getMonth(), 1));
     setMonthTransition(null);
     setExportState("idle");
-    setEditingEvent(null);
+    setEditingEvent(createEventOnOpen ? "new" : null);
     const onKeyDown = (event: KeyboardEvent) => event.key === "Escape" && closeRef.current();
     let midnightTimer: number | undefined;
     const scheduleMidnightRefresh = () => {
@@ -240,7 +242,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
       if (midnightTimer !== undefined) window.clearTimeout(midnightTimer);
       if (exportResetTimer.current !== undefined) window.clearTimeout(exportResetTimer.current);
     };
-  }, [initialDate, open]);
+  }, [createEventOnOpen, initialDate, open]);
 
   useEffect(() => {
     if (!monthTransition) return;
@@ -267,7 +269,7 @@ export function SmartCalendarSheet({ lessons, notes, open, weekMode, initialDate
     const target = new Date(month.getFullYear(), month.getMonth() + offset, 1);
     setMonthTransition({ from: month, direction: offset > 0 ? "next" : "previous" });
     setMonth(target);
-    setSelectedDate(target);
+    setSelectedDate((date) => shiftCalendarMonth(date, offset));
   }
 
   function selectCalendarDate(date: Date) {
