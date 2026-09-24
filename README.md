@@ -96,7 +96,7 @@ Build command: pnpm build
 Deploy command: pnpm exec wrangler deploy
 ```
 
-Каждый push в `main` запускает сборку. Активную ревизию можно проверить запросом `GET /app-api/health`: endpoint возвращает release channel, Worker version ID и время создания версии.
+Если Cloudflare Workers Builds подключён к этому репозиторию, push в `main` может запускать отдельную сборку. Её результат нельзя выводить из статуса GitHub Pages: активную ревизию Worker нужно проверить запросом `GET /app-api/health` и сопоставить с развёрнутой версией приложения.
 
 ## Cloudflare Pages
 
