@@ -1,8 +1,8 @@
 {
   "coverageAvailable": 1,
-  "durationSeconds": 27,
+  "durationSeconds": 26,
   "failures": [],
-  "finishedAt": "2026-09-25T17:12:13.553Z",
+  "finishedAt": "2026-09-25T21:35:46.301Z",
   "groupsInCatalog": 965,
   "institutes": 14,
   "probeAttempted": 3,
@@ -11,14 +11,14 @@
     "commit": "f77714406ffa0858d6d341939deba261ec599404",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/f77714406ffa0858d6d341939deba261ec599404",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36165564983"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36192349282"
   },
   "scheduleAttempted": 0,
   "scheduleFailed": 0,
   "scheduleOk": 0,
   "scheduleSkipped": 965,
   "skipReason": "Три группы разных институтов вернули пустой ответ HTTP 200; полный обход отложен",
-  "startedAt": "2026-09-25T17:11:46.682Z",
+  "startedAt": "2026-09-25T21:35:20.315Z",
   "written": {
     "created": 0,
     "unchanged": 0,
