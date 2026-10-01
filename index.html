@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="theme-color" content="#f5eee5" />
+    <meta name="description" content="Лад ВлГУ: расписание и личные записи для студентов" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Лад" />
+    <meta name="lad-release" content="2026.09.16.2" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" sizes="192x192" />
+    <!-- iOS не понимает SVG и не применяет маску, поэтому здесь нужна готовая PNG. -->
+    <!-- iOS сам скругляет иконку, поэтому отдаём вариант без скруглений:
+         иначе углы срезаются дважды и по краю видны артефакты. -->
+    <link rel="apple-touch-icon" href="/icons/icon-maskable-512.png" />
+    <link rel="preload" href="/icons/icon-192.png" as="image" />
+    <script>
+      (() => {
+        const standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+        document.documentElement.dataset.standalone = standalone ? "true" : "false";
+        const initialViewportHeight = Math.round(window.visualViewport?.height || window.innerHeight || document.documentElement.clientHeight);
+        if (initialViewportHeight > 0) {
+          document.documentElement.style.setProperty("--app-viewport-height", `${initialViewportHeight}px`);
+          document.documentElement.style.setProperty("--visual-viewport-height", `${initialViewportHeight}px`);
+        }
+        const allowed = new Set(["ember", "obsidian", "porcelain", "signal", "field", "midnight", "aurora", "glacier", "atelier", "custom"]);
+        const themeSchema = "2026-08-ember";
+        let theme = "ember";
+        try {
+          if (localStorage.getItem("lad.theme-schema") !== themeSchema) {
+            localStorage.setItem("lad.theme-schema", themeSchema);
+            localStorage.setItem("lad.theme", theme);
+          } else {
+            const stored = localStorage.getItem("lad.theme");
+            if (allowed.has(stored)) theme = stored;
+          }
+        } catch {}
+        document.documentElement.dataset.theme = theme;
+        let custom = null;
+        if (theme === "custom") {
+          try { custom = JSON.parse(localStorage.getItem("lad.custom-theme") || "null"); } catch {}
+        }
+        const lightMode = custom?.mode === "light" || theme === "ember" || theme === "porcelain" || theme === "glacier" || theme === "atelier";
+        document.documentElement.dataset.themeMode = lightMode ? "light" : "dark";
+        document.documentElement.style.colorScheme = custom?.mode || (lightMode ? "light" : "dark");
+        const colors = {
+          ember: "#f5eee5",
+          obsidian: "#05070a",
+          porcelain: "#eef2f7",
+          signal: "#090a0c",
+          field: "#07110f",
+          midnight: "#070914",
+          aurora: "#06110f",
+          glacier: "#f1f7fb",
+          atelier: "#f7f5fa",
+          custom: custom?.background || "#080b12"
+        };
+        const chromeColor = colors[theme];
+        document.documentElement.style.backgroundColor = chromeColor;
+        document.documentElement.style.setProperty("--launch-status", chromeColor);
+        document.documentElement.style.setProperty("--status-bar-bg", chromeColor);
+        if (custom) {
+          const root = document.documentElement.style;
+          root.setProperty("--launch-bg", custom.background);
+          root.setProperty("--launch-panel", custom.surface);
+          root.setProperty("--launch-line", `${custom.accent}33`);
+          root.setProperty("--launch-text", custom.text);
+          root.setProperty("--launch-muted", custom.muted);
+          root.setProperty("--launch-accent", custom.accent);
+          root.setProperty("--launch-signal", custom.signal);
+        }
+        document.querySelector('meta[name="theme-color"]').setAttribute("content", chromeColor);
+        document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').setAttribute("content", lightMode ? "default" : "black-translucent");
+      })();
+    </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --safe-top: env(safe-area-inset-top, 0px);
+        --safe-bottom: env(safe-area-inset-bottom, 0px);
+        --safe-left: env(safe-area-inset-left, 0px);
+        --safe-right: env(safe-area-inset-right, 0px);
+        --app-viewport-height: 100dvh;
+        --visual-viewport-height: 100dvh;
+        --visual-viewport-offset-top: 0px;
+        --launch-bg: #f5eee5;
+        --launch-panel: rgba(255, 250, 244, 0.9);
+        --launch-line: rgba(83, 54, 37, 0.15);
+        --launch-text: #211b17;
+        --launch-muted: #71655c;
+        --launch-accent: #c9602d;
+        --launch-signal: #2f7d78;
+        --launch-status: var(--launch-bg);
+      }
+
+      :root[data-theme="ember"] {
+        --launch-bg: #f5eee5;
+        --launch-panel: rgba(255, 250, 244, 0.9);
+        --launch-line: rgba(83, 54, 37, 0.15);
+        --launch-text: #211b17;
+        --launch-muted: #71655c;
+        --launch-accent: #c9602d;
+        --launch-signal: #2f7d78;
+      }
+
+      :root[data-theme="porcelain"] {
+        --launch-bg: #eef2f7;
+        --launch-panel: rgba(255, 255, 255, 0.82);
+        --launch-line: rgba(17, 24, 39, 0.15);
+        --launch-text: #111827;
+        --launch-muted: #5b6678;
+        --launch-accent: #2457d6;
+        --launch-signal: #e4473e;
+      }
+
+      :root[data-theme="signal"] {
+        --launch-bg: #090a0c;
+        --launch-panel: rgba(24, 25, 27, 0.88);
+        --launch-line: rgba(242, 240, 234, 0.15);
+        --launch-text: #f2f0ea;
+        --launch-muted: #9c9b97;
+        --launch-accent: #58dfc2;
+        --launch-signal: #ff4d52;
+      }
+
+      :root[data-theme="field"] {
+        --launch-bg: #07110f;
+        --launch-panel: rgba(11, 29, 24, 0.88);
+        --launch-line: rgba(216, 231, 220, 0.15);
+        --launch-text: #edf3ee;
+        --launch-muted: #98aaa0;
+        --launch-accent: #bdd45a;
+        --launch-signal: #78a9ff;
+      }
+
+      :root[data-theme="midnight"] {
+        --launch-bg: #070914;
+        --launch-panel: rgba(17, 21, 42, 0.9);
+        --launch-line: rgba(122, 162, 255, 0.19);
+        --launch-text: #f2f5ff;
+        --launch-muted: #a4aec8;
+        --launch-accent: #7aa2ff;
+        --launch-signal: #ffbf69;
+      }
+
+      :root[data-theme="aurora"] {
+        --launch-bg: #06110f;
+        --launch-panel: rgba(9, 31, 27, 0.9);
+        --launch-line: rgba(98, 230, 197, 0.19);
+        --launch-text: #effff9;
+        --launch-muted: #9ebbb2;
+        --launch-accent: #62e6c5;
+        --launch-signal: #ff7895;
+      }
+
+      :root[data-theme="glacier"] {
+        --launch-bg: #f1f7fb;
+        --launch-panel: rgba(255, 255, 255, 0.9);
+        --launch-line: rgba(8, 127, 156, 0.18);
+        --launch-text: #102333;
+        --launch-muted: #5b7180;
+        --launch-accent: #087f9c;
+        --launch-signal: #e75564;
+      }
+
+      :root[data-theme="atelier"] {
+        --launch-bg: #f7f5fa;
+        --launch-panel: rgba(255, 255, 255, 0.92);
+        --launch-line: rgba(76, 91, 212, 0.17);
+        --launch-text: #201b2c;
+        --launch-muted: #716a7f;
+        --launch-accent: #4c5bd4;
+        --launch-signal: #c53f68;
+      }
+
+      html,
+      body,
+      #root {
+        width: 100%;
+        min-width: 320px;
+        height: var(--app-viewport-height);
+        min-height: var(--app-viewport-height);
+        margin: 0;
+        overflow: hidden;
+      }
+
+      html {
+        background-color: var(--launch-bg);
+      }
+
+      body {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        overflow: hidden;
+        height: var(--app-viewport-height);
+        background: var(--launch-bg);
+        color: var(--launch-text);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .launch-screen {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: calc(24px + var(--safe-top)) 24px calc(24px + var(--safe-bottom));
+        background:
+          linear-gradient(118deg, transparent 0 46%, color-mix(in srgb, var(--launch-accent) 12%, transparent) 46% 46.5%, transparent 46.5%),
+          repeating-linear-gradient(90deg, color-mix(in srgb, var(--launch-accent) 5%, transparent) 0 1px, transparent 1px 42px),
+          repeating-linear-gradient(0deg, color-mix(in srgb, var(--launch-accent) 3%, transparent) 0 1px, transparent 1px 42px),
+          var(--launch-bg);
+      }
+
+      .launch-screen::before {
+        content: "";
+        position: fixed;
+        z-index: 2;
+        inset: 0 0 auto;
+        height: var(--safe-top);
+        background: var(--launch-bg);
+        pointer-events: none;
+      }
+
+      .launch-card {
+        width: min(100%, 330px);
+        display: grid;
+        gap: 24px;
+        padding: 24px;
+        border: 1px solid var(--launch-line);
+        border-radius: 8px;
+        background: var(--launch-panel);
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+      }
+
+      .launch-brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .launch-icon {
+        width: 68px;
+        height: 68px;
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, color-mix(in srgb, var(--launch-accent) 20%, transparent), color-mix(in srgb, var(--launch-signal) 12%, transparent)),
+          url("/icons/icon-192.png") center / cover;
+        box-shadow: 0 0 34px color-mix(in srgb, var(--launch-accent) 22%, transparent);
+      }
+
+      .launch-brand strong {
+        display: block;
+        font-size: 30px;
+        line-height: 1;
+        font-weight: 900;
+      }
+
+      .launch-brand span {
+        display: block;
+        margin-top: 6px;
+        color: var(--launch-accent);
+        font-size: 14px;
+        font-weight: 900;
+      }
+
+      .launch-line {
+        height: 6px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--launch-line);
+      }
+
+      .launch-line::before {
+        content: "";
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--launch-signal), var(--launch-accent));
+        animation: launch-load 1.05s ease-in-out infinite alternate;
+      }
+
+      .launch-card p {
+        margin: 0;
+        color: var(--launch-muted);
+        font-size: 13px;
+        line-height: 1.35;
+        font-weight: 800;
+      }
+
+      .launch-recovery {
+        min-height: 46px;
+        padding: 0 18px;
+        color: #fff;
+        border: 1px solid color-mix(in srgb, var(--launch-accent) 58%, transparent);
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--launch-accent), color-mix(in srgb, var(--launch-accent) 72%, var(--launch-signal)));
+        box-shadow: 0 12px 28px color-mix(in srgb, var(--launch-accent) 24%, transparent);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .launch-recovery:disabled {
+        opacity: 0.64;
+      }
+
+      @media (orientation: landscape) and (max-height: 560px) {
+        .launch-screen {
+          padding: calc(12px + var(--safe-top)) calc(18px + var(--safe-right)) calc(12px + var(--safe-bottom)) calc(18px + var(--safe-left));
+        }
+
+        .launch-card {
+          width: min(100%, 460px);
+          grid-template-columns: minmax(0, 1fr) 140px;
+          align-items: center;
+          gap: 14px 22px;
+          padding: 18px 20px;
+        }
+
+        .launch-brand {
+          grid-row: 1 / span 2;
+        }
+
+        .launch-icon {
+          width: 58px;
+          height: 58px;
+        }
+
+        .launch-brand strong {
+          font-size: 27px;
+        }
+
+        .launch-brand span {
+          font-size: 12px;
+        }
+
+        .launch-line {
+          align-self: end;
+        }
+
+        .launch-card p {
+          align-self: start;
+          font-size: 11px;
+        }
+      }
+
+      @keyframes launch-load {
+        from { transform: translateX(0); }
+        to { transform: translateX(138%); }
+      }
+    </style>
+    <title>Лад ВлГУ</title>
+  </head>
+  <body>
+    <div id="root">
+      <div class="launch-screen" aria-label="Загрузка расписания ВлГУ">
+        <div class="launch-card">
+          <div class="launch-brand">
+            <div class="launch-icon"></div>
+            <div>
+              <strong>Лад</strong>
+              <span>РАСПИСАНИЕ ВлГУ</span>
+            </div>
+          </div>
+          <div class="launch-line"></div>
+          <p>Собираем сегодняшний ритм.</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      window.__ladBootComplete = false;
+      (() => {
+        const release = "__HTML_RELEASE__";
+        const appBase = new URL("%BASE_URL%", window.location.origin);
+        let recoveryVisible = false;
+
+        function showRecovery(reason) {
+          if (window.__ladBootComplete || recoveryVisible) return null;
+          const card = document.querySelector(".launch-card");
+          const message = card?.querySelector("p");
+          if (!card || !message) return null;
+          recoveryVisible = true;
+          message.textContent = reason || "Не удалось открыть интерфейс. Расписание и записи остаются на устройстве.";
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = "launch-recovery";
+          button.textContent = "Восстановить приложение";
+          button.addEventListener("click", () => recover(button, message));
+          card.appendChild(button);
+          return { button, message };
+        }
+
+        async function recover(button, message) {
+          button.disabled = true;
+          message.textContent = "Проверяем свежую версию…";
+          const controller = new AbortController();
+          const timeout = window.setTimeout(() => controller.abort(), 10000);
+          try {
+            const recoveryUrl = new URL("index.html", appBase);
+            recoveryUrl.searchParams.set("lad-recovery", String(Date.now()));
+            const response = await fetch(recoveryUrl, { cache: "no-store", signal: controller.signal });
+            const html = await response.text();
+            const latestRelease = html.match(/name="lad-release" content="([^"]+)"/)?.[1];
+            if (!response.ok || !latestRelease) {
+              throw new Error("release unavailable");
+            }
+            // Keep the existing offline files and all personal storage until a
+            // complete replacement worker has installed successfully.
+            if ("serviceWorker" in navigator) {
+              const registration = await navigator.serviceWorker.register(new URL("sw.js", appBase).href, { updateViaCache: "none" });
+              await registration.update();
+              const worker = registration.installing || registration.waiting;
+              if (worker && worker.state !== "activated") {
+                await new Promise((resolve, reject) => {
+                  const timer = window.setTimeout(() => reject(new Error("update timeout")), 20000);
+                  worker.addEventListener("statechange", () => {
+                    if (worker.state === "activated" || worker.state === "redundant") {
+                      window.clearTimeout(timer);
+                      if (worker.state === "activated") resolve();
+                      else reject(new Error("update failed"));
+                    }
+                  });
+                });
+              }
+            }
+            const destination = new URL(appBase);
+            destination.search = window.location.search;
+            destination.searchParams.set("lad-recovered", latestRelease);
+            window.location.replace(destination.href);
+          } catch {
+            message.textContent = "Свежая версия пока недоступна. Проверьте сеть и попробуйте ещё раз.";
+            button.disabled = false;
+          } finally {
+            window.clearTimeout(timeout);
+          }
+        }
+
+        window.addEventListener("error", () => {
+          showRecovery("Не загрузился интерфейс приложения. Сохранённые данные не удалены.");
+        }, true);
+        window.addEventListener("unhandledrejection", () => showRecovery("Запуск прервался. Сохранённые данные не пострадали."));
+        window.setTimeout(() => {
+          const controls = showRecovery("Приложение запускается слишком долго. Восстанавливаем файлы интерфейса…");
+          if (!controls || !navigator.onLine) return;
+          const recoveryKey = `lad.auto-recovery:${release}`;
+          try {
+            if (sessionStorage.getItem(recoveryKey)) return;
+            sessionStorage.setItem(recoveryKey, "1");
+          } catch {}
+          recover(controls.button, controls.message);
+        }, 5000);
+        // This check must not depend on React or the window load event: either
+        // can be blocked by a missing script, stylesheet or unreachable image.
+        if ("serviceWorker" in navigator && !["localhost", "127.0.0.1"].includes(location.hostname)) {
+          navigator.serviceWorker.getRegistration(appBase.href)
+            .then((registration) => registration?.update()).catch(() => {});
+          navigator.serviceWorker.addEventListener("controllerchange", () => {
+            if (!window.__ladBootComplete) window.location.reload();
+          });
+        }
+      })();
+    </script>
+    <script>
+      window.setTimeout(() => {
+        const message = document.querySelector(".launch-screen .launch-card p");
+        if (message) message.textContent = "Открываем сохранённое расписание…";
+      }, 800);
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

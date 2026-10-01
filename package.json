@@ -1,0 +1,47 @@
+{
+  "name": "lad-vlsu-schedule",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "qa:pwa-startup": "node scripts/qa-pwa-startup.cjs",
+    "check": "pnpm run typecheck && pnpm run test && pnpm run build",
+    "cloudflare:worker:check": "wrangler deploy --dry-run --outdir .wrangler/dry-run",
+    "cloudflare:pages:check": "wrangler pages functions build functions --outdir .wrangler/pages --compatibility-date 2026-05-28",
+    "cloudflare:check": "pnpm run cloudflare:worker:check && pnpm run cloudflare:pages:check",
+    "deploy": "pnpm run build && wrangler deploy",
+    "snapshot": "node scripts/snapshot/buildSnapshot.mjs",
+    "snapshot:catalog": "node scripts/snapshot/buildSnapshot.mjs --catalog-only",
+    "icons": "node scripts/icons/buildIcons.mjs"
+  },
+  "dependencies": {
+    "@tiptap/extension-highlight": "^3.27.4",
+    "@tiptap/extension-image": "^3.27.4",
+    "@tiptap/extension-list": "^3.27.4",
+    "@tiptap/extension-text-style": "^3.27.4",
+    "@tiptap/extension-underline": "^3.27.4",
+    "@tiptap/extensions": "^3.27.4",
+    "@tiptap/pm": "^3.27.4",
+    "@tiptap/react": "^3.27.4",
+    "@tiptap/starter-kit": "^3.27.4",
+    "@vitejs/plugin-react": "^5.0.0",
+    "dompurify": "^3.4.12",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "typescript": "^5.6.3",
+    "vite": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "playwright": "1.63.0",
+    "vitest": "3.2.4",
+    "wrangler": "4.112.0"
+  }
+}

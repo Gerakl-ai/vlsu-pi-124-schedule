@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.tools/
+*.log
+qa-*.png
+qa/
+.wrangler/
+.dev.vars
+
+# Снимки расписания живут в отдельной ветке data, а не в main.
+/data/
+snapshot-data/

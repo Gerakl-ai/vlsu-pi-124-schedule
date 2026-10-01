@@ -1,0 +1,443 @@
+[
+  {
+    "label": "iphone-402x874-normal-after-viewport-fix",
+    "viewport": {
+      "width": 402,
+      "height": 874
+    },
+    "metrics": {
+      "innerHeight": 874,
+      "visualViewportHeight": 874,
+      "screenHeight": 874,
+      "standalone": false,
+      "cssAppHeight": "874px",
+      "cssSafeBottom": "0px",
+      "html": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "body": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "appShell": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "fixed",
+        "flexBasis": "auto",
+        "gridRows": "874px",
+        "paddingBottom": "0px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 804,
+        "height": 696,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "18px"
+      },
+      "bottomNav": {
+        "top": 804,
+        "bottom": 874,
+        "height": 70,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px",
+        "paddingBottom": "0px"
+      },
+      "buttons": [
+        {
+          "text": "Сегодня",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": true
+        },
+        {
+          "text": "Неделя",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        },
+        {
+          "text": "Настройки",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        }
+      ],
+      "navBottomToInnerHeight": 0,
+      "navBottomToScreenHeight": 0,
+      "buttonGapToNavBottom": 0,
+      "contentOverflows": true,
+      "elementAtViewportBottom": {
+        "tag": "BUTTON",
+        "className": "",
+        "text": "Неделя"
+      }
+    },
+    "issues": []
+  },
+  {
+    "label": "iphone-430x932-normal-after-viewport-fix",
+    "viewport": {
+      "width": 430,
+      "height": 932
+    },
+    "metrics": {
+      "innerHeight": 932,
+      "visualViewportHeight": 932,
+      "screenHeight": 932,
+      "standalone": false,
+      "cssAppHeight": "932px",
+      "cssSafeBottom": "0px",
+      "html": {
+        "top": 0,
+        "bottom": 932,
+        "height": 932,
+        "width": 430,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "body": {
+        "top": 0,
+        "bottom": 932,
+        "height": 932,
+        "width": 430,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "appShell": {
+        "top": 0,
+        "bottom": 932,
+        "height": 932,
+        "width": 430,
+        "position": "fixed",
+        "flexBasis": "auto",
+        "gridRows": "932px",
+        "paddingBottom": "0px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 932,
+        "height": 932,
+        "width": 430,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "contentScroll": {
+        "top": 117.28,
+        "bottom": 862,
+        "height": 744.72,
+        "width": 430,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "18px"
+      },
+      "bottomNav": {
+        "top": 862,
+        "bottom": 932,
+        "height": 70,
+        "width": 430,
+        "position": "relative",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px",
+        "paddingBottom": "0px"
+      },
+      "buttons": [
+        {
+          "text": "Сегодня",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "active": true
+        },
+        {
+          "text": "Неделя",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "active": false
+        },
+        {
+          "text": "Настройки",
+          "top": 862,
+          "bottom": 932,
+          "height": 70,
+          "active": false
+        }
+      ],
+      "navBottomToInnerHeight": 0,
+      "navBottomToScreenHeight": 0,
+      "buttonGapToNavBottom": 0,
+      "contentOverflows": true,
+      "elementAtViewportBottom": {
+        "tag": "BUTTON",
+        "className": "",
+        "text": "Неделя"
+      }
+    },
+    "issues": []
+  },
+  {
+    "label": "iphone-bug-emulation-inner760-screen874-after-viewport-fix",
+    "viewport": {
+      "width": 402,
+      "height": 760
+    },
+    "metrics": {
+      "innerHeight": 760,
+      "visualViewportHeight": 760,
+      "screenHeight": 874,
+      "standalone": true,
+      "cssAppHeight": "874px",
+      "cssSafeBottom": "0px",
+      "html": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "body": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "appShell": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "fixed",
+        "flexBasis": "auto",
+        "gridRows": "874px",
+        "paddingBottom": "0px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 804,
+        "height": 696,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "18px"
+      },
+      "bottomNav": {
+        "top": 804,
+        "bottom": 874,
+        "height": 70,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px",
+        "paddingBottom": "0px"
+      },
+      "buttons": [
+        {
+          "text": "Сегодня",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": true
+        },
+        {
+          "text": "Неделя",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        },
+        {
+          "text": "Настройки",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        }
+      ],
+      "navBottomToInnerHeight": -114,
+      "navBottomToScreenHeight": 0,
+      "buttonGapToNavBottom": 0,
+      "contentOverflows": true,
+      "elementAtViewportBottom": {
+        "tag": "SPAN",
+        "className": "lesson-title",
+        "text": "Алгоритмизация и программирование"
+      }
+    },
+    "issues": []
+  },
+  {
+    "label": "iphone-bug-emulation-inner760-screen874-safe34-after-viewport-fix",
+    "viewport": {
+      "width": 402,
+      "height": 760
+    },
+    "metrics": {
+      "innerHeight": 760,
+      "visualViewportHeight": 760,
+      "screenHeight": 874,
+      "standalone": true,
+      "cssAppHeight": "874px",
+      "cssSafeBottom": "0px",
+      "html": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "body": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "static",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "appShell": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "fixed",
+        "flexBasis": "auto",
+        "gridRows": "874px",
+        "paddingBottom": "0px"
+      },
+      "phoneFrame": {
+        "top": 0,
+        "bottom": 874,
+        "height": 874,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "0px"
+      },
+      "contentScroll": {
+        "top": 108,
+        "bottom": 804,
+        "height": 696,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "auto",
+        "gridRows": "none",
+        "paddingBottom": "18px"
+      },
+      "bottomNav": {
+        "top": 804,
+        "bottom": 874,
+        "height": 70,
+        "width": 402,
+        "position": "relative",
+        "flexBasis": "70px",
+        "gridRows": "70px 0px",
+        "paddingBottom": "0px"
+      },
+      "buttons": [
+        {
+          "text": "Сегодня",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": true
+        },
+        {
+          "text": "Неделя",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        },
+        {
+          "text": "Настройки",
+          "top": 804,
+          "bottom": 874,
+          "height": 70,
+          "active": false
+        }
+      ],
+      "navBottomToInnerHeight": -114,
+      "navBottomToScreenHeight": 0,
+      "buttonGapToNavBottom": 0,
+      "contentOverflows": true,
+      "elementAtViewportBottom": {
+        "tag": "SPAN",
+        "className": "lesson-title",
+        "text": "Алгоритмизация и программирование"
+      }
+    },
+    "issues": [
+      {
+        "type": "warning",
+        "text": "The resource http://127.0.0.1:5173/images/hero-schedule.png was preloaded using link preload but not used within a few seconds from the window's load event. Please make sure it has an appropriate `as` value and it is preloaded intentionally."
+      },
+      {
+        "type": "error",
+        "text": "Failed to load resource: the server responded with a status of 500 (Internal Server Error)"
+      }
+    ]
+  }
+]

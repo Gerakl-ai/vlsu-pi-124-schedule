@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Лад ВлГУ">
+  <title>Лад ВлГУ</title>
+  <!--
+    Маскируемый вариант: Android обрезает иконку произвольной формой, поэтому
+    знак ужат в безопасную зону (внутренние 80% холста), а фон идёт под обрез.
+  -->
+  <rect width="512" height="512" fill="#c9602d"/>
+  <g fill="#f7efe6" transform="translate(256 256) scale(0.78) translate(-256 -256)">
+    <rect x="172" y="160" width="168" height="48" rx="24"/>
+    <rect x="116" y="242" width="280" height="28" rx="14"/>
+    <rect x="200" y="304" width="112" height="48" rx="24"/>
+  </g>
+</svg>
