@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-02T00:47:36.521Z",
+  "capturedAt": "2026-10-02T09:45:45.083Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36947748873"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36991631309"
   },
   "quality": {
     "examEntries": 0,
@@ -80,7 +80,7 @@
       "z7": ""
     },
     {
-      "n1": "529б-3, Акинина Е.Б., Кураторский час",
+      "n1": "529б-3, Великова С.А., Кураторский час",
       "n2": "527-3, пр, Балашова С.И., Логопсихология",
       "n3": "",
       "n4": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "5d80c5d3ece14d4726d41d53723eccc63130b004effb9b83de44b4e71b73bb6b",
+  "scheduleHash": "95574d1599401554d547f5a1419a6c62393e1e6674d480a352f7754463af5324",
   "schemaVersion": 3,
   "semester": 7
 }

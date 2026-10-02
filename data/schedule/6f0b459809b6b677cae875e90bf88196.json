@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-02T00:47:36.521Z",
+  "capturedAt": "2026-10-02T09:45:45.083Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36947748873"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36991631309"
   },
   "quality": {
     "examEntries": 0,
@@ -99,7 +99,7 @@
     },
     {
       "n1": "109-СК3, лк, Андреева Л.С., Философия",
-      "n2": "103-СК3, Ишухин В.Ф., Элективные дисциплины по физической культуре и спорту",
+      "n2": "108-СК3, Ишухин В.Ф., Элективные дисциплины по физической культуре и спорту",
       "n3": "",
       "n4": "",
       "n5": "",
@@ -108,7 +108,7 @@
       "name": "Пятница",
       "type": "Lessons",
       "z1": "109-СК3, лк, Андреева Л.С., Философия",
-      "z2": "103-СК3, Ишухин В.Ф., Элективные дисциплины по физической культуре и спорту",
+      "z2": "108-СК3, Ишухин В.Ф., Элективные дисциплины по физической культуре и спорту",
       "z3": "",
       "z4": "",
       "z5": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "fce6f6eb6e0c2e1c6c5ce198562ed7148363a0a06209c8831bd312d5de54f2c3",
+  "scheduleHash": "5d80366667427c7d7a124de066fb40fb3fdc0f1f953f8f0c62ac7c53f6a7dec7",
   "schemaVersion": 3,
   "semester": 3
 }
