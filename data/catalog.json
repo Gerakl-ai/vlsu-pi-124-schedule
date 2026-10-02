@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-02T09:45:45.083Z",
-  "groupCount": 966,
+  "capturedAt": "2026-10-02T17:52:27.980Z",
+  "groupCount": 962,
   "instituteCount": 14,
   "institutes": [
     {
@@ -804,7 +804,7 @@
       "shortName": "ГИ"
     },
     {
-      "groupCount": 144,
+      "groupCount": 142,
       "groups": [
         {
           "course": "5 курс",
@@ -1691,14 +1691,6 @@
           "forms": [
             "full-time"
           ],
-          "name": "С-122",
-          "nrec": "b70fecdea5d1e848285d4497db2deca1"
-        },
-        {
-          "course": "4 курс",
-          "forms": [
-            "full-time"
-          ],
           "name": "С-123",
           "nrec": "e44644286a4420ed13ec5f6c9aae5083"
         },
@@ -1837,14 +1829,6 @@
           ],
           "name": "Смг-426",
           "nrec": "86895f187086604e2f20c1e817c9e34d"
-        },
-        {
-          "course": "2 курс",
-          "forms": [
-            "full-time"
-          ],
-          "name": "Сми-324",
-          "nrec": "435628a40467b3578d5d08413fcd4b40"
         },
         {
           "course": "2 курс",
@@ -2364,7 +2348,7 @@
       "shortName": "ЕН"
     },
     {
-      "groupCount": 117,
+      "groupCount": 116,
       "groups": [
         {
           "course": "4 курс",
@@ -2813,14 +2797,6 @@
           ],
           "name": "ИСТ-126",
           "nrec": "f76ef3983329cfce4bc35f8f81a9d372"
-        },
-        {
-          "course": "2 курс",
-          "forms": [
-            "full-time"
-          ],
-          "name": "ИСТм-124",
-          "nrec": "12ab7a672ce46c3d45646f36a4213e89"
         },
         {
           "course": "2 курс",
@@ -6051,7 +6027,7 @@
       "shortName": "СПО-Ю"
     },
     {
-      "groupCount": 138,
+      "groupCount": 137,
       "groups": [
         {
           "course": "5 курс",
@@ -6724,14 +6700,6 @@
           ],
           "name": "ПИНм-126",
           "nrec": "a24f19977983a2d2c2092fdff29a693e"
-        },
-        {
-          "course": "5 курс",
-          "forms": [
-            "full-time"
-          ],
-          "name": "ППД-121",
-          "nrec": "4d5d2ea403c396595da45699cb6aab98"
         },
         {
           "course": "5 курс",
@@ -7847,7 +7815,7 @@
     "commit": "6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/6dd20c4bc212fb9a2844e56a7cfa6aa93a486c05",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/36991631309"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37043639016"
   },
   "schemaVersion": 3
 }
