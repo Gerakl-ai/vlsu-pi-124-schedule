@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-05T05:39:30.061Z",
+  "capturedAt": "2026-10-05T14:37:51.284Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37268745021"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37326229724"
   },
   "quality": {
     "examEntries": 0,
@@ -95,7 +95,7 @@
       "z4": "",
       "z5": "",
       "z6": "311-УКУ, лк, Кивленок Т.В., Досудебное и внесудебное урегулирование споров (онлайн)(2 нед, 4 нед, 6 нед, 8 нед, 10 нед)",
-      "z7": "311-УКУ, пр, Кивленок Т.В., Досудебное и внесудебное урегулирование споров (7 нед, 9 нед, 11 нед, 13 нед)"
+      "z7": "311-УКУ, пр, Кивленок Т.В., Досудебное и внесудебное урегулирование споров (12 нед, 14 нед, 16 нед, 18 нед)"
     },
     {
       "n1": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "edcdcbda2735753d26d3248fbbebab3307d8fe46de34a53dd923feb8183a4ea2",
+  "scheduleHash": "309c25bf3860325fdb44ce8c908dc5fb4d78a451356da8387bbe9f3da103b829",
   "schemaVersion": 3,
   "semester": 5
 }
