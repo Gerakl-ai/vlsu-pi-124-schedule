@@ -51,7 +51,7 @@ jobs:
 
       - name: Собрать приложение
         env:
-          GITHUB_SHA: ${{ steps.source.outputs.sha }}
+          LAD_RELEASE_SHA: ${{ steps.source.outputs.sha }}
           PAGES_BASE: /${{ github.event.repository.name }}/
           VITE_SCHEDULE_FALLBACK_URL: https://vlsu-pi-124-schedule.polkin-06.workers.dev
         run: pnpm run build
