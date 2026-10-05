@@ -1,18 +1,14 @@
 name: Публикация на GitHub Pages
 
-# Собирает приложение из main и кладёт рядом снимки расписания из ветки data.
-# Приложение и данные попадают на CDN одним артефактом, поэтому проксировать к
-# ВлГУ в момент открытия страницы больше не нужно.
+# Прежний PWA-путь собирается из актуального основного репозитория. Так старые
+# установки сохраняют свой URL и данные, но получают тот же интерфейс и снимки.
 
 on:
   push:
     branches: [main]
-  # Снимки обновляются отдельным workflow; после них сайт пересобирается,
-  # чтобы свежее расписание доехало до пользователей.
-  workflow_run:
-    workflows: ["Снимок расписания ВлГУ"]
-    types: [completed]
   workflow_dispatch:
+  schedule:
+    - cron: '17 */4 * * *'
 
 permissions:
   contents: read
@@ -27,8 +23,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Забрать приложение
+      - name: Забрать актуальное приложение
         uses: actions/checkout@v4
+        with:
+          repository: Gerakl-ai/lad-vlsu
+          ref: main
+
+      - name: Определить версию основного приложения
+        id: source
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - uses: pnpm/action-setup@v4
         with:
@@ -48,9 +51,9 @@ jobs:
 
       - name: Собрать приложение
         env:
-          # Проектный сайт живёт в подкаталоге с именем репозитория.
-          # Для своего домена достаточно заменить это на "/".
+          GITHUB_SHA: ${{ steps.source.outputs.sha }}
           PAGES_BASE: /${{ github.event.repository.name }}/
+          VITE_SCHEDULE_FALLBACK_URL: https://vlsu-pi-124-schedule.polkin-06.workers.dev
         run: pnpm run build
 
       - name: Добавить снимки расписания из ветки data
