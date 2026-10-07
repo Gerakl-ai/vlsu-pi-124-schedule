@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-07T05:58:58.911Z",
+  "capturedAt": "2026-10-07T13:22:59.481Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37579033530"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37628019329"
   },
   "quality": {
     "examEntries": 0,
@@ -66,7 +66,7 @@
       "n2": "",
       "n3": "213-УКУ, пр, Мешков Д.Н., Адвокатура в Российской Федерации",
       "n4": "206-УКУ, лк, Мешков Д.Н., Адвокатура в Российской Федерации",
-      "n5": "301-УКУ, пр, Авдеева А.Д., Семейное право",
+      "n5": "106-УКУ, пр, Авдеева А.Д., Семейное право",
       "n6": "213-УКУ, лк, Семенов А.В., Административное судопроизводство",
       "n7": "",
       "name": "Среда",
@@ -75,7 +75,7 @@
       "z2": "",
       "z3": "209-УКУ, пр, Ткачук Т.А., Криминалистика",
       "z4": "206-УКУ, лк, Ткачук Т.А., Криминалистика",
-      "z5": "301-УКУ, пр, Авдеева А.Д., Семейное право",
+      "z5": "106-УКУ, пр, Авдеева А.Д., Семейное право",
       "z6": "",
       "z7": ""
     },
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "d0ef642df5824347fc880640ad682b86e0d657b73643600dfccac8687e62a242",
+  "scheduleHash": "6b31ced9e70316d4095837639bdac75e34a699f8c89a038fb9766e85c560ffe3",
   "schemaVersion": 3,
   "semester": 7
 }

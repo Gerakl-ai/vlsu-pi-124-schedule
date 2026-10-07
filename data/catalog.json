@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-07T05:58:58.911Z",
-  "groupCount": 962,
+  "capturedAt": "2026-10-07T13:22:59.481Z",
+  "groupCount": 963,
   "instituteCount": 14,
   "institutes": [
     {
@@ -7235,7 +7235,7 @@
       "shortName": "ЦМО"
     },
     {
-      "groupCount": 71,
+      "groupCount": 72,
       "groups": [
         {
           "course": "6 курс",
@@ -7308,6 +7308,14 @@
           ],
           "name": "ВСПДв-125",
           "nrec": "b0a7f20872dde0611c7916f802a9320b"
+        },
+        {
+          "course": "1 курс",
+          "forms": [
+            "part-time"
+          ],
+          "name": "ВСПДв-126",
+          "nrec": "9ee6402d49e7d8082883439cd967fc60"
         },
         {
           "course": "5 курс",
@@ -7815,7 +7823,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37579033530"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37628019329"
   },
   "schemaVersion": 3
 }

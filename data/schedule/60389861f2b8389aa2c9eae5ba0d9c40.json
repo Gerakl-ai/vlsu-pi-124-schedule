@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-07T05:58:58.911Z",
+  "capturedAt": "2026-10-07T13:22:59.481Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37579033530"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37628019329"
   },
   "quality": {
     "examEntries": 0,
@@ -75,7 +75,7 @@
       "z2": "",
       "z3": "103-УКУ, пр, Горбатов В.И., Иностранный язык (англ.) \n104-УКУ, пр, Морозова С.Н., Иностранный язык (англ.)",
       "z4": "301-УКУ, лк, Баранова А.Ф., Основы таможенного дела и внешнеэкономической деятельности",
-      "z5": "315-УКУ, лк, Баранова А.Ф., Основы таможенного дела и внешнеэкономической деятельности",
+      "z5": "301-УКУ, лк, Баранова А.Ф., Основы таможенного дела и внешнеэкономической деятельности",
       "z6": "",
       "z7": ""
     },
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "c4a63231610611be2f22e9edbdc775b79b1b4eafe96ba0d6069466d75d9ad18e",
+  "scheduleHash": "7a1900bc53ced2a699f56b6bb425d1a5c7c3dbe310950bfae61acd397c2e4dd7",
   "schemaVersion": 3,
   "semester": 1
 }

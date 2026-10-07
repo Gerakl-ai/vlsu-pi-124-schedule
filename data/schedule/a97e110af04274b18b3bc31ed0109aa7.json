@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-07T05:58:58.911Z",
+  "capturedAt": "2026-10-07T13:22:59.481Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37579033530"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/37628019329"
   },
   "quality": {
     "examEntries": 0,
@@ -54,7 +54,7 @@
       "name": "Вторник",
       "type": "Lessons",
       "z1": "323-2, пр, Кокурина Ю.К., Высшая математика",
-      "z2": "311-2, пр, Кокурина Ю.К., Высшая математика",
+      "z2": "128-4, пр, Кокурина Ю.К., Высшая математика",
       "z3": "112-2, лк, Ульченко Т., Инженерная и компьютерная графика",
       "z4": "105-4, лб, Игнатов М.С., Устройство и работа силовых агрегатов транспортных машин",
       "z5": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "c01a11db4a6276aeb3d2919586cc3e8bc6cc6180e7c5b2d63130d5c618c072bd",
+  "scheduleHash": "9aa9f17680fefe3e36e6429c468d0ccada03cb39379f2478a9d86d5ccdd93086",
   "schemaVersion": 3,
   "semester": 1
 }
