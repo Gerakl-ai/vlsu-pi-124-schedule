@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-12T10:48:49.700Z",
+  "capturedAt": "2026-10-12T21:16:12.276Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/38238647338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/38309544882"
   },
   "quality": {
     "examEntries": 0,
@@ -48,14 +48,14 @@
       "n2": "",
       "n3": "117-7, пр, Эфендиева Н.Д., Основы профессионально-педагогической деятельности",
       "n4": "339-7, лк, Касап Я.Г., История России",
-      "n5": "",
+      "n5": "105-7, пр, Уциев А.А., Иностранный язык",
       "n6": "",
       "n7": "",
       "name": "Вторник",
       "type": "Lessons",
       "z1": "",
       "z2": "",
-      "z3": "",
+      "z3": "421-7, пр, Уциев А.А., Иностранный язык",
       "z4": "339-7, лк, Касап Я.Г., История России",
       "z5": "408-7, пр, Касап Я.Г., История России",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "784da491f97389be2df19874fd5fad0a9c3bdcd6c4c1f68b102b17e03bdf19d7",
+  "scheduleHash": "b28d78b192049adc92bc4648c9832fe9d0863ccf7eefbe3950b1ec8f0d4428ea",
   "schemaVersion": 3,
   "semester": 1
 }
