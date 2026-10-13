@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-13T02:36:23.055Z",
+  "capturedAt": "2026-10-13T10:35:20.867Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/38337657827"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/38384373570"
   },
   "quality": {
     "examEntries": 0,
@@ -45,8 +45,8 @@
     },
     {
       "n1": "",
-      "n2": "108-СК3, пр, Ерофеева О.Г., Основы вожатской деятельности",
-      "n3": "304-СК1, Сидорова А.А., Кураторский час (Карпушко Н.А.)",
+      "n2": "",
+      "n3": "",
       "n4": "202-СК3, Ишухин В.Ф., Элективные дисциплины по физической культуре и спорту",
       "n5": "304-СК1, пр, Блохин М.М., Физиология человека",
       "n6": "",
@@ -63,8 +63,8 @@
     },
     {
       "n1": "",
-      "n2": "",
-      "n3": "",
+      "n2": "109-СК3, пр, Ерофеева О.Г., Основы вожатской деятельности",
+      "n3": "304-СК1, Сидорова А.А., Кураторский час (Карпушко Н.А.)",
       "n4": "108-СК3, пр, Дорошенко С.И., Педагогика",
       "n5": "109-СК3, лк, Писненко А.Г., Психология физической культуры и спорта",
       "n6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "5d80366667427c7d7a124de066fb40fb3fdc0f1f953f8f0c62ac7c53f6a7dec7",
+  "scheduleHash": "9e1afda23ad3df940de2fa63bb990f8aacc297a70340e118c3b7fdea5ccb4184",
   "schemaVersion": 3,
   "semester": 3
 }
