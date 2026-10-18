@@ -1,0 +1,60 @@
+{
+  "capturedAt": "2026-10-18T23:12:11.933Z",
+  "group": {
+    "course": "4 курс",
+    "forms": [
+      "extramural"
+    ],
+    "instituteId": "c22ac11fe7a7799355b1b90ba6957321",
+    "instituteName": "Гуманитарный институт",
+    "instituteShortName": "ГИ",
+    "name": "ЗКПуд-123",
+    "nrec": "e6c7be0797ea8afa516bbad6ddc89aba"
+  },
+  "provenance": {
+    "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "repository": "Gerakl-ai/vlsu-pi-124-schedule",
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39175503230"
+  },
+  "quality": {
+    "examEntries": 4,
+    "lessonDays": 0,
+    "scheduleEntries": 4,
+    "valid": true,
+    "warnings": []
+  },
+  "schedule": [
+    {
+      "date": "20.10.2026",
+      "isConsultation": false,
+      "name": "526-3, экз, Балашова С.И., Изучение, образование и реабилитация лиц с нарушениями интеллекта",
+      "time": "08:30",
+      "type": "ExamSession"
+    },
+    {
+      "date": "20.10.2026",
+      "isConsultation": false,
+      "name": "526-3, экз, Балашова С.И., Изучение, образование и реабилитация лиц с нарушениями интеллекта",
+      "time": "10:20",
+      "type": "ExamSession"
+    },
+    {
+      "date": "26.10.2026",
+      "isConsultation": false,
+      "name": "529б-3, экз, Додонова И.Г., Логопедия. Нарушения чтения и письма",
+      "time": "08:30",
+      "type": "ExamSession"
+    },
+    {
+      "date": "26.10.2026",
+      "isConsultation": false,
+      "name": "529б-3, экз, Додонова И.Г., Логопедия. Нарушения чтения и письма",
+      "time": "10:20",
+      "type": "ExamSession"
+    }
+  ],
+  "scheduleHash": "607a6fe6b678906e90c2b0110a720e5c06cafe8ed6d27e69d4301559a74e2d6b",
+  "schemaVersion": 3,
+  "semester": 7
+}

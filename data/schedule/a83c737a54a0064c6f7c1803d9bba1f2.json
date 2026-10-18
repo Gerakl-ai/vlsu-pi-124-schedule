@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-10-18T23:12:11.933Z",
+  "group": {
+    "course": "3 курс",
+    "forms": [
+      "extramural"
+    ],
+    "instituteId": "609e94758b29a9afb7601e705cea3ef2",
+    "instituteName": "Институт экономики и туризма",
+    "instituteShortName": "ИЭиТ",
+    "name": "ЗЭКмд-124",
+    "nrec": "a83c737a54a0064c6f7c1803d9bba1f2"
+  },
+  "provenance": {
+    "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "repository": "Gerakl-ai/vlsu-pi-124-schedule",
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39175503230"
+  },
+  "quality": {
+    "examEntries": 2,
+    "lessonDays": 0,
+    "scheduleEntries": 2,
+    "valid": true,
+    "warnings": []
+  },
+  "schedule": [
+    {
+      "date": "22.10.2026",
+      "isConsultation": false,
+      "name": "102-6, экз, Фраймович Д.Ю., Стратегический анализ",
+      "time": "08:30",
+      "type": "ExamSession"
+    },
+    {
+      "date": "28.10.2026",
+      "isConsultation": false,
+      "name": "104-6, экз, Фраймович Д.Ю., Управление конкурентоспособностью фирмы",
+      "time": "14:00",
+      "type": "ExamSession"
+    }
+  ],
+  "scheduleHash": "280cbe704a8be45db463f01efe9ac14c706baa44bd3540c39b102a44e949e3cc",
+  "schemaVersion": 3,
+  "semester": 5
+}
