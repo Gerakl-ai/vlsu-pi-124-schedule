@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-19T04:40:11.067Z",
-  "groupCount": 963,
+  "capturedAt": "2026-10-19T13:14:25.920Z",
+  "groupCount": 964,
   "instituteCount": 14,
   "institutes": [
     {
@@ -4292,7 +4292,7 @@
       "shortName": "ФКСХ"
     },
     {
-      "groupCount": 103,
+      "groupCount": 104,
       "groups": [
         {
           "course": "3 курс",
@@ -4517,6 +4517,14 @@
           ],
           "name": "ЗБИмд-126",
           "nrec": "10fb5e030cc731538521b4af0f1c4318"
+        },
+        {
+          "course": "1 курс",
+          "forms": [
+            "extramural"
+          ],
+          "name": "ЗБИмд-224",
+          "nrec": "eb2fbaeeac7b25dc1d94a0b3e22cdd4b"
         },
         {
           "course": "2 курс",
@@ -7823,7 +7831,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39200611315"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39258433114"
   },
   "schemaVersion": 3
 }

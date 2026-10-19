@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-19T04:40:11.067Z",
+  "capturedAt": "2026-10-19T13:14:25.920Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39200611315"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39258433114"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 7,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 7,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.10.2026",
-      "isConsultation": false,
-      "name": "217-2, зач, Погорелая С.В., Искусство XX века",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "20.10.2026",
       "isConsultation": false,
@@ -82,7 +75,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f11830c0af2f0f2995467c577c44422e8a5cd09158b3fb4434daa1460250f293",
+  "scheduleHash": "e048c8c32a5977abe997444b6fdbc6952a7d67c001debdaa69cab3514d358c88",
   "schemaVersion": 3,
   "semester": 7
 }
