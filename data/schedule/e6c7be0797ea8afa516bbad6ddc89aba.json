@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-20T08:32:13.823Z",
+  "capturedAt": "2026-10-20T14:18:15.802Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39394081971"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39437973842"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.10.2026",
-      "isConsultation": false,
-      "name": "526-3, экз, Балашова С.И., Изучение, образование и реабилитация лиц с нарушениями интеллекта",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "26.10.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "4a90ada26136fdf8ed2195f68a10c7e43429be1bbc1be5f4b2b257d437f25723",
+  "scheduleHash": "e712521c8ed47ce6b095ed3c23b0e81beac7b13a7b910a4fbf55ef0dfd13a610",
   "schemaVersion": 3,
   "semester": 7
 }
