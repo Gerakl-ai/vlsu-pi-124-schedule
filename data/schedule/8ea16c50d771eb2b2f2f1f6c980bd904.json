@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-20T00:19:33.916Z",
+  "capturedAt": "2026-10-20T08:32:13.823Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39346950916"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39394081971"
   },
   "quality": {
-    "examEntries": 7,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 7,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.10.2026",
-      "isConsultation": false,
-      "name": "217-2, экз, Михайлова Н.В., Массовая культура",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "21.10.2026",
       "isConsultation": false,
@@ -75,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e048c8c32a5977abe997444b6fdbc6952a7d67c001debdaa69cab3514d358c88",
+  "scheduleHash": "bf666176d00cac948e3dce02ae67027c3b631115de5d97ce644b74ed3b943045",
   "schemaVersion": 3,
   "semester": 7
 }

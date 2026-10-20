@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-20T00:19:33.916Z",
+  "capturedAt": "2026-10-20T08:32:13.823Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39346950916"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39394081971"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.10.2026",
-      "isConsultation": false,
-      "name": "433-3, зач, Филатова О.В., Особенности психического развития лиц с ОВЗ",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "23.10.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "0491947022221613c134c1ee0f5f5f0269546f8539825df152d21ee871f35197",
+  "scheduleHash": "ebe5a2b14941c78e73425106e434fb72e58eaaa6857ae50d785be93e026d4108",
   "schemaVersion": 3,
   "semester": 5
 }
