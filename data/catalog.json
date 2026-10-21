@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-21T11:48:26.907Z",
-  "groupCount": 965,
+  "capturedAt": "2026-10-21T17:12:02.355Z",
+  "groupCount": 964,
   "instituteCount": 14,
   "institutes": [
     {
@@ -6035,7 +6035,7 @@
       "shortName": "СПО-Ю"
     },
     {
-      "groupCount": 138,
+      "groupCount": 137,
       "groups": [
         {
           "course": "5 курс",
@@ -6564,14 +6564,6 @@
           ],
           "name": "МИ-126",
           "nrec": "b352f288948db27bd5ca7a49938604f6"
-        },
-        {
-          "course": "2 курс",
-          "forms": [
-            "full-time"
-          ],
-          "name": "МНОм-123",
-          "nrec": "a1a764508ed64f56ac8f6d8b3f3de646"
         },
         {
           "course": "2 курс",
@@ -7839,7 +7831,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39594673032"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39641626637"
   },
   "schemaVersion": 3
 }
