@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-21T04:45:55.254Z",
+  "capturedAt": "2026-10-21T11:48:26.907Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39545810937"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39594673032"
   },
   "quality": {
-    "examEntries": 6,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 6,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.10.2026",
-      "isConsultation": false,
-      "name": "217-2, зач, Погорелая С.В., История музыкальной культуры",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "22.10.2026",
       "isConsultation": false,
@@ -68,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "bf666176d00cac948e3dce02ae67027c3b631115de5d97ce644b74ed3b943045",
+  "scheduleHash": "1cd13cab954236b4347c4b3ab080fc64863f951cdded4dc0d5be114e0178d9b2",
   "schemaVersion": 3,
   "semester": 7
 }

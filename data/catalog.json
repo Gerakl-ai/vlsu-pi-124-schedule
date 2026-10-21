@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-21T04:45:55.254Z",
-  "groupCount": 964,
+  "capturedAt": "2026-10-21T11:48:26.907Z",
+  "groupCount": 965,
   "instituteCount": 14,
   "institutes": [
     {
@@ -6035,7 +6035,7 @@
       "shortName": "СПО-Ю"
     },
     {
-      "groupCount": 137,
+      "groupCount": 138,
       "groups": [
         {
           "course": "5 курс",
@@ -6820,6 +6820,14 @@
           ],
           "name": "СП-126",
           "nrec": "977c87bda2c9827754a25ad5e573b589"
+        },
+        {
+          "course": "1 курс",
+          "forms": [
+            "full-time"
+          ],
+          "name": "СПи-226",
+          "nrec": "f88fd8f3c796fcd38e7967b3e95e9b7d"
         },
         {
           "course": "2 курс",
@@ -7831,7 +7839,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39545810937"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39594673032"
   },
   "schemaVersion": 3
 }
