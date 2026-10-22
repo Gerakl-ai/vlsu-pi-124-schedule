@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-22T11:52:07.909Z",
+  "capturedAt": "2026-10-22T17:10:32.251Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39773795765"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39820296108"
   },
   "quality": {
     "examEntries": 0,
@@ -26,7 +26,7 @@
   },
   "schedule": [
     {
-      "n1": "Физическая культура и спорт",
+      "n1": "",
       "n2": "",
       "n3": "320-7, пр, Широкова Л.И., История России",
       "n4": "339-7, пр, Широкова Л.И., История России",
@@ -35,7 +35,7 @@
       "n7": "",
       "name": "Понедельник",
       "type": "Lessons",
-      "z1": "Физическая культура и спорт",
+      "z1": "",
       "z2": "",
       "z3": "",
       "z4": "",
@@ -64,7 +64,7 @@
     {
       "n1": "",
       "n2": "",
-      "n3": "Физическая культура и спорт",
+      "n3": "",
       "n4": "301-2, пр, Колеватов А.В., Основы военной подготовки",
       "n5": "",
       "n6": "",
@@ -73,7 +73,7 @@
       "type": "Lessons",
       "z1": "",
       "z2": "",
-      "z3": "Физическая культура и спорт",
+      "z3": "",
       "z4": "301-2, пр, Колеватов А.В., Основы военной подготовки",
       "z5": "",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "6982fa937b8d4403cb5e704d002fbc0a2f78c1bda384a92f7617e322c5b848a4",
+  "scheduleHash": "2554f3da685c6b8908e69e79f3fd4d3f5d1c0044a9468187f5c17d67cc876154",
   "schemaVersion": 3,
   "semester": 1
 }
