@@ -1,6 +1,6 @@
 {
-  "capturedAt": "2026-10-22T04:44:30.031Z",
-  "groupCount": 964,
+  "capturedAt": "2026-10-22T11:52:07.909Z",
+  "groupCount": 963,
   "instituteCount": 14,
   "institutes": [
     {
@@ -1948,7 +1948,7 @@
       "shortName": "ИАС"
     },
     {
-      "groupCount": 49,
+      "groupCount": 48,
       "groups": [
         {
           "course": "4 курс",
@@ -2013,14 +2013,6 @@
           ],
           "name": "ВБм-126",
           "nrec": "0e4fbd5ee5593962cc46b53b81244089"
-        },
-        {
-          "course": "3 курс",
-          "forms": [
-            "part-time"
-          ],
-          "name": "ВЭм-124",
-          "nrec": "8c6f5f24a763d5f3a7174ac783f84556"
         },
         {
           "course": "5 курс",
@@ -7831,7 +7823,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39724043835"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39773795765"
   },
   "schemaVersion": 3
 }

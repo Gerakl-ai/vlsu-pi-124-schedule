@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-22T04:44:30.031Z",
+  "capturedAt": "2026-10-22T11:52:07.909Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39724043835"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39773795765"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "22.10.2026",
-      "isConsultation": false,
-      "name": "102-6, экз, Фраймович Д.Ю., Стратегический анализ",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "28.10.2026",
       "isConsultation": false,
@@ -40,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "280cbe704a8be45db463f01efe9ac14c706baa44bd3540c39b102a44e949e3cc",
+  "scheduleHash": "f0e11496219c1225610cf3fe77a5dd30fc236fdd07c4ac03619a6ab97ce06b95",
   "schemaVersion": 3,
   "semester": 5
 }
