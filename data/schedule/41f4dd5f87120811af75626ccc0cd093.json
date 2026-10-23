@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-23T04:48:41.877Z",
+  "capturedAt": "2026-10-23T11:38:38.495Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39902298185"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39947497028"
   },
   "quality": {
     "examEntries": 0,
@@ -100,7 +100,7 @@
     {
       "n1": "",
       "n2": "325-7, пр, Киселева А.О., История и культура Китая",
-      "n3": "",
+      "n3": "339-7, лк, Колеватов А.В., Основы военной подготовки",
       "n4": "339-7, лк, Курасов С.А., Основы российской государственности",
       "n5": "",
       "n6": "",
@@ -109,7 +109,7 @@
       "type": "Lessons",
       "z1": "",
       "z2": "236-7, лк, Хрусталева Н.В., Математика",
-      "z3": "",
+      "z3": "339-7, лк, Колеватов А.В., Основы военной подготовки",
       "z4": "",
       "z5": "",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "501db730d7f37e9f8cf7b347493f5d231e24584ac322bf7e286c334a1d280cf1",
+  "scheduleHash": "116d2c9ea6ef7d505a3e5eb1488622c278326d8f4bf7cdfa9a03e62123300d15",
   "schemaVersion": 3,
   "semester": 1
 }

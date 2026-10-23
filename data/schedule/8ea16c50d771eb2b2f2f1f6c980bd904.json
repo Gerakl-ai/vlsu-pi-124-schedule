@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-23T04:48:41.877Z",
+  "capturedAt": "2026-10-23T11:38:38.495Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39902298185"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39947497028"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.10.2026",
-      "isConsultation": false,
-      "name": "213-2, экз, Михайлова Н.В., Прикладная культурология",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "26.10.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "067281e8a26a5ddd705975562feca3d060e4d0dff1bdfa6e9cea05f474cf7afd",
+  "scheduleHash": "8942f819935e03222a6f2e19a4f62485f5cb4cdeba3265fb7914f10730c991e8",
   "schemaVersion": 3,
   "semester": 7
 }

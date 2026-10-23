@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-23T04:48:41.877Z",
+  "capturedAt": "2026-10-23T11:38:38.495Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39902298185"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39947497028"
   },
   "quality": {
     "examEntries": 0,
@@ -100,7 +100,7 @@
     {
       "n1": "",
       "n2": "",
-      "n3": "",
+      "n3": "339-7, лк, Колеватов А.В., Основы военной подготовки",
       "n4": "339-7, лк, Курасов С.А., Основы российской государственности",
       "n5": "",
       "n6": "",
@@ -109,7 +109,7 @@
       "type": "Lessons",
       "z1": "236-7, лк, Левина И.В., Финансово-экономический практикум",
       "z2": "315а-7, лк, Кузнецов М.А., Ботаника",
-      "z3": "",
+      "z3": "339-7, лк, Колеватов А.В., Основы военной подготовки",
       "z4": "",
       "z5": "",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "4cc19ff3a6b4dcea0da201587b05ab80eeb63f38fd8acff980cb8931ce772bf1",
+  "scheduleHash": "0051ae485d5efb79f8822b229325b39edb92c35ba25ea8feb22eecc1f1a1c71f",
   "schemaVersion": 3,
   "semester": 1
 }

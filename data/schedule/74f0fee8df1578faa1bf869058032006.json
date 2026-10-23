@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-23T04:48:41.877Z",
+  "capturedAt": "2026-10-23T11:38:38.495Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39902298185"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/39947497028"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.10.2026",
-      "isConsultation": false,
-      "name": "201б-3, зач, Черкасова И.П., Психолого-педагогическое сопровождение семьи ребенка с ОВЗ",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "28.10.2026",
       "isConsultation": false,
@@ -40,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "ebe5a2b14941c78e73425106e434fb72e58eaaa6857ae50d785be93e026d4108",
+  "scheduleHash": "e74a5841348a4772b156f7f1e890c7d40e812b3ae3254f060d37a3ed878d52e2",
   "schemaVersion": 3,
   "semester": 5
 }
