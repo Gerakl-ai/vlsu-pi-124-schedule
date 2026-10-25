@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-25T16:18:19.570Z",
+  "capturedAt": "2026-10-25T20:50:42.095Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/40211025853"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/40232657603"
   },
   "quality": {
     "examEntries": 0,
