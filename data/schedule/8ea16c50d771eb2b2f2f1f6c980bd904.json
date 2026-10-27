@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-10-27T00:25:31.382Z",
+  "capturedAt": "2026-10-27T08:59:03.373Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/40426293744"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/40477339540"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.10.2026",
-      "isConsultation": false,
-      "name": "217-2, экз, Соловьева В.В., Культурная политика",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "28.10.2026",
       "isConsultation": false,
@@ -40,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9d7335f76cf4ccb18d74136289f15e687ce5a0098b5d0eb68db773b80a94d655",
+  "scheduleHash": "02c1bd2ae074ab9cb859d7075d8d0c5d5aed8c2b185829cf56b894a15ad905bf",
   "schemaVersion": 3,
   "semester": 7
 }
