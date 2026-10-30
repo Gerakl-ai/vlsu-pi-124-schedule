@@ -1,7 +1,7 @@
 {
-  "capturedAt": "2026-10-30T09:59:59.244Z",
-  "groupCount": 962,
-  "instituteCount": 14,
+  "capturedAt": "2026-10-30T18:00:06.128Z",
+  "groupCount": 964,
+  "instituteCount": 15,
   "institutes": [
     {
       "groupCount": 11,
@@ -7123,6 +7123,30 @@
       "shortName": "ПИ"
     },
     {
+      "groupCount": 2,
+      "groups": [
+        {
+          "course": "4 курс",
+          "forms": [
+            "full-time"
+          ],
+          "name": "Аи-123",
+          "nrec": "e7208c28faf53aacda434d195dca74bd"
+        },
+        {
+          "course": "2 курс",
+          "forms": [
+            "full-time"
+          ],
+          "name": "Аи-125",
+          "nrec": "2739c560c2a9fe592910ab740c8c2000"
+        }
+      ],
+      "id": "8deb9dba398be96f8fb9d323c08bb4b4",
+      "name": "Региональный ресурсный учебно-методический центр инклюзивного образования",
+      "shortName": "РРУЦИ"
+    },
+    {
       "groupCount": 12,
       "groups": [
         {
@@ -7815,7 +7839,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41037456813"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41103023615"
   },
   "schemaVersion": 3
 }
