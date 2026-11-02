@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-02T11:05:46.339Z",
+  "capturedAt": "2026-11-02T21:42:30.798Z",
   "group": {
     "course": "6 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41433955646"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41530776612"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "02.11.2026",
-      "isConsultation": true,
-      "name": "427б-2, консультация, Полянский Д.А., Модели и методы планирования экспериментов, обработки экспериментальных данных",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "03.11.2026",
       "isConsultation": false,
@@ -110,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "cf83b0b7620c786446a7c864b535f4f823f942402a51331235665300b27e3ed2",
+  "scheduleHash": "44da10b06111d89314af3b862623ea61c1bb3a0331098fed4f32b937c501c714",
   "schemaVersion": 3,
   "semester": 11
 }
