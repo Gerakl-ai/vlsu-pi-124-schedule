@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-03T06:46:26.249Z",
+  "capturedAt": "2026-11-03T17:02:47.204Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41591992721"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41680241510"
   },
   "quality": {
-    "examEntries": 24,
+    "examEntries": 21,
     "lessonDays": 0,
-    "scheduleEntries": 24,
+    "scheduleEntries": 21,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "03.11.2026",
-      "isConsultation": false,
-      "name": "414-2, лб, Бородина Е.К., CASE-технологии",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "03.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Якунина М.В., Экономика и консалтинг в разработке программно-информационных систем",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "03.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Якунина М.В., Экономика и консалтинг в разработке программно-информационных систем",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "05.11.2026",
       "isConsultation": false,
@@ -194,7 +173,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "38dd67ff175aaa4cf9ab7e1286955bb279a98eca539abd7317638f6912286e89",
+  "scheduleHash": "8d82325d6de2cf8b9492a604e6493dbd7d98465477fbaaba6aa0f2d35830e80e",
   "schemaVersion": 3,
   "semester": 9
 }
