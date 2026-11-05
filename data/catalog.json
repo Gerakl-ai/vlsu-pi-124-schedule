@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-05T06:45:49.953Z",
+  "capturedAt": "2026-11-05T17:24:01.619Z",
   "groupCount": 966,
   "instituteCount": 15,
   "institutes": [
@@ -4511,7 +4511,7 @@
           "nrec": "10fb5e030cc731538521b4af0f1c4318"
         },
         {
-          "course": "1 курс",
+          "course": "3 курс",
           "forms": [
             "extramural"
           ],
@@ -7855,7 +7855,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41982589798"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42074212792"
   },
   "schemaVersion": 3
 }

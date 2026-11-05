@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-05T06:45:49.953Z",
+  "capturedAt": "2026-11-05T17:24:01.619Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41982589798"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42074212792"
   },
   "quality": {
     "examEntries": 0,
@@ -46,7 +46,7 @@
     {
       "n1": "",
       "n2": "209-УКУ, Ошмарин А.А., Кураторский час",
-      "n3": "206-УКУ, лк, Погодина И.В., Финансовое право",
+      "n3": "306-УКУ, лк, Погодина И.В., Финансовое право",
       "n4": "301-УКУ, пр, Погодина И.В., Финансовое право",
       "n5": "",
       "n6": "",
@@ -55,7 +55,7 @@
       "type": "Lessons",
       "z1": "",
       "z2": "",
-      "z3": "206-УКУ, лк, Беляева К.А., Гражданский процесс",
+      "z3": "306-УКУ, лк, Беляева К.А., Гражданский процесс",
       "z4": "301-УКУ, пр, Погодина И.В., Финансовое право",
       "z5": "213-УКУ, пр, Зубков С.А., Философия",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "a6de50d9bf5041385c0f8fe277f77d147638e263c5d1e01a11463ec38bd95bc8",
+  "scheduleHash": "9742fa334146be137b78c7651f0d1f72c1323360f906afda22f7b9bb6884eeb5",
   "schemaVersion": 3,
   "semester": 5
 }

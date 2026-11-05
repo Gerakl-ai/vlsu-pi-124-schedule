@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-05T06:45:49.953Z",
+  "capturedAt": "2026-11-05T17:24:01.619Z",
   "group": {
     "course": "1 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/41982589798"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42074212792"
   },
   "quality": {
     "examEntries": 0,
@@ -65,7 +65,7 @@
       "n1": "",
       "n2": "206-УКУ, пр, Ошмарин А.А., История России",
       "n3": "106-УКУ, пр, Петрова И.Л., Основы российской государственности",
-      "n4": "206-УКУ, Крайнова Е.Р., Кураторский час",
+      "n4": "204-УКУ, Крайнова Е.Р., Кураторский час",
       "n5": "",
       "n6": "",
       "n7": "",
@@ -74,7 +74,7 @@
       "z1": "",
       "z2": "206-УКУ, пр, Ошмарин А.А., История России",
       "z3": "106-УКУ, пр, Петрова И.Л., Основы российской государственности",
-      "z4": "206-УКУ, Крайнова Е.Р., Кураторский час",
+      "z4": "204-УКУ, Крайнова Е.Р., Кураторский час",
       "z5": "",
       "z6": "",
       "z7": ""
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "3ff6ce1a37c1ae496eb67d19ad5fe3d7c6ac886a84a1a7f3e01e909e35be53a6",
+  "scheduleHash": "c35ceca475cfac66ffbe13174b8adf0ed072eedf3dce04ee1c876f6770dba902",
   "schemaVersion": 3,
   "semester": 1
 }
