@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-06T06:44:22.379Z",
+  "capturedAt": "2026-11-06T16:45:19.123Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42176322729"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42255286267"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 16,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 16,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "404а-2, лб, Данилов В.В., Технологии разработки мобильных приложений",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "404а-2, лб, Данилов В.В., Технологии разработки мобильных приложений",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "07.11.2026",
       "isConsultation": false,
@@ -152,7 +138,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "0bb4ce5c01ee3bc13abc39e0915a0bbf6a830c723e7b14b25adeeb727e4e92f1",
+  "scheduleHash": "c9486b21e9183c959c9f552f219fcceddff3c0f91d4c07dfd25fdc57a1c8dbef",
   "schemaVersion": 3,
   "semester": 9
 }

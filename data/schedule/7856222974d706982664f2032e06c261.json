@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-06T06:44:22.379Z",
+  "capturedAt": "2026-11-06T16:45:19.123Z",
   "group": {
     "course": "6 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42176322729"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42255286267"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "424-2, экз, Тельный А.В., Защищенные информационные системы",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "424-2, экз, Тельный А.В., Защищенные информационные системы",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "09.11.2026",
       "isConsultation": true,
@@ -82,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3368ddc7e3a739e8e46d169f2b84e02e6deb6cb1a1ecbcdc4d32cc069c9a84ab",
+  "scheduleHash": "c1224e0eb6bd6bb735080ae404efc6564cd0834278ad50ca54afacc7a8499c0b",
   "schemaVersion": 3,
   "semester": 11
 }

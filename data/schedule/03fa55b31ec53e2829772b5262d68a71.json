@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-06T06:44:22.379Z",
+  "capturedAt": "2026-11-06T16:45:19.123Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42176322729"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42255286267"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 16,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 16,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Якунина М.В., Экономика и консалтинг в разработке программно-информационных систем",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "06.11.2026",
-      "isConsultation": false,
-      "name": "320-1, лб, Якунина М.В., Экономика и консалтинг в разработке программно-информационных систем",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "07.11.2026",
       "isConsultation": false,
@@ -152,7 +138,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "edbc0da14c664b9fc95c6a922b0c3fe42c7a34da9bd07c90b4237f2dc8e244bd",
+  "scheduleHash": "9c4cd3d702b61d385ca2766eb7ea2481755fb799881d3cba35b9d6f3209e27b2",
   "schemaVersion": 3,
   "semester": 7
 }
