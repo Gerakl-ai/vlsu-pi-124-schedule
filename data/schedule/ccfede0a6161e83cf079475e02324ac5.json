@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-07T05:57:32.303Z",
+  "capturedAt": "2026-11-07T12:59:43.880Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42344871753"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42374885458"
   },
   "quality": {
-    "examEntries": 16,
+    "examEntries": 13,
     "lessonDays": 0,
-    "scheduleEntries": 16,
+    "scheduleEntries": 13,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "414-2, лб, Бородина Е.К., Проектирование информационных систем",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "414-2, зач.диф., Бородина Е.К., Проектирование информационных систем",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "414-2, зач.диф., Бородина Е.К., Проектирование информационных систем",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "09.11.2026",
       "isConsultation": false,
@@ -138,7 +117,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c9486b21e9183c959c9f552f219fcceddff3c0f91d4c07dfd25fdc57a1c8dbef",
+  "scheduleHash": "55ee6baf05e382ec68a10495eb41f53f34e82c743c6a57c3c844c1e80007c443",
   "schemaVersion": 3,
   "semester": 9
 }

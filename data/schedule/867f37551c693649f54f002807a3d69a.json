@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-07T05:57:32.303Z",
+  "capturedAt": "2026-11-07T12:59:43.880Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42344871753"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42374885458"
   },
   "quality": {
-    "examEntries": 16,
+    "examEntries": 13,
     "lessonDays": 0,
-    "scheduleEntries": 16,
+    "scheduleEntries": 13,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "213-3, лб, Ланская М.С., Графический и веб-дизайн",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "213-3, зач, Озерова М.И., Графический и веб-дизайн",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "07.11.2026",
-      "isConsultation": false,
-      "name": "213-3, зач, Озерова М.И., Графический и веб-дизайн",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "09.11.2026",
       "isConsultation": false,
@@ -138,7 +117,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "935d9c7d7500622f0bcc30b15d47547734b358a2b3108cf88f72203d9354b619",
+  "scheduleHash": "02fb9cc06d700f691a5a7972010fa9191bdca78f2c47f16b1eb138cb84320cdb",
   "schemaVersion": 3,
   "semester": 7
 }
