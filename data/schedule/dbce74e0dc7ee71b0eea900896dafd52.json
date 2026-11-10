@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-10T03:33:50.437Z",
+  "capturedAt": "2026-11-10T14:52:53.451Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42750237053"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42838569558"
   },
   "quality": {
-    "examEntries": 38,
+    "examEntries": 35,
     "lessonDays": 0,
-    "scheduleEntries": 38,
+    "scheduleEntries": 35,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "517-3, лк, Бадалян Н.П., Системы электроснабжения",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "516-3, пр, Орешков К.С., Электропитающие системы и электрические сети",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "520-3, лк, Шмелев В.Е., Вероятностные и статистические задачи электроснабжения",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "11.11.2026",
       "isConsultation": false,
@@ -292,7 +271,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7c83aee1bcc876fe8f0a4029972756a1a76585b0256bd8878529f89ab3dc9ffe",
+  "scheduleHash": "464c3f8a1de90c330953ae8ddb02838af99793f6119c0addb6abe49d85541799",
   "schemaVersion": 3,
   "semester": 7
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-10T03:33:50.437Z",
+  "capturedAt": "2026-11-10T14:52:53.451Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42750237053"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42838569558"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "213-3, лб, Озерова М.И., Введение в искусственный интеллект",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "418-2, лб, Бородина Е.К., CASE-технологии",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "418-2, лб, Бородина Е.К., CASE-технологии",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "11.11.2026",
       "isConsultation": false,
@@ -103,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "780a2c6d26a579d6fa094a33278124e786319bf95fbadff6f220e1db19d41021",
+  "scheduleHash": "b2992104579f3d416f7423ec8218d402202ae1c668e6aa18fce92354557c2cf5",
   "schemaVersion": 3,
   "semester": 9
 }
