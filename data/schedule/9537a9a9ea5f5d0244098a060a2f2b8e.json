@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-10T14:52:53.451Z",
+  "capturedAt": "2026-11-10T21:17:34.484Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42838569558"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42903570722"
   },
   "quality": {
-    "examEntries": 22,
+    "examEntries": 20,
     "lessonDays": 0,
-    "scheduleEntries": 22,
+    "scheduleEntries": 20,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "127а-1, лб, Чижова Л.А., Технология переработки пластмасс",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "10.11.2026",
-      "isConsultation": false,
-      "name": "127а-1, лб, Чижова Л.А., Технология переработки пластмасс",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "11.11.2026",
       "isConsultation": false,
@@ -180,7 +166,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "fc7b12934cef2e3cc9f83dad3cebcc8067c7646bc8d18341b4af3714a74babd8",
+  "scheduleHash": "100433cbf46fa726ad39322ed034f860c2d9a2af4a86eb8e2a15319f66c1a58c",
   "schemaVersion": 3,
   "semester": 7
 }
