@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-11T06:18:46.989Z",
+  "capturedAt": "2026-11-11T17:07:37.203Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42971529410"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43065052584"
   },
   "quality": {
-    "examEntries": 27,
+    "examEntries": 24,
     "lessonDays": 0,
-    "scheduleEntries": 27,
+    "scheduleEntries": 24,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "201-2, экз, Вихрев А.В., Эксплуатация дорожных машин, автомобилей и тракторов",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "201-2, экз, Вихрев А.В., Эксплуатация дорожных машин, автомобилей и тракторов",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "201-2, экз, Вихрев А.В., Эксплуатация дорожных машин, автомобилей и тракторов",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "13.11.2026",
       "isConsultation": true,
@@ -215,7 +194,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "8b8844f133741820d0a7eb78d2b33d76207c71cd9b5853128bf700db46b2b1a5",
+  "scheduleHash": "d3fcd49f82e030d422da41f7a6bebcbf8a9396fa378ac0afed0557dba50d0a5c",
   "schemaVersion": 3,
   "semester": 7
 }

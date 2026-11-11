@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-11T06:18:46.989Z",
+  "capturedAt": "2026-11-11T17:07:37.203Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42971529410"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43065052584"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 4,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 4,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Хорошева Е.Р., Основы информационного менеджмента",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Хорошева Е.Р., Основы информационного менеджмента",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "418-2, экз, Данилов В.В., Технологии разработки мобильных приложений",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "418-2, экз, Данилов В.В., Технологии разработки мобильных приложений",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "12.11.2026",
       "isConsultation": false,
@@ -82,7 +54,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "27ded0ef1af2dc87f121939ff8277c813759670cf1fe31a58d2440b1f7d79f4f",
+  "scheduleHash": "077f9dca04a226dac5302941de508c1731fbec37d8f952b9f432565391bf7d35",
   "schemaVersion": 3,
   "semester": 7
 }

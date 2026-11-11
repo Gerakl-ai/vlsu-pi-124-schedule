@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-11T06:18:46.989Z",
+  "capturedAt": "2026-11-11T17:07:37.203Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42971529410"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43065052584"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "213-3, лб, Озерова М.И., Введение в искусственный интеллект",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "213-3, зач, Озерова М.И., Введение в искусственный интеллект",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "213-3, зач, Озерова М.И., Введение в искусственный интеллект",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "12.11.2026",
       "isConsultation": false,
@@ -82,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b2992104579f3d416f7423ec8218d402202ae1c668e6aa18fce92354557c2cf5",
+  "scheduleHash": "a467ff692cc83ecfd5084b835ce1bd98505a125337d0293b2c6f0b0779cd71fa",
   "schemaVersion": 3,
   "semester": 9
 }

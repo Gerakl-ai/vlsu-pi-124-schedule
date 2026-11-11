@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-11T06:18:46.989Z",
+  "capturedAt": "2026-11-11T17:07:37.203Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/42971529410"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43065052584"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "431-3, экз, Тонконог Г.П., Теория вероятностей и математическая статистика",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "431-3, экз, Тонконог Г.П., Теория вероятностей и математическая статистика",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "11.11.2026",
-      "isConsultation": false,
-      "name": "431-3, экз, Тонконог Г.П., Теория вероятностей и математическая статистика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "25.12.2026",
       "isConsultation": true,
@@ -124,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "442728c9c66915c170c2c83aed2956811d620dde62a64d1e746e8f9b9501837e",
+  "scheduleHash": "64528e9dc6cd9c97257ad1d774e2412c553d653267c3af48c18e29892d531517",
   "schemaVersion": 3,
   "semester": 7
 }
