@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-12T00:43:15.772Z",
+  "capturedAt": "2026-11-12T11:07:48.890Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43129322327"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43206427105"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "12.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Хорошева Е.Р., Основы информационного менеджмента",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "12.11.2026",
-      "isConsultation": false,
-      "name": "307-1, лб, Хорошева Е.Р., Основы информационного менеджмента",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "13.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "077f9dca04a226dac5302941de508c1731fbec37d8f952b9f432565391bf7d35",
+  "scheduleHash": "c4555b12e7910efb675a7a0e2ffec51457d983dd1bcfb90e1ab779f48f401a2c",
   "schemaVersion": 3,
   "semester": 7
 }

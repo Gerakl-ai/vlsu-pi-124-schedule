@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-12T00:43:15.772Z",
+  "capturedAt": "2026-11-12T11:07:48.890Z",
   "group": {
     "course": "6 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43129322327"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43206427105"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "12.11.2026",
-      "isConsultation": true,
-      "name": "428-2, консультация, Монахов Ю.М., Безопасность информационно-аналитических систем",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "13.11.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "742712c25af5ad759787dad7001178d5fa6132b42f78fbda4f3c0a2218718d2c",
+  "scheduleHash": "ea3c0f25b685b95ff91fa0ed3748d62b0a301b47ba58a2158361316fbe4e66a7",
   "schemaVersion": 3,
   "semester": 11
 }
