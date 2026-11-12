@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-12T11:07:48.890Z",
+  "capturedAt": "2026-11-12T19:53:52.997Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43206427105"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43294810654"
   },
   "quality": {
-    "examEntries": 33,
+    "examEntries": 31,
     "lessonDays": 0,
-    "scheduleEntries": 33,
+    "scheduleEntries": 31,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "12.11.2026",
-      "isConsultation": false,
-      "name": "516-3, пр, Бадалян Н.П., Системы электроснабжения",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "12.11.2026",
-      "isConsultation": false,
-      "name": "518-3, пр, Бадалян Н.П., Системы электроснабжения",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "13.11.2026",
       "isConsultation": false,
@@ -257,7 +243,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "8049e303cde8ce2be7fa0b27639cdfecc3c46f7bcc1bc091f8857d5e34417e8f",
+  "scheduleHash": "2804a5400cc04072c50acb4fd22d7ada29fc81009d35aae8e67128aaec94a55f",
   "schemaVersion": 3,
   "semester": 7
 }
