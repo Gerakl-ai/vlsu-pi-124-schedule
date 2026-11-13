@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-13T10:58:03.060Z",
+  "capturedAt": "2026-11-13T19:41:12.578Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43413184982"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43494495721"
   },
   "quality": {
-    "examEntries": 5,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 5,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "13.11.2026",
-      "isConsultation": false,
-      "name": "418-2, лб, Ланская М.С., Интегрированные информационные системы",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "13.11.2026",
-      "isConsultation": false,
-      "name": "418-2, зач, Ланская М.С., Интегрированные информационные системы",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "13.11.2026",
-      "isConsultation": false,
-      "name": "418-2, зач, Ланская М.С., Интегрированные информационные системы",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "14.11.2026",
       "isConsultation": false,
@@ -61,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e7e01b696a7850cfb5b5cafd041b1051742ad99409447b220777bd9b23be5281",
+  "scheduleHash": "ad6f227ad982bbe1c7f5580ef93ae3ce04ab9ef80e4e171a7fde43a174903450",
   "schemaVersion": 3,
   "semester": 7
 }

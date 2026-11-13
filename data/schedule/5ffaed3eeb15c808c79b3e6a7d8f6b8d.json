@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-13T10:58:03.060Z",
+  "capturedAt": "2026-11-13T19:41:12.578Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43413184982"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43494495721"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "13.11.2026",
-      "isConsultation": true,
-      "name": "308-6, консультация, Смирнов В.Н., Стратегический менеджмент",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "16.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2538cf7cde4e4f07e955a9d50bb4f984dfcff25c6bbf8a7aa70bf153e4304ef1",
+  "scheduleHash": "868bd8deca7f2afe090a0d7b9b5515a52575ba14c322ffb9801c30f631ba899a",
   "schemaVersion": 3,
   "semester": 7
 }
