@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-13T01:49:25.846Z",
+  "capturedAt": "2026-11-13T10:58:03.060Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43347649593"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43413184982"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 13,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 13,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "13.11.2026",
-      "isConsultation": false,
-      "name": "303б-1, лб, Чижова Л.А., Системы управления химико-технологическими процессами",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "13.11.2026",
       "isConsultation": false,
@@ -124,7 +117,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f3373ae16fbf5a206fcd6fa6eb90aba25890993d2223b91f58844148175161be",
+  "scheduleHash": "68b89732a0ae884f790c82fcb957c2dedb33825ab7fda15d88d2fe3aef4ff068",
   "schemaVersion": 3,
   "semester": 7
 }
