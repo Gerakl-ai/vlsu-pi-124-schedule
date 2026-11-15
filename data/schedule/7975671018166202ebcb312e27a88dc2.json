@@ -1,0 +1,123 @@
+{
+  "capturedAt": "2026-11-15T22:47:42.151Z",
+  "group": {
+    "course": "3 курс",
+    "forms": [
+      "extramural"
+    ],
+    "instituteId": "c392dfd5d828f01180bc2799fda3d96b",
+    "instituteName": "Институт машиностроения и автомобильного транспорта",
+    "instituteShortName": "ИМиАТ",
+    "name": "ЗТСБуд-124",
+    "nrec": "7975671018166202ebcb312e27a88dc2"
+  },
+  "provenance": {
+    "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
+    "repository": "Gerakl-ai/vlsu-pi-124-schedule",
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43771243956"
+  },
+  "quality": {
+    "examEntries": 13,
+    "lessonDays": 0,
+    "scheduleEntries": 13,
+    "valid": true,
+    "warnings": []
+  },
+  "schedule": [
+    {
+      "date": "16.11.2026",
+      "isConsultation": false,
+      "name": "229-2, зач, Штебнер С.В., Управление личным временем",
+      "time": "15:50",
+      "type": "ExamSession"
+    },
+    {
+      "date": "17.11.2026",
+      "isConsultation": false,
+      "name": "305б-2, лб, Киндеев Е.А., Моделирование пожаров",
+      "time": "15:50",
+      "type": "ExamSession"
+    },
+    {
+      "date": "17.11.2026",
+      "isConsultation": false,
+      "name": "305б-2, лб, Киндеев Е.А., Моделирование пожаров",
+      "time": "17:40",
+      "type": "ExamSession"
+    },
+    {
+      "date": "17.11.2026",
+      "isConsultation": false,
+      "name": "305б-2, лб, Киндеев Е.А., Моделирование пожаров",
+      "time": "19:30",
+      "type": "ExamSession"
+    },
+    {
+      "date": "18.11.2026",
+      "isConsultation": false,
+      "name": "305а-2, экз, Туманова Н.И., Системы защиты техносферы",
+      "time": "17:40",
+      "type": "ExamSession"
+    },
+    {
+      "date": "19.11.2026",
+      "isConsultation": false,
+      "name": "319-2, зач, Ефимова С.А., Социология",
+      "time": "15:50",
+      "type": "ExamSession"
+    },
+    {
+      "date": "20.11.2026",
+      "isConsultation": false,
+      "name": "305б-2, экз, Киндеев Е.А., Управление профессиональными рисками",
+      "time": "14:00",
+      "type": "ExamSession"
+    },
+    {
+      "date": "23.11.2026",
+      "isConsultation": false,
+      "name": "317-2, лб, Худякова Е.О., Производственная санитария и гигиена труда",
+      "time": "15:50",
+      "type": "ExamSession"
+    },
+    {
+      "date": "23.11.2026",
+      "isConsultation": false,
+      "name": "305а-2, лб, Худякова Е.О., Производственная санитария и гигиена труда",
+      "time": "17:40",
+      "type": "ExamSession"
+    },
+    {
+      "date": "23.11.2026",
+      "isConsultation": false,
+      "name": "305а-2, лб, Худякова Е.О., Производственная санитария и гигиена труда",
+      "time": "19:30",
+      "type": "ExamSession"
+    },
+    {
+      "date": "24.11.2026",
+      "isConsultation": false,
+      "name": "325-2, экз, Худякова Е.О., Производственная санитария и гигиена труда",
+      "time": "15:50",
+      "type": "ExamSession"
+    },
+    {
+      "date": "26.11.2026",
+      "isConsultation": false,
+      "name": "305а-2, зач, Киндеев Е.А., Моделирование пожаров",
+      "time": "14:00",
+      "type": "ExamSession"
+    },
+    {
+      "date": "27.11.2026",
+      "isConsultation": false,
+      "name": "319-2, экз, Худякова Е.О., Обращение с отходами",
+      "time": "14:00",
+      "type": "ExamSession"
+    }
+  ],
+  "scheduleHash": "d04fe8081f5022e5f06ed7231904d4bd68f158f838e80686157cef9e59ff7efa",
+  "schemaVersion": 3,
+  "semester": 5
+}
