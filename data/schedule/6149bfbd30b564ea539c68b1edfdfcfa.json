@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 45,
+    "examEntries": 42,
     "lessonDays": 0,
-    "scheduleEntries": 45,
+    "scheduleEntries": 42,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Базы данных и знаний в системах управления",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Базы данных и знаний в системах управления",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Базы данных и знаний в системах управления",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -341,7 +320,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a6321199f099d9ae5cfe80ba949c3261ec5cead06eb489a3aa430d304147ed35",
+  "scheduleHash": "f52d1d9a52db00a3cc09956147afb98f1b46a72fc206df85b974e43b4a15defa",
   "schemaVersion": 3,
   "semester": 3
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 25,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 25,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "234-2, зач.диф., Федотов О.В., Проектирование технологического оборудования",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "227-2, зач.диф., Федотов О.В., Проектирование технологического оборудования",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -201,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "fdb61a0d09279cd000e5adc3f81c4e1792707752b4225215f17e6d2117902e85",
+  "scheduleHash": "a6660ae689d5bf21f83d411a9ba861c8e6d4e4d1b569cea9cec2397809041366",
   "schemaVersion": 3,
   "semester": 5
 }

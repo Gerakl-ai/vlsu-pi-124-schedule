@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 22,
+    "examEntries": 20,
     "lessonDays": 0,
-    "scheduleEntries": 22,
+    "scheduleEntries": 20,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "165-4, лб, Колов Д.А., ТЭА",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "165-4, лб, Колов Д.А., ТЭА",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -180,7 +166,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "bcfc62f334285c204a2f21aa5c89348739f414fc9fa731f43d7a2f0611e2110a",
+  "scheduleHash": "2e6ef832fbb779a8214c2ac972bc33ec949682bf43f051e3aea328d739514421",
   "schemaVersion": 3,
   "semester": 7
 }

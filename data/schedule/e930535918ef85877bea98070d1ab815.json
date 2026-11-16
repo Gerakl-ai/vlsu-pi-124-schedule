@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "227-2, лб, Федотов О.В., Прикладная механика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "227-2, лб, Федотов О.В., Прикладная механика",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "227-2, лб, Федотов О.В., Прикладная механика",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -152,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3da51df8801758b58033e1e9bc13edb77ef677c883d0b6377175ec2624728fe6",
+  "scheduleHash": "51ce9b4dceaba7eb5b685ea96ec44f7c1e5e9b8806c0b7fb54bf7f1f4c3af667",
   "schemaVersion": 3,
   "semester": 5
 }

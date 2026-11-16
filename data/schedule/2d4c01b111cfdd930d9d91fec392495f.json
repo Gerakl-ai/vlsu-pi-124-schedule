@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 40,
+    "examEntries": 37,
     "lessonDays": 0,
-    "scheduleEntries": 40,
+    "scheduleEntries": 37,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "407-2, лб, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "407-2, лб, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "106-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -306,7 +285,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d02f4e31c6dcd3a5c5281472800b2a9d16d8862c4663cddf058d9180c9368c3e",
+  "scheduleHash": "8cd4f08bbee1a1eb1b3f28c356f2bc38871af053753d976e9b888d9a74bbfedd",
   "schemaVersion": 3,
   "semester": 5
 }

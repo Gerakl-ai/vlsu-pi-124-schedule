@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,65 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 44,
+    "examEntries": 37,
     "lessonDays": 0,
-    "scheduleEntries": 44,
+    "scheduleEntries": 37,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "103-2, лб, Сухорукова Е.В., Материаловедение",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "103-2, лб, Сухорукова Е.В., Материаловедение",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "103-2, лб, Сухорукова Е.В., Материаловедение",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "238-2, лб, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -334,7 +285,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "1e5cff7f4650a4dfd9919b516b4f9fa66d62f42519f0cfbe75f81c0d75543516",
+  "scheduleHash": "533eeeb569d9c103ca6323720ce8a20c9024fa9ea0b89eaaba482c82236f3008",
   "schemaVersion": 3,
   "semester": 3
 }

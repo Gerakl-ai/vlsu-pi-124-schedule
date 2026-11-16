@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 20,
+    "examEntries": 18,
     "lessonDays": 0,
-    "scheduleEntries": 20,
+    "scheduleEntries": 18,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "324-2, зач, Амирсейидов Ш.Ш., Вычислительная техника и сети в отрасли",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "324-2, зач, Амирсейидов Ш.Ш., Вычислительная техника и сети в отрасли",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -166,7 +152,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "077a323e57e586a6d7ee59bb77315475959d280ecd7e9e354807e8b06ac98b7b",
+  "scheduleHash": "ee058f2d6df65e18040d6022c8efec42f8348929148051534d9628d18cfa119e",
   "schemaVersion": 3,
   "semester": 3
 }

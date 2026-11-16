@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 10,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 10,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "317-2, зач, Баженов М.Ю., Технология фирменного обслуживания автомобилей",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -96,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "04eb1afed74ac2424ec4b7248167f41549dfb53d8a0019aa211cadc761df8732",
+  "scheduleHash": "c0b62bf8d677d1d003fc7252fc911287e51edf69cdb8e8443521022975066c7e",
   "schemaVersion": 3,
   "semester": 9
 }

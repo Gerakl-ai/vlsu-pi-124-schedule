@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-16T06:28:29.563Z",
+  "capturedAt": "2026-11-16T19:35:57.448Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43816966320"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/43940985876"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "16.11.2026",
-      "isConsultation": false,
-      "name": "305-УКУ, зач, Кабанова О.В., Правоведение",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -117,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c29806a77bbffa3238bee387e4ae3ff58fcf7fbac5f18ac718ff500c824c1161",
+  "scheduleHash": "fc8b34dc4ca409742437f956bac2718b7a6cfa1caebc12d8d95548af53b992e8",
   "schemaVersion": 3,
   "semester": 3
 }
