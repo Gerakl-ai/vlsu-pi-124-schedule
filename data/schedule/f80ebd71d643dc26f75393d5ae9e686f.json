@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 37,
+    "examEntries": 35,
     "lessonDays": 0,
-    "scheduleEntries": 37,
+    "scheduleEntries": 35,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "105б-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "238-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -285,7 +271,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2510d311d4520885230216065be5bf8c30d60e1f4c42c28fec7fcbba22f99593",
+  "scheduleHash": "76a66edf7e1201ea0280a1f8c3066e197452ec2e9f6f5cfdea1d14a06ab3a957",
   "schemaVersion": 3,
   "semester": 5
 }

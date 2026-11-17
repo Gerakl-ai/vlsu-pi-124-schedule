@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 37,
+    "examEntries": 36,
     "lessonDays": 0,
-    "scheduleEntries": 37,
+    "scheduleEntries": 36,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "112-2, экз, Маркова Н.М., Философия",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -285,7 +278,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b3ef770eebd3dec652feaf9158d475fbadaed86c96fd9a76b74e2891663a28a5",
+  "scheduleHash": "879425520845fc05acc90ba98c1bcb8385efb3237cf00832c1eeacc1a525d137",
   "schemaVersion": 3,
   "semester": 5
 }

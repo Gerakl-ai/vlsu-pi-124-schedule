@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, лб, Киндеев Е.А., Моделирование пожаров",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -110,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "8468d3d7024a6b57e01f1b21f9e4de48d90fd1eb67726751b793ea7a692da6d3",
+  "scheduleHash": "858762b310173185779368e35df2cd2047d9ccb6e84c78ada024358c7669fc0e",
   "schemaVersion": 3,
   "semester": 5
 }

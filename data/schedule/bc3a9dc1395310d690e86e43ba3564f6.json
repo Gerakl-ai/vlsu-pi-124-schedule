@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "518-3, экз, Чащин Е.А., Электропитающие системы и электрические сети",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "518-3, экз, Чащин Е.А., Электропитающие системы и электрические сети",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "19875c8915db61658495bfa269f7f8c69425c0d65df2c436fb43ef936684f00b",
+  "scheduleHash": "119538080cada9593d5a79cb10aea28874a9e67069caef87c1f39cdc98c69648",
   "schemaVersion": 3,
   "semester": 7
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 28,
+    "examEntries": 27,
     "lessonDays": 0,
-    "scheduleEntries": 28,
+    "scheduleEntries": 27,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "404а-2, лб, Спирин И.В., Основы разработки веб-приложений",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -222,7 +215,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "063eb0e6de5c98be4638027f29aa15237a501074f9bd700f5d338defae1ddeb6",
+  "scheduleHash": "64268fc7505fc42b19641baec124b279fb4de61ad79c50dd7ce97d0bb9347195",
   "schemaVersion": 3,
   "semester": 5
 }

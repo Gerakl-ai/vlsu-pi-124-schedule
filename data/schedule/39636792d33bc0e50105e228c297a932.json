@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 15,
+    "examEntries": 14,
     "lessonDays": 0,
-    "scheduleEntries": 15,
+    "scheduleEntries": 14,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "227-2, лб, Левина С.М., Теория автоматического управления",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -131,7 +124,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "0f7b2004d1a3dbfa01b05d18776372e9c57f4c7e4d3644c0885fd88da24147f1",
+  "scheduleHash": "d8ab3143f557d4a2a770f64f465f77f5801315441d29520027830ed491e0240f",
   "schemaVersion": 3,
   "semester": 5
 }

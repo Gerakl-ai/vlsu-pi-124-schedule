@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 17,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 17,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "105а-2, лб, Сысоев С.Н., Защита интеллектуальной собственности и патентоведение",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "106-2, лб, Сысоев С.Н., Защита интеллектуальной собственности и патентоведение",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -145,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "df80d8589c2cc722831efcc1de2bcba43552ed6617b4f4e9e86ef682d4e76888",
+  "scheduleHash": "277c1bab6d78d5097f71758c719eea9a7fdc3a44e9ac9d297b5d0769109b4f6c",
   "schemaVersion": 3,
   "semester": 7
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 10,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 10,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "317-2, экз, Мищенко З.В., Информационные технологии в управлении качеством и защита информации",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -96,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3f57dcc6434013bea9cb5923fa64d8305bb48ae268eb6c78151ccb5d295cdcb8",
+  "scheduleHash": "53860cf89ce8eb7a58051a3385ee176e8fe63facbcba765cb8e3fdae2cefbfec",
   "schemaVersion": 3,
   "semester": 7
 }

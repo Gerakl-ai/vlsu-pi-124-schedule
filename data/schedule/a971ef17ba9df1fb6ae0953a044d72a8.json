@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T03:53:02.711Z",
+  "capturedAt": "2026-11-17T15:58:59.519Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44013268482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
   },
   "quality": {
-    "examEntries": 39,
+    "examEntries": 36,
     "lessonDays": 0,
-    "scheduleEntries": 39,
+    "scheduleEntries": 36,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "316-2, лб, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "17.11.2026",
       "isConsultation": false,
@@ -299,7 +278,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c31ee5a3ba66196e10c2dfddcc172b7ff895f5b8f83b9492dcb030d78352ebb0",
+  "scheduleHash": "27f7341a6689cf12dd49dd792e0a05a6cf0552fe1c6874e6807221a0c560078c",
   "schemaVersion": 3,
   "semester": 3
 }
