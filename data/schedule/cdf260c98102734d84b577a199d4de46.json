@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 9,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 9,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "201-2, экз, Угорова С.В., Кондиционирование воздуха и холодоснабжение",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": true,
@@ -89,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9c2640cfbcb68217e77a9b0636dfae14ec15641c89215fb8c4ab6c20572c6e6e",
+  "scheduleHash": "ff2c6a621af2213cdaaa8ef86c92390438d022137b651ea5e380ddba2c488db3",
   "schemaVersion": 3,
   "semester": 7
 }

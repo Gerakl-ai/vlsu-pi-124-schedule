@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 35,
+    "examEntries": 31,
     "lessonDays": 0,
-    "scheduleEntries": 35,
+    "scheduleEntries": 31,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "106-2, лб, Петрушин А.Д., Программирование микропроцессоров и логических контроллеров систем автоматизации",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, лб, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, лб, Петрушин А.Д., Программирование микропроцессоров и логических контроллеров систем автоматизации",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, лб, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -271,7 +243,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "76a66edf7e1201ea0280a1f8c3066e197452ec2e9f6f5cfdea1d14a06ab3a957",
+  "scheduleHash": "bf19e714f2bc0f1d5fa35449fda8d6e558c17953efc07207dfa1a992ff4c6875",
   "schemaVersion": 3,
   "semester": 5
 }

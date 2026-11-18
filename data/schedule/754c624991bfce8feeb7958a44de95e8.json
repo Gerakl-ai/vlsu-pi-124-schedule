@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 15,
+    "examEntries": 13,
     "lessonDays": 0,
-    "scheduleEntries": 15,
+    "scheduleEntries": 13,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "318-2, лб, Коростелев В.Ф., Автоматизация технологических процессов",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "318-2, лб, Коростелев В.Ф., Автоматизация технологических процессов",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -131,7 +117,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "eb0032edcba321a9701d18b8bccc2c9b7354d7fc35de569db95b9c7823eedbee",
+  "scheduleHash": "b48ef8d87ab2f438c61fb763941a779da7bf3c3743a91f0d4a0a7e2833a0901f",
   "schemaVersion": 3,
   "semester": 9
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 21,
+    "examEntries": 18,
     "lessonDays": 0,
-    "scheduleEntries": 21,
+    "scheduleEntries": 18,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "229-2, лб, Жарков Н.В., Основы технологии машиностроения",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "229-2, лб, Жарков Н.В., Основы технологии машиностроения",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "227-2, лб, Жарков Н.В., Основы программирования станков с ЧПУ",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -173,7 +152,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "8850533d30e4e092422cb291df21d0bd2fa889f63db337d5c8bb155aa0641efe",
+  "scheduleHash": "d9c7cec2c9011f53d348e03a6c1086d83f0107ef1331ed520854ac10b3e25f90",
   "schemaVersion": 3,
   "semester": 5
 }

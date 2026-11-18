@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 9,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 9,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "223-2, экз, Орлов Д.Ю., Всеобщее управление качеством",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -89,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "53860cf89ce8eb7a58051a3385ee176e8fe63facbcba765cb8e3fdae2cefbfec",
+  "scheduleHash": "a25c0a76583d7e3175198064619e9a1d14b749bfd33947caca90f64a82edcd62",
   "schemaVersion": 3,
   "semester": 7
 }

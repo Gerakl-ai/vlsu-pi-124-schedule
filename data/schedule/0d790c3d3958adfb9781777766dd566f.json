@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "213-3, экз, Канаев А.Ю., Методы оптимизации",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -103,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f7e940c56e002f42e519d9e23c7e875b16efeeec81505772800b05e0c7a0c798",
+  "scheduleHash": "096eaa28f2cae6310f6232bb318ac0e2f5725d53177f2c3b468c583549f1d711",
   "schemaVersion": 3,
   "semester": 5
 }

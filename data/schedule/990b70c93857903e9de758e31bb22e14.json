@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "316-2, зач, Толков А.В., Транспортная планировка городов",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "316-2, зач, Толков А.В., Транспортная планировка городов",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -110,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "bceb01d8a89b4618443e429520a9585eb0f54dba2ceae5f1cfb8e265d45d2f2b",
+  "scheduleHash": "953c7fac3e3a7eed88101461ca456ba2ee3dafa3f07358a75db9c86433a2e6c0",
   "schemaVersion": 3,
   "semester": 7
 }

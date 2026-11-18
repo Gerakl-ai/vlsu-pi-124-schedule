@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 5,
+    "examEntries": 4,
     "lessonDays": 0,
-    "scheduleEntries": 5,
+    "scheduleEntries": 4,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "119-3, зач, Ворыханов М.В., Моделирование и реинжиниринг бизнес-процессов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -61,7 +54,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c4b63aa11d87c086cd5f18ade28448c854ce5bdc5eec40f7c7c607d2d7f29123",
+  "scheduleHash": "fa8d9587044a4b889d67123ecc9ee2525dd0ef8396605dc10b73097e261de645",
   "schemaVersion": 3,
   "semester": 9
 }

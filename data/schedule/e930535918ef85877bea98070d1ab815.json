@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "221-2, зач, Ерлыгина Е.Г., Управление личным временем",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "221-2, зач, Ерлыгина Е.Г., Управление личным временем",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -117,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "bd9615001f45e4ec3f344181f49b352ca4df7451b393ef83246a7f2a7f95a5a6",
+  "scheduleHash": "9a63d8bad2c4da1c1479341b0761115496f8b43f10eb128043eac224d44f98b6",
   "schemaVersion": 3,
   "semester": 5
 }

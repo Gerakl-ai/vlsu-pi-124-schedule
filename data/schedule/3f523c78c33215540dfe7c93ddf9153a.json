@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "234-2, зач, Кокурина Ю.К., ИП в ОДД",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "322-2, зач, Кокурина Ю.К., ИП в ОДД",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -110,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "98a4d286871041913568185517f6a6697c014bb32f7b733229f1a69864ed56f1",
+  "scheduleHash": "dd70b989253dc8ce677fbd9025eb6460a3b5825cd1c892b5e9a3559a6f22645e",
   "schemaVersion": 3,
   "semester": 5
 }

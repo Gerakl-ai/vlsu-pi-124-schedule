@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 22,
+    "examEntries": 21,
     "lessonDays": 0,
-    "scheduleEntries": 22,
+    "scheduleEntries": 21,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "514-3, зач, Шмелев В.Е., Вероятностные и статистические задачи электроснабжения",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -180,7 +173,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "544e7325824eb5ec9586323859eaffa627209bb88611dfa5ffddb97387f58db7",
+  "scheduleHash": "1e63700e1797708e39cd7a858fb9d51acd50a8b121fcdb7a213ea73092015218",
   "schemaVersion": 3,
   "semester": 7
 }

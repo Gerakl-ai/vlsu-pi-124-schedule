@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T11:41:31.447Z",
+  "capturedAt": "2026-11-18T20:30:09.199Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44391653251"
   },
   "quality": {
-    "examEntries": 32,
+    "examEntries": 29,
     "lessonDays": 0,
-    "scheduleEntries": 32,
+    "scheduleEntries": 29,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "123-2, зач.диф., Федотов О.В., Проектирование технологического оборудования",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "235-2, лб, Морохова Н.А., Безопасность жизнедеятельности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "235-2, лб, Морохова Н.А., Безопасность жизнедеятельности",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -250,7 +229,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7cfc8230fd1a5eb45b21714e75559bb958d53f5f2740a8913e5ccc02441f9391",
+  "scheduleHash": "8e2bca10cc1fc27980e76595e646f4e19e5a97643b92d8c5aaa3a2ec0590ab25",
   "schemaVersion": 3,
   "semester": 5
 }
