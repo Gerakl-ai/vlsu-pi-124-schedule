@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T15:58:59.519Z",
+  "capturedAt": "2026-11-18T00:57:10.106Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
   },
   "quality": {
-    "examEntries": 39,
+    "examEntries": 38,
     "lessonDays": 0,
-    "scheduleEntries": 39,
+    "scheduleEntries": 38,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "234-2, зач, Елкин А.И., Социально-экономические аспекты развития машиностроения",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -299,7 +292,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "6ad8ceb423c804cdd93b49f8e66cb0171d22e1b335e120e91bb828c356898f46",
+  "scheduleHash": "45e759f731e6eddd478394291744e769f1581dd1acb43473b62c8a2e16b2ca93",
   "schemaVersion": 3,
   "semester": 3
 }

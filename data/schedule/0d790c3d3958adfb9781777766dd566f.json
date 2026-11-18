@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T15:58:59.519Z",
+  "capturedAt": "2026-11-18T00:57:10.106Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "113-3, экз, Градусов Д.А., Алгоритмизация и программирование",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -117,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "1dc6c38c1709b3a51ec364903bf4b9051305cabe550e82cec2d757c5ab0fa13b",
+  "scheduleHash": "358c512c78e24a875c38de1a8f6d05a7103f802fa855c6166901b4f223b54e17",
   "schemaVersion": 3,
   "semester": 5
 }

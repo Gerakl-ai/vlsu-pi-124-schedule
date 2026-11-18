@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T15:58:59.519Z",
+  "capturedAt": "2026-11-18T00:57:10.106Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 17,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 17,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "118-2, зач, Казаковцева Е.С., Культурология",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -152,7 +145,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f22c01444aa0e3113627e3bb731efc900a422e620493e55274aea63d4b227a9e",
+  "scheduleHash": "349d3dcfd97b84781f58a24b197f23eebfd3f4cddc1e54c2294eea19008fa744",
   "schemaVersion": 3,
   "semester": 3
 }

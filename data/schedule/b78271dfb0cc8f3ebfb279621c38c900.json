@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T15:58:59.519Z",
+  "capturedAt": "2026-11-18T00:57:10.106Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
   },
   "quality": {
-    "examEntries": 26,
+    "examEntries": 24,
     "lessonDays": 0,
-    "scheduleEntries": 26,
+    "scheduleEntries": 24,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, экз, Сысоев С.Н., Гидропневмоавтоматика и привод",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, экз, Сысоев С.Н., Гидропневмоавтоматика и привод",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -208,7 +194,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "17de0013c502449ef7156f47fc193cc750917cc5f0148e4c531fd9d9abab8950",
+  "scheduleHash": "24019463a807d2e3a4a52e7b687cd3aab9024471a9e2481c28827859321e3d04",
   "schemaVersion": 3,
   "semester": 5
 }

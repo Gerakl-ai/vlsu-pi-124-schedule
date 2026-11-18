@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-17T15:58:59.519Z",
+  "capturedAt": "2026-11-18T00:57:10.106Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44120484338"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
   },
   "quality": {
-    "examEntries": 22,
+    "examEntries": 21,
     "lessonDays": 0,
-    "scheduleEntries": 22,
+    "scheduleEntries": 21,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "17.11.2026",
-      "isConsultation": false,
-      "name": "112-3, зач, Еропов И.А., Тестирование информационных систем",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -180,7 +173,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b9f554dd903d1c06f367b061cd20ec7b934e6455d67c2899772e1cfb93c159ef",
+  "scheduleHash": "e6e812ca01cafc9cfa265b113b16cda9d6ff32e51d7ce241306608f5dde931ec",
   "schemaVersion": 3,
   "semester": 3
 }
