@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 10,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 10,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "504-3, лб, Корнеева Н.Н., Основы теории цепей",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -96,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "88e8061bbca66d0e39f42ac0c828da11ba9bcbf3fa9d2971af0bb1611b9f8be2",
+  "scheduleHash": "505f3aaaebab2b06a8781fef0363888f0e23874977808f41dd7ff7d508fb4fad",
   "schemaVersion": 3,
   "semester": 3
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 7,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 7,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "322-2, экз, Орлов Ю.А., Метрологическая экспертиза и нормоконтроль",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -82,7 +75,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2d8a50c19bdf0a060f3ab2e0df80e01fc5c58075633e77edffeb0cfeaca3f93a",
+  "scheduleHash": "13f4c6156562d728ab0bd1b5f65043432b0db7ffd0a819e4cdc67b5ee4fa6476",
   "schemaVersion": 3,
   "semester": 9
 }

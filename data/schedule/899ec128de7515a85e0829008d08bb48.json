@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "332а-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -103,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "50ac22ca69ecddf8cd2ff0cbc99104d09ddd210fbf00f8579860098351eb7ce8",
+  "scheduleHash": "32f94d8eee02ba4a6f8a2acc604ec7cc9a63ca192eed27e53a5a54f19a8078d3",
   "schemaVersion": 3,
   "semester": 3
 }

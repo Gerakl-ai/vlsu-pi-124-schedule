@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 21,
+    "examEntries": 18,
     "lessonDays": 0,
-    "scheduleEntries": 21,
+    "scheduleEntries": 18,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "116-3, экз, Гордеева И.А., Дискретная математика и математическая логика",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "116-3, экз, Гордеева И.А., Дискретная математика и математическая логика",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "116-3, экз, Гордеева И.А., Дискретная математика и математическая логика",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -173,7 +152,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e6e812ca01cafc9cfa265b113b16cda9d6ff32e51d7ce241306608f5dde931ec",
+  "scheduleHash": "6e7ad4f4e2a9915ddb0ece611beb9a16c808f341df6ae5bd49e6d28818c6041e",
   "schemaVersion": 3,
   "semester": 3
 }

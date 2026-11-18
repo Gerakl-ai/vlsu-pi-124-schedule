@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 17,
+    "examEntries": 16,
     "lessonDays": 0,
-    "scheduleEntries": 17,
+    "scheduleEntries": 16,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "129-4, лб, Игнатов М.С., Устройство и работа силовых агрегатов транспортных машин",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "18.11.2026",
       "isConsultation": false,
@@ -145,7 +138,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "349d3dcfd97b84781f58a24b197f23eebfd3f4cddc1e54c2294eea19008fa744",
+  "scheduleHash": "f16df66397d2632283256fc89b0200b83d3ca8c96d2f04dabadda00aab374857",
   "schemaVersion": 3,
   "semester": 3
 }

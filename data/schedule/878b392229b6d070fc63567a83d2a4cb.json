@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-18T00:57:10.106Z",
+  "capturedAt": "2026-11-18T11:41:31.447Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44211973880"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44296961467"
   },
   "quality": {
-    "examEntries": 25,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 25,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "307-1, экз, Якунина М.В., ИТ-инфраструктура предприятия",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "18.11.2026",
-      "isConsultation": false,
-      "name": "307-1, экз, Якунина М.В., ИТ-инфраструктура предприятия",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -201,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "674ffe0862f77e11c3e7ed477e2089251f0f04ed5fe004f7cc2880ca3ed9ab1b",
+  "scheduleHash": "2a626ca18131fb52378f9a2d431c34b6f1f4418aad80a4babf464c217f2f6f23",
   "schemaVersion": 3,
   "semester": 5
 }
