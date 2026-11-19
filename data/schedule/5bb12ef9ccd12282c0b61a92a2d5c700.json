@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "324-2, экз, Амирсейидов Ш.А., Устройство автомобильной техники",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "324-2, экз, Амирсейидов Ш.А., Устройство автомобильной техники",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -124,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "458ffddea51dd39c123e9d383affb6f836c905449b9243af7cb0c2da1fe750dd",
+  "scheduleHash": "3351f83c53080edb459fd10b2c5f5d0533e2669b034de79a37102218ed500d83",
   "schemaVersion": 3,
   "semester": 3
 }

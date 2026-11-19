@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 20,
+    "examEntries": 19,
     "lessonDays": 0,
-    "scheduleEntries": 20,
+    "scheduleEntries": 19,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "415-2, зач.диф., Шамышев А.А., Тестирование ПО",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -166,7 +159,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3c6cb97c8328c64db03b4e9fd86641ed54cdc1f98ecb4210db293f54e654f908",
+  "scheduleHash": "27e602273db2a4aed650393df16224bbe8941c9c2d5566bb235aa93e4e2abbb1",
   "schemaVersion": 3,
   "semester": 5
 }

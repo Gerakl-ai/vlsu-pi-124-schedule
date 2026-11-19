@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "235-2, лб, Жарков Н.В., Основы программирования станков с ЧПУ",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Морохова Н.А., Безопасность жизнедеятельности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Морохова Н.А., Безопасность жизнедеятельности",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -152,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d9c7cec2c9011f53d348e03a6c1086d83f0107ef1331ed520854ac10b3e25f90",
+  "scheduleHash": "600c231175bcc962a94c0df1b1d143f031ee95e9aeb697644dbc6ab3cf3e466f",
   "schemaVersion": 3,
   "semester": 5
 }

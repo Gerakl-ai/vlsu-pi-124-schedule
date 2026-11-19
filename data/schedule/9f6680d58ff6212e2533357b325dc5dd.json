@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "104-4, зач.диф., Нуждин Р.В., Безопасность автотранспортных средств",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -117,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2b03de8907297a298910932cc29ff622f2a007aa0b4ed9a06187a011cd06203b",
+  "scheduleHash": "35d1cb15ff89b8c329044c7a6743f7353b567283d60e98833ce35ffe256f5a45",
   "schemaVersion": 3,
   "semester": 7
 }

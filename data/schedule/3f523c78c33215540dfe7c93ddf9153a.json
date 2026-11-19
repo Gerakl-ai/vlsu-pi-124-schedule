@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 10,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 10,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "311-2, экз, Кириллов А.Г., Организационно-производственные структуры транспорта",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "311-2, экз, Кириллов А.Г., Организационно-производственные структуры транспорта",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -96,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "dd70b989253dc8ce677fbd9025eb6460a3b5825cd1c892b5e9a3559a6f22645e",
+  "scheduleHash": "b9e5c07cb8986bf77a5b3553dfc63012c47de147d6935a5dfbb8deb079038db4",
   "schemaVersion": 3,
   "semester": 5
 }

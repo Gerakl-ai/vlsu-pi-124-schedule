@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T11:39:09.289Z",
+  "capturedAt": "2026-11-19T20:36:34.158Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44610392674"
   },
   "quality": {
-    "examEntries": 31,
+    "examEntries": 28,
     "lessonDays": 0,
-    "scheduleEntries": 31,
+    "scheduleEntries": 28,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, зач, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, зач, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, зач, Худякова Е.О., Безопасность жизнедеятельности",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -243,7 +222,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "bf19e714f2bc0f1d5fa35449fda8d6e558c17953efc07207dfa1a992ff4c6875",
+  "scheduleHash": "5fb0197de41944d9df8e769484dcb3ae92ff9ee72d3c510e21318f8ab6f611dd",
   "schemaVersion": 3,
   "semester": 5
 }
