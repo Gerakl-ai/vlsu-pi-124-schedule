@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T02:33:56.128Z",
+  "capturedAt": "2026-11-19T11:39:09.289Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44445225725"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "119-3, зач, Власенко К.А., Экономическая культура и финансовая грамотность",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d4f02c42c01071b362fcfd7eebd5ebe6fe63ed7497cd97ddec562772c5018634",
+  "scheduleHash": "4396a6da46c524219ecedcc2157d8be363bb88f6ec30bb0e2f98868db4252b20",
   "schemaVersion": 3,
   "semester": 3
 }

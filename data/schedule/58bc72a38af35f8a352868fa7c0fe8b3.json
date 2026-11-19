@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T02:33:56.128Z",
+  "capturedAt": "2026-11-19T11:39:09.289Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44445225725"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": true,
-      "name": "148-4, консультация, Лисятников М.С., Конструкции из дерева и пластмасс",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -110,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f085f412b8d5d95ca3a34d9447ecf84e9fc5b814db62572967d7d6f55348822e",
+  "scheduleHash": "7b239438da6aeefd37627691029ca5613b407be7bea0a1bc507e26e6abaed22b",
   "schemaVersion": 3,
   "semester": 7
 }

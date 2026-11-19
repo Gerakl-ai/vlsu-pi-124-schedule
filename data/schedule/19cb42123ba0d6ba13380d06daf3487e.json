@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-19T02:33:56.128Z",
+  "capturedAt": "2026-11-19T11:39:09.289Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44445225725"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44516706871"
   },
   "quality": {
-    "examEntries": 16,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 16,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "19.11.2026",
-      "isConsultation": false,
-      "name": "514-3, зач, Денисов И.В., Электроника и электротехника",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "19.11.2026",
       "isConsultation": false,
@@ -138,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9ed0d2ec7e823408ffafcf785e5f252d0d2e3b9a976735d6de8383abb0c5f9b6",
+  "scheduleHash": "22d139a211f2cb8c4477ceb6832ca025d12c17f962b87a1202c594f40223ed45",
   "schemaVersion": 3,
   "semester": 3
 }
