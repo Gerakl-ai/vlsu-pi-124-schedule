@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 26,
+    "examEntries": 24,
     "lessonDays": 0,
-    "scheduleEntries": 26,
+    "scheduleEntries": 24,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "119-4, лб, Жарков Н.В., Основы технологии машиностроения",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "119-4, лб, Жарков Н.В., Основы технологии машиностроения",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -208,7 +194,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3b9e7cc0111824145f5182fb963afb86c54ccbb254ae557dbb46bbd04855bc94",
+  "scheduleHash": "d62c23b7a9422a8bd65f8c697e9b6a672c9b0bb278658723ca0f6742c8a818a3",
   "schemaVersion": 3,
   "semester": 5
 }

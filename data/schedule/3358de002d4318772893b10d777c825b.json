@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 27,
+    "examEntries": 25,
     "lessonDays": 0,
-    "scheduleEntries": 27,
+    "scheduleEntries": 25,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "121-2, лб, Жданов А.В., Теория механизмов и машин",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "121-2, лб, Жданов А.В., Теория механизмов и машин",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -215,7 +201,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "10c0dfc6a08dc2b3b491f51cd59bf76b17e1ee08ec986b52aafdbd9b2fb9747a",
+  "scheduleHash": "24db0f5bd0e71300199601ae9a6fe0763dfec156b74774dcff3e4a756218613c",
   "schemaVersion": 3,
   "semester": 3
 }

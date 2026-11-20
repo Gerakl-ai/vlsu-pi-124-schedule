@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,12 +15,12 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
@@ -29,18 +29,11 @@
       "date": "20.11.2026",
       "isConsultation": false,
       "name": "303б-1, экз, Христофоров А.И., Оборудование заводов по переработке пластмасс",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "303б-1, экз, Христофоров А.И., Оборудование заводов по переработке пластмасс",
       "time": "14:00",
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "020bac806cb93e2ab1c834f61281cee872371a21625ed63cdc3ff8051860042d",
+  "scheduleHash": "681bd3b4cacd3a7cd691d2a480f79e38a05581a29f31c2f871c9d70af8cd5c24",
   "schemaVersion": 3,
   "semester": 7
 }

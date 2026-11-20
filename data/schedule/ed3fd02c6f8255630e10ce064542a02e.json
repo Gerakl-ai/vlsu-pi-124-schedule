@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "119-3, зач, Никитина В.К., Русский язык и культура речи",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "20b2feb76405c54ce4ed4c27b4070253c40040e5d83ff27501ae4ccedb6b379a",
+  "scheduleHash": "e399efe1598f1810f50bc28217b03d5066bff1fd18dbe2a0fdd5aaef644601d4",
   "schemaVersion": 3,
   "semester": 7
 }

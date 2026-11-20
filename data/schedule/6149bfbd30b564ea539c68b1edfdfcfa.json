@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,58 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 29,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 29,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "103-2, лб, Сухорукова Е.В., Материаловедение",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "106-2, лб, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение (103-2)",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "316-2, лб, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "322-2, зач, Михалева О.В., Иностранный язык",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "115-2, зач, Стракатова О.Н., Иностранный язык",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "20.11.2026",
       "isConsultation": false,
@@ -229,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "45b43e09db7dd7bd00a1ad126ef6df34eee5a7a72b485bf63d17caed996ff370",
+  "scheduleHash": "6d1d1faf50f5a9810930f63b025cd5267ec54db2f026cea7b9a6a19ba5fc85ed",
   "schemaVersion": 3,
   "semester": 3
 }

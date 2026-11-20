@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 7,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 7,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "400а-1, зач, Стракатова О.Н., Иностранный язык",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -82,7 +75,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d5647fdac6e8c5d3b71d98dd6bceb34390c85287b5235672b38bb09c10117d83",
+  "scheduleHash": "474d82367f66c5ea2a3ffc1f7c38f445fdc14dff576a0cfd8276d1a221bb67d0",
   "schemaVersion": 3,
   "semester": 3
 }

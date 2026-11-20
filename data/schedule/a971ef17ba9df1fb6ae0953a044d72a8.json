@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T02:19:10.790Z",
+  "capturedAt": "2026-11-20T11:39:03.798Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44659902119"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
   },
   "quality": {
-    "examEntries": 27,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 27,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, лб, Назаров А.А., Элементы электрических и электронных устройств средств автоматизации",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "324-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "105б-2, лб, Назаров А.А., Элементы электрических и электронных устройств средств автоматизации",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "324-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -215,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "6ddbfec04447b2356645fa55e2a6a21d5c9f3bd0fa49018d60ab9bf6f9994577",
+  "scheduleHash": "4679598adf4d222764f61bcf2e64c17df756f1071898b2e05bc709f374da4dac",
   "schemaVersion": 3,
   "semester": 3
 }
