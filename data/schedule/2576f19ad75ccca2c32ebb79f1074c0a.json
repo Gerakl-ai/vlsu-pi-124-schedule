@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 7,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 7,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "06-1, экз, Винтилова Е.В., Инженерные сети и оборудование",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": true,
@@ -75,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2aca51a5597d8ffda9b621a81556ce5c4598f3c3295ba8bd0d1e7c1073266e02",
+  "scheduleHash": "959236865cb7deb9db9215b66197c29cff52f0b601374e491bc19f81e8c3e63f",
   "schemaVersion": 3,
   "semester": 7
 }

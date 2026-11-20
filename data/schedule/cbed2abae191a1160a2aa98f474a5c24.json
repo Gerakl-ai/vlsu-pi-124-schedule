@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 5,
+    "examEntries": 4,
     "lessonDays": 0,
-    "scheduleEntries": 5,
+    "scheduleEntries": 4,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, зач, Орлов Д.Ю., Общая теория измерений",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -61,7 +54,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7eedcc3ab0a9750b0caa31f8534b6c0a7f7a1f706e34dc251eb1cede9ffe4f4f",
+  "scheduleHash": "0d36d35d83e57abdbf395ba996588688dc82b00e597e2cff257f2674f782d63a",
   "schemaVersion": 3,
   "semester": 3
 }

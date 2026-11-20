@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "128-4, лб, Колов Д.А., Проверка и испытание систем и средств пожарной безопасности",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "128-4, лб, Колов Д.А., Проверка и испытание систем и средств пожарной безопасности",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "128-4, лб, Колов Д.А., Проверка и испытание систем и средств пожарной безопасности",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -124,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c28642e27e8487f3e4fda4728c87acc5c2120b37219fcf244e6d8cfc88de256d",
+  "scheduleHash": "05ef405f897fe243056fd402b4a3fcecfd188b63222c7cf814a4c761abcd602c",
   "schemaVersion": 3,
   "semester": 3
 }

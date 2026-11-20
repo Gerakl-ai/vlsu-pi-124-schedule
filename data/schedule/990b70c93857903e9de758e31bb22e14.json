@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "311-2, экз, Амирсейидов Ш.А., Безопасность транспортных средств",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "311-2, экз, Амирсейидов Ш.А., Безопасность транспортных средств",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -82,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "440d5f3a1fe0125113270604ad444195e0a2dfd493850bff43dadb3c8a070fd8",
+  "scheduleHash": "90276352a8503475b89abb6bcf2529098ed1c86f317e628d90b90e9ec0545678",
   "schemaVersion": 3,
   "semester": 7
 }

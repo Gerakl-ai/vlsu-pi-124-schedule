@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 9,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 9,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "117-3, экз, Гордеева И.А., Базы данных",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -89,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "69e4b65f5a56648c54d249fe1799f9000ef20ecbfa6b33d141933d81e8fc3639",
+  "scheduleHash": "a8b64b0c64a6693afc75f523d4c1d5b1327f94ffe6f2e08e64a643906ce62301",
   "schemaVersion": 3,
   "semester": 5
 }

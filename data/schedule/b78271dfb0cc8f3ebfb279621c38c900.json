@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-20T11:39:03.798Z",
+  "capturedAt": "2026-11-20T20:17:22.162Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44729309690"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44809962834"
   },
   "quality": {
-    "examEntries": 19,
+    "examEntries": 18,
     "lessonDays": 0,
-    "scheduleEntries": 19,
+    "scheduleEntries": 18,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "20.11.2026",
-      "isConsultation": false,
-      "name": "318-2, экз, Посаженников А.А., Автоматизация управления жизненным циклом продукции",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -159,7 +152,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b09d82d9d54d5310d13eddeafe640938c9ea07f0ef8200ca3041f87be522887c",
+  "scheduleHash": "11432f76745e868ae73572433ec6e42ff6875df9dc2bf179a1947642ee02abb3",
   "schemaVersion": 3,
   "semester": 5
 }
