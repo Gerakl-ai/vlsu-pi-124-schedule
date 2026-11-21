@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 16,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 16,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, зач.диф., Бакутов А.В., Программирование микропроцессоров и логических контроллеров систем автоматизации",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, зач.диф., Бакутов А.В., Программирование микропроцессоров и логических контроллеров систем автоматизации",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -152,7 +138,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "11432f76745e868ae73572433ec6e42ff6875df9dc2bf179a1947642ee02abb3",
+  "scheduleHash": "8ade5ab36093302755d6d01829e7ae3a98a19cb29e922eeef838be3c582a5eee",
   "schemaVersion": 3,
   "semester": 5
 }

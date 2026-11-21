@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 25,
+    "examEntries": 22,
     "lessonDays": 0,
-    "scheduleEntries": 25,
+    "scheduleEntries": 22,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "06-1, экз, Пазухин П.Ю., Сопротивление материалов",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "06-1, экз, Пазухин П.Ю., Сопротивление материалов",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "06-1, экз, Пазухин П.Ю., Сопротивление материалов",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -201,7 +180,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "24db0f5bd0e71300199601ae9a6fe0763dfec156b74774dcff3e4a756218613c",
+  "scheduleHash": "6e3b23b9548ff7900241a71de2f59863926fffbfef91c388bb7f013466286eff",
   "schemaVersion": 3,
   "semester": 3
 }

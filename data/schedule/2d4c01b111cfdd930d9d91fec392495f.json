@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 26,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 26,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "105а-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "105а-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "105а-2, лб, Назаров А.А., Электрические машины и автоматизированный электропривод",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -208,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "118a8fd7956a777f2b1d2135a019c3dad90b6e60bdfc266c8fb04d8ba26f4af4",
+  "scheduleHash": "74cb67eb15d8343d06b56231826bbe0cdd2b19ec075a383f0a29744b725b71cf",
   "schemaVersion": 3,
   "semester": 5
 }

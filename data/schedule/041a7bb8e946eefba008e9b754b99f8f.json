@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 20,
+    "examEntries": 17,
     "lessonDays": 0,
-    "scheduleEntries": 20,
+    "scheduleEntries": 17,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "118-2, экз, Иванченко А.Б., Системы конечно-элементного анализа (CAE-системы)",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "118-2, экз, Иванченко А.Б., Системы конечно-элементного анализа (CAE-системы)",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "118-2, экз, Иванченко А.Б., Системы конечно-элементного анализа (CAE-системы)",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -166,7 +145,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e3a41fd98409c12f8757bfbb892727ca79e36915d3c42b8556e976297378adf9",
+  "scheduleHash": "16edda30861a41512db22e323fb63c6a874a9507bab8970d1562d83bf1723b3b",
   "schemaVersion": 3,
   "semester": 5
 }

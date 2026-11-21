@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 23,
+    "examEntries": 21,
     "lessonDays": 0,
-    "scheduleEntries": 23,
+    "scheduleEntries": 21,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "322-2, зач, Михалева О.В., Иностранный язык",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "322-2, зач, Михалева О.В., Иностранный язык",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -187,7 +173,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "4679598adf4d222764f61bcf2e64c17df756f1071898b2e05bc709f374da4dac",
+  "scheduleHash": "bf965392caf9147f8230869bc643c008d9d75683de31b62851e7c94233981e55",
   "schemaVersion": 3,
   "semester": 3
 }

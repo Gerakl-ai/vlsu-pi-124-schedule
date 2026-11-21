@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T02:13:26.789Z",
+  "capturedAt": "2026-11-21T10:59:58.050Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44854661373"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
   },
   "quality": {
-    "examEntries": 25,
+    "examEntries": 22,
     "lessonDays": 0,
-    "scheduleEntries": 25,
+    "scheduleEntries": 22,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "316-2, зач, Кирилина А.Н., Диагностика и надежность автоматизированных систем",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "316-2, зач, Кирилина А.Н., Диагностика и надежность автоматизированных систем",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "316-2, зач, Кирилина А.Н., Диагностика и надежность автоматизированных систем",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "21.11.2026",
       "isConsultation": false,
@@ -201,7 +180,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "891dc9801cae52f79cb26268123f855ad67e7564f000f58a4c8325a3bb3e60e5",
+  "scheduleHash": "9832aa16e2d6605ebf1d991f1a421844abe0f76515758e91ad716084d131de6e",
   "schemaVersion": 3,
   "semester": 5
 }
