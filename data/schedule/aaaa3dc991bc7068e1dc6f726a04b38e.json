@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-21T10:59:58.050Z",
+  "capturedAt": "2026-11-21T19:15:04.775Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44896934587"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/44939897051"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 13,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 13,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "21.11.2026",
-      "isConsultation": false,
-      "name": "213-3, лб, Ланская М.С., Интерактивные графические системы",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "23.11.2026",
       "isConsultation": false,
@@ -124,7 +117,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2d45d5ffe0b5ad327e380558dea7612a628f2c76bf7d2772e8e2c3e84663ae96",
+  "scheduleHash": "749a806ad1ff6186a7165274b822057bae84ff65a2de149609377f612b9acbe3",
   "schemaVersion": 3,
   "semester": 5
 }
