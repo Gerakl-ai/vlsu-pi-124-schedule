@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,51 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 14,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 14,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "517-3, зач, Денисов И.В., Промышленные электротехнологические установки",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "517-3, зач, Денисов И.В., Промышленные электротехнологические установки",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "517-3, зач, Денисов И.В., Промышленные электротехнологические установки",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "518-3, пр, Бадалян Н.П., Эксплуатация систем электроснабжения",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "518-3, пр, Орешков К.С., Электропитающие системы и электрические сети",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -124,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "645e9a74c13291c715ef5c0e34bae0aeda33d10f9873da7125fcadd1fc972eda",
+  "scheduleHash": "6801ef69d8adacbe39b2ceac61fb82c7d49a90dcef1da2a3442dfd516717befc",
   "schemaVersion": 3,
   "semester": 7
 }

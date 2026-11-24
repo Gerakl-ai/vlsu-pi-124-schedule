@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 10,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 10,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение и технология конструкционных материалов (103-2)",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "102-2, лб, Сухорукова Е.В., Материаловедение и технология конструкционных материалов (103-2)",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "105-4, зач.диф., Игнатов М.С., Устройство и работа силовых агрегатов транспортных машин",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "105-4, зач.диф., Игнатов М.С., Устройство и работа силовых агрегатов транспортных машин",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -96,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5164ea63aee72b9ccc3ded96e2a9c798c0dcf611a7d1ef72c43ee2478ee75467",
+  "scheduleHash": "d465ca36fd072311a501165095c726288d06706022788c87ec11ae7ab55c8044",
   "schemaVersion": 3,
   "semester": 3
 }

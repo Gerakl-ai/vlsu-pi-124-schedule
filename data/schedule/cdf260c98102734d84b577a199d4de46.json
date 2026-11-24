@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 4,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 4,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": true,
-      "name": "113-2, консультация, Стариков А.Н., Автоматизация и управление системами теплогазоснабжения и вентиляции",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "110-2, экз, Стариков А.Н., Автоматизация и управление системами теплогазоснабжения и вентиляции",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "110-2, экз, Стариков А.Н., Автоматизация и управление системами теплогазоснабжения и вентиляции",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "110-2, экз, Стариков А.Н., Автоматизация и управление системами теплогазоснабжения и вентиляции",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": true,
@@ -82,7 +54,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "ff2c6a621af2213cdaaa8ef86c92390438d022137b651ea5e380ddba2c488db3",
+  "scheduleHash": "d7eb7eb3deac5c6113ccbf7dfa725d983ca76e47703befaf6c46c63a66ae7a6f",
   "schemaVersion": 3,
   "semester": 7
 }

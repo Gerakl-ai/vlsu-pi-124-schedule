@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "319-2, экз, Мищенко З.В., Экономика качества, метрологического обеспечения и стандартизации",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, экз, Мищенко З.В., Экономика качества, метрологического обеспечения и стандартизации",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e16468349877bf4fa0a15042b7a7a394ee0595690cb68aca6be0c36bd58af555",
+  "scheduleHash": "c10125dd67668ffe7363c8a1c0967d41370f180e081f75664a1aef60a8aa6d05",
   "schemaVersion": 3,
   "semester": 9
 }

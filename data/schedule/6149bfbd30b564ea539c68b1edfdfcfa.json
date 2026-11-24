@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,51 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 19,
+    "examEntries": 14,
     "lessonDays": 0,
-    "scheduleEntries": 19,
+    "scheduleEntries": 14,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "332а-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "332а-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "324-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "324-2, лб, Орлов Д.Ю., Метрология, стандартизация и сертификация",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "102-2, экз, Сухорукова Е.В., Материаловедение",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -159,7 +124,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7e3d1590e59a07bf5edfa6d7de7a97b1148f103ba7328208a094ef67c5c93ff0",
+  "scheduleHash": "0bacf9224f5fc43b2852c1f3ed06ab9ea8bdb38f88da20a144e40205e83bc8b6",
   "schemaVersion": 3,
   "semester": 3
 }

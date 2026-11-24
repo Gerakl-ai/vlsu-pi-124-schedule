@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 20,
+    "examEntries": 17,
     "lessonDays": 0,
-    "scheduleEntries": 20,
+    "scheduleEntries": 17,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "115-2, экз, Шеин И.П., Теоретическая механика",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "115-2, экз, Шеин И.П., Теоретическая механика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "115-2, экз, Шеин И.П., Теоретическая механика",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -166,7 +145,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d3d30f81e0c36a1a9b924345535ca50b5dcd5c4b20183cb124d24e6e7b2e5834",
+  "scheduleHash": "a5266dd372d09a8b83246969aa81d64583ea94b356ecc7f3680558c1ecf2bf84",
   "schemaVersion": 3,
   "semester": 3
 }

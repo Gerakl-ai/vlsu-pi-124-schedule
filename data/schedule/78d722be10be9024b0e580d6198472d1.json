@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 7,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 7,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "310-6, зач.диф., Косинец Т.В., Бюджетирование",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "107-6, экз, Грачев С.А., Инвестиционный анализ",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -75,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b330953ea45b196767ca8d201c6b32fdad7ed32c62457ae8a373fe71a09c1633",
+  "scheduleHash": "cef62b4a002db6f07b1b2e6197b19d5be45427c42381ac4aadcc496e89423c23",
   "schemaVersion": 3,
   "semester": 7
 }

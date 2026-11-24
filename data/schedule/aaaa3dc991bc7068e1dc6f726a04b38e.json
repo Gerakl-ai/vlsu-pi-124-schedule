@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "404а-2, лб, Ланская М.С., Интегрированные информационные системы",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "404а-2, лб, Ланская М.С., Интегрированные информационные системы",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "423-2, лб, Спирин И.В., Распределенные программные системы",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -117,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "749a806ad1ff6186a7165274b822057bae84ff65a2de149609377f612b9acbe3",
+  "scheduleHash": "80887fec2667f403dd34eb5c9467d2a1c1bc09e48d42ad0bb181a6841061943f",
   "schemaVersion": 3,
   "semester": 5
 }

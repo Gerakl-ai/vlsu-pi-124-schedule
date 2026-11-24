@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 5,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 5,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "302б-2, экз, Баженов М.Ю., Информационные технологии и документооборот в автосервисе",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "324-2, зач.диф., Колов Д.А., Организация дилерской торговой деятельности предприятий автосервиса",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -61,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "e7a2e7f36991893a42f5e57c3910736e6fdec96b960609261878a0cf5f63f89e",
+  "scheduleHash": "7f2a9229a10e6eb21ec21952dca800c1b11d4411d073c749f78b004e77196175",
   "schemaVersion": 3,
   "semester": 9
 }

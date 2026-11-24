@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 5,
+    "examEntries": 4,
     "lessonDays": 0,
-    "scheduleEntries": 5,
+    "scheduleEntries": 4,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "309-6, зач, Ловкова Е.С., Управление продуктом проекта",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -61,7 +54,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "f7aea3b617896a1c28decbe521a206372019292aa8e868204a224b844e51d325",
+  "scheduleHash": "6ae05589ab5bf445a7b3586adbe4189aa2f0c39e725682b804d32335beb023f3",
   "schemaVersion": 3,
   "semester": 3
 }

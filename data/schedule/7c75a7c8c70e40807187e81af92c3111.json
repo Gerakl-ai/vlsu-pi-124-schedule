@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 8,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 8,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "119-4, зач, Иванченко А.Б., Проектирование пресс-форм и штампов",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "119-4, зач, Иванченко А.Б., Проектирование пресс-форм и штампов",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "119-4, зач, Иванченко А.Б., Проектирование пресс-форм и штампов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -103,7 +82,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "6a05d6335cda0ab74380447f4679c24e16e8023795f65b6f866464cb0b933613",
+  "scheduleHash": "d3b7d20aeb8840e65d4122213f00cc99c6472f407becdfef9e41f35f8468c931",
   "schemaVersion": 3,
   "semester": 7
 }

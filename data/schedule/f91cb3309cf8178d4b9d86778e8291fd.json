@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 7,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 7,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "307-6, зач.диф., Смирнов В.Н., Теория и методы принятия управленческих решений",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "210-6, экз, Ерлыгина Е.Г., Теория организации",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -75,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "95838eef4e8c1d09fa69d62ade77e156879ca739d37dc2e5a256b3667648f1bd",
+  "scheduleHash": "9c5a7ac014ed45835398e3a9ab63405013b1d7ff089d8a8242e00b134077c4e9",
   "schemaVersion": 3,
   "semester": 5
 }

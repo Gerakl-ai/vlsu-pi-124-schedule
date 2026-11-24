@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "235-2, экз, Мамаев И.М., Теоретическая механика",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "0d36d35d83e57abdbf395ba996588688dc82b00e597e2cff257f2674f782d63a",
+  "scheduleHash": "024ceb441e24ace7cf63c8d37671ec02ecae6c0d80b4955177312bb6a4074089",
   "schemaVersion": 3,
   "semester": 3
 }

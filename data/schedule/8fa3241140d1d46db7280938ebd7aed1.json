@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "113-3, зач, Шутов А.В., Разработка клиент-серверных приложений",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "113-3, зач, Шутов А.В., Разработка клиент-серверных приложений",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -82,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "cc30461440f727ce5c16d491e45588dbe2186d59054a0e71bbf38f6422c0aa7e",
+  "scheduleHash": "823489eedf9d6d32d359d8be95f35d8c17f9477bb71e23d2f67428af1bd5de17",
   "schemaVersion": 3,
   "semester": 5
 }

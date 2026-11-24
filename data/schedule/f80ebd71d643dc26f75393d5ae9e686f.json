@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,51 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 20,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 20,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Конструкторско-исследовательские системы",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Конструкторско-исследовательские системы",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "323-2, зач, Левина С.М., Конструкторско-исследовательские системы",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, экз, Посаженников А.А., Автоматизация управления жизненным циклом продукции",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, экз, Посаженников А.А., Автоматизация управления жизненным циклом продукции",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "24.11.2026",
       "isConsultation": false,
@@ -166,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9664d10d960a72f5f9935dbd49304796b91bb94d740093f4fca582c725030f50",
+  "scheduleHash": "dac5ad24a7a096afef9845be7ce2ff6759c5da00da2648f301dc82d8bca003b6",
   "schemaVersion": 3,
   "semester": 5
 }

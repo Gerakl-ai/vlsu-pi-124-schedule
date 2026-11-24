@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-23T01:42:06.063Z",
+  "capturedAt": "2026-11-24T13:41:51.470Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45096022924"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
   },
   "quality": {
-    "examEntries": 9,
+    "examEntries": 7,
     "lessonDays": 0,
-    "scheduleEntries": 9,
+    "scheduleEntries": 7,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "23.11.2026",
-      "isConsultation": false,
-      "name": "409-1, зач.диф., Михалева О.В., Иностранный язык делового общения (второй)",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "312-6, зач, Журавлев А.А., География народных художественных промыслов России",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -89,7 +75,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "df793c1e80789d275236d86a9d3d02dcd31c8f0b04c9dfcc3bc81940df272c50",
+  "scheduleHash": "78d2a8b58202f241ca78a52bc3059e90254c9c9ff564dbbe381391f5f70bc4fd",
   "schemaVersion": 3,
   "semester": 3
 }
