@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T23:53:35.227Z",
+  "capturedAt": "2026-11-25T08:32:35.945Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
   },
   "quality": {
-    "examEntries": 13,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 13,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "104-4, экз, Горбунов Р.В., Экономика отрасли",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -117,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c037913a0fa8b0c37ce1042ceae128cc0febc6a5897e02efcb2fd840ab9b730f",
+  "scheduleHash": "32c2c4af33fb30e000a105c72611c8c93bfc809841e60f800ba4c007326d5234",
   "schemaVersion": 3,
   "semester": 7
 }

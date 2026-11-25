@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T23:53:35.227Z",
+  "capturedAt": "2026-11-25T08:32:35.945Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
   },
   "quality": {
-    "examEntries": 25,
+    "examEntries": 23,
     "lessonDays": 0,
-    "scheduleEntries": 25,
+    "scheduleEntries": 23,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Илларионова Е.В., Технология и организация информационно-экскурсионной деятельности",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Чулкова Н.А., Технология и организация сопровождения туристов. Обеспечение безопасности",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -201,7 +187,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7f6e5e885af0a571ead2f10f435d5528d9bd47d76efe4380153675bcda271780",
+  "scheduleHash": "49b1ab1cde3effc527585ee338bd200c5f5c452a17c0022f66a69ed0ef500452",
   "schemaVersion": 3,
   "semester": 5
 }

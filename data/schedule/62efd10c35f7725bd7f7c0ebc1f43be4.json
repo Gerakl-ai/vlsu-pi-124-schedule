@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T23:53:35.227Z",
+  "capturedAt": "2026-11-25T08:32:35.945Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
   },
   "quality": {
     "examEntries": 0,
@@ -37,7 +37,7 @@
       "type": "Lessons",
       "z1": "",
       "z2": "309-1, лк, Зубков С.А., Философия",
-      "z3": "201-2, пр, Никитина В.К., Культура речи и деловая коммуникация",
+      "z3": "201а-2, пр, Никитина В.К., Культура речи и деловая коммуникация",
       "z4": "110-2, лб, Борисов Б.Н., Механика жидкости и газа",
       "z5": "",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "bfd32546ac731482bb9afbf6bed7b2d071049422fb82012aaf98cb0b95b01cbb",
+  "scheduleHash": "fe45bab986ac4d81a7c8d9e6b7013f116940a8958658690c78d410ab31159226",
   "schemaVersion": 3,
   "semester": 3
 }

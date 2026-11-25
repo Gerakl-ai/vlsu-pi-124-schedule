@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T23:53:35.227Z",
+  "capturedAt": "2026-11-25T08:32:35.945Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,7 +15,7 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
   },
   "quality": {
     "examEntries": 0,
@@ -100,7 +100,7 @@
     {
       "n1": "",
       "n2": "201-2, лк, Пазухин П.Ю., Техническая механика",
-      "n3": "201-2, пр, Пазухин П.Ю., Техническая механика",
+      "n3": "201а-2, пр, Пазухин П.Ю., Техническая механика",
       "n4": "",
       "n5": "",
       "n6": "",
@@ -109,7 +109,7 @@
       "type": "Lessons",
       "z1": "",
       "z2": "201-2, лк, Пазухин П.Ю., Техническая механика",
-      "z3": "201-2, пр, Пазухин П.Ю., Техническая механика",
+      "z3": "201а-2, пр, Пазухин П.Ю., Техническая механика",
       "z4": "",
       "z5": "",
       "z6": "",
@@ -134,7 +134,7 @@
       "z7": ""
     }
   ],
-  "scheduleHash": "f7a7a50da9ee05de5c7f1386fa129041e16121e9a5f0c5595aaff05fa79f0d15",
+  "scheduleHash": "138642364cbecc59209fcea16523003f68a7d871f4ff7e5b23b1b9cb15c5b716",
   "schemaVersion": 3,
   "semester": 3
 }
