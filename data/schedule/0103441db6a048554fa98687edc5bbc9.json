@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "202-3, экз, Капуш И.Р., Управление деятельностью структурных подразделений при выполнении строительно-монтажных работ, эксплуатации и реконструкции зданий и сооружений",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "202-3, экз, Капуш И.Р., Управление деятельностью структурных подразделений при выполнении строительно-монтажных работ, эксплуатации и реконструкции зданий и сооружений",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "25.12.2026",
       "isConsultation": true,
@@ -47,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "41dd8f09e99d12b30ce7f90aeca33637dda818fd6a5386a1c457e6c66e6981f7",
+  "scheduleHash": "1b33dd7f7f0b8d225053ec3333818e0946c1c2decc5cff79408db921fd6429fa",
   "schemaVersion": 3,
   "semester": 7
 }

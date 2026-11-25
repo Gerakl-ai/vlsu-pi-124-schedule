@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "119-4, экз, Сухорукова Е.В., Материаловедение",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "119-4, экз, Сухорукова Е.В., Материаловедение",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -103,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5fb365e51a6f8e4c820475ca7416644ab4ca4a5239fb39347f3a25649d47b795",
+  "scheduleHash": "8d8bc7d91f4c6b51201f423bcd673055255c01c000f8dbda324bc193e1d3db12",
   "schemaVersion": 3,
   "semester": 3
 }

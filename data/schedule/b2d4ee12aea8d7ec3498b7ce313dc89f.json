@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "217-6, экз, Смирнов В.Н., Обоснование целесообразности проектов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "6ae05589ab5bf445a7b3586adbe4189aa2f0c39e725682b804d32335beb023f3",
+  "scheduleHash": "126f13ead17c9cc6c04366312040db0e456d01c43c8e283b8d39bdebfac5706e",
   "schemaVersion": 3,
   "semester": 3
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Касаткина Э.Ф., Планирование и организация эксперимента",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Касаткина Э.Ф., Планирование и организация эксперимента",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a64bdaa1eef2a10c0a3cb3c1f61cc40bfd0765093d72dd5949696b65d270a623",
+  "scheduleHash": "410397313f8d97f1ad3f6b76bf2e19595da413ad345f9326ca98d07829937574",
   "schemaVersion": 3,
   "semester": 7
 }

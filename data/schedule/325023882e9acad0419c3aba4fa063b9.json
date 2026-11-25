@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "117-3, зач, Еропов И.А., Инженерия данных",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "117-3, зач, Еропов И.А., Инженерия данных",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5a8ecb9678531086618aaae4b7e565de7bd3860cd1c29dd6a31cc234fca0e4ca",
+  "scheduleHash": "0a7a7a277c838b4613061a9e03460c50c306ac6485fb49708c08da509456109b",
   "schemaVersion": 3,
   "semester": 5
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,44 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 23,
+    "examEntries": 19,
     "lessonDays": 0,
-    "scheduleEntries": 23,
+    "scheduleEntries": 19,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Илларионова Е.В., Технология и организация информационно-экскурсионной деятельности",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Чулкова Н.А., Технология и организация сопровождения туристов. Обеспечение безопасности",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Илларионова Е.В., Технология и организация информационно-экскурсионной деятельности",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "424-3, экз, Чулкова Н.А., Технология и организация сопровождения туристов. Обеспечение безопасности",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "30.11.2026",
       "isConsultation": true,
@@ -187,7 +159,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "49b1ab1cde3effc527585ee338bd200c5f5c452a17c0022f66a69ed0ef500452",
+  "scheduleHash": "78deb3470ad9bb2c318c8761929accb8deb28583424a7d3405c330efa5fef1b4",
   "schemaVersion": 3,
   "semester": 5
 }

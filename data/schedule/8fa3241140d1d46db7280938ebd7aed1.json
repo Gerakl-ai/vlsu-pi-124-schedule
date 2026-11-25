@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "205в-3, экз, Васильев Д.Н., Интегрированные информационные системы",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "205в-3, экз, Васильев Д.Н., Интегрированные информационные системы",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -54,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "69bfbe22430e9d6ae076b497877d57231062d0e7649c51ae916c26753de3fc55",
+  "scheduleHash": "7d13355a95142f116bf1edb836c131827aaa0e9e33d4b23ae79d58cc86b6a220",
   "schemaVersion": 3,
   "semester": 5
 }

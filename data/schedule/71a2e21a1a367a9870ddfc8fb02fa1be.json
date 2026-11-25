@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 7,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 7,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "103-6, экз, Ловкова Е.С., Документационное обеспечение профессиональной деятельности",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -75,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2b1b5a9d61c0ea0df1800c6f1cba7501db4197b58f6970bc47614351220e7f2a",
+  "scheduleHash": "7c024a92dab37ce90908bf7823cc14767374b1f868a40421b41c7a27a174dfad",
   "schemaVersion": 3,
   "semester": 3
 }

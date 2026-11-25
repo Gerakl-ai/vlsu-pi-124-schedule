@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,79 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 19,
+    "examEntries": 10,
     "lessonDays": 0,
-    "scheduleEntries": 19,
+    "scheduleEntries": 10,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Вихрев А.В., Экзамен по модулю ПМ.03",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Кандрашкина Ю.С., Экзамен по модулю ПМ.03",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Королева Л.А., Экзамен по модулю ПМ.03",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Вихрев А.В., Экзамен по модулю ПМ.03",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Кандрашкина Ю.С., Экзамен по модулю ПМ.03",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Королева Л.А., Экзамен по модулю ПМ.03",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Вихрев А.В., Экзамен по модулю ПМ.03",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Кандрашкина Ю.С., Экзамен по модулю ПМ.03",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "02а-1, Кв экз, Королева Л.А., Экзамен по модулю ПМ.03",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "25.12.2026",
       "isConsultation": true,
@@ -159,7 +96,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "72a7112eec4248bfc5738c9a8b0a513fc810f44f4a6f6765a8b95598cfdf1ca0",
+  "scheduleHash": "f942937f34595a7e3ce7d176f7bf6017d8b2fdf01d8db67686f99bd170822e45",
   "schemaVersion": 3,
   "semester": 7
 }

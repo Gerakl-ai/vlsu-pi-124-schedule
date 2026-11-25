@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 18,
+    "examEntries": 15,
     "lessonDays": 0,
-    "scheduleEntries": 18,
+    "scheduleEntries": 15,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "214-6, экз, Гундорова М.А., Экономическая безопасность хозяйствующих субъектов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "108-6, экз, Гундорова М.А., Экономическая безопасность хозяйствующих субъектов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "107-6, экз, Гундорова М.А., Экономическая безопасность хозяйствующих субъектов",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -152,7 +131,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3382d262264d6b406e563ffef16393103b470209381075e93654f28c0f3babe1",
+  "scheduleHash": "5adf258f60885eacd6ebf07aa012a3a8a649afc074ee02c9412fa970a78f6979",
   "schemaVersion": 3,
   "semester": 5
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-25T08:32:35.945Z",
+  "capturedAt": "2026-11-25T19:15:28.905Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45577181003"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45683357400"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "216б-2, лб, Спирин И.В., Основы разработки веб-приложений",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "418-2, зач, Бородина Е.К., CASE-технологии",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "25.11.2026",
-      "isConsultation": false,
-      "name": "418-2, зач, Бородина Е.К., CASE-технологии",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "26.11.2026",
       "isConsultation": false,
@@ -82,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5363c604835a15d023dd5fda55f6bd3c052abba5fd92e2d62b285ba4d10d4fec",
+  "scheduleHash": "42d6233c830ac5c1c4e0d7e83e4589587468f6079cc4017cf402b615a2a07e39",
   "schemaVersion": 3,
   "semester": 5
 }
