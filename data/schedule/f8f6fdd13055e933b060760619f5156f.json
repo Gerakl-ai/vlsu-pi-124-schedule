@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T13:41:51.470Z",
+  "capturedAt": "2026-11-24T23:53:35.227Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
   },
   "quality": {
-    "examEntries": 6,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 6,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "108-6, зач.диф., Гундорова М.А., Экономическая безопасность",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -68,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "c1dee2b04f26f70bb7a525c5d6375e6393fa653ba5cf2b3e869fb518c2c64ded",
+  "scheduleHash": "dce6f63d77a08f91f3018db4df11a93b4a7db7dfcd5306d633700bf474edc710",
   "schemaVersion": 3,
   "semester": 5
 }

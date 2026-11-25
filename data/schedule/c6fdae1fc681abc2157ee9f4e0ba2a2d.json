@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T13:41:51.470Z",
+  "capturedAt": "2026-11-24T23:53:35.227Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "229-2, экз, Коростелев В.Ф., Автоматизация технологических процессов",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "229-2, экз, Коростелев В.Ф., Автоматизация технологических процессов",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "229-2, экз, Коростелев В.Ф., Автоматизация технологических процессов",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -110,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "32a345c84fbe2429bff35edde578723a2ec2beebe8eff789c7dc957f89b5ba6f",
+  "scheduleHash": "2f04643eb755cd44c1a1da28f04989054cb92b492bddca2c551ed473b090a1ca",
   "schemaVersion": 3,
   "semester": 7
 }

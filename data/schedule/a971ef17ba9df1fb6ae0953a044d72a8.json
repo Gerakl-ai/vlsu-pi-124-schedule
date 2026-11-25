@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-24T13:41:51.470Z",
+  "capturedAt": "2026-11-24T23:53:35.227Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45406080435"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45513705166"
   },
   "quality": {
-    "examEntries": 17,
+    "examEntries": 14,
     "lessonDays": 0,
-    "scheduleEntries": 17,
+    "scheduleEntries": 14,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "306-2, экз, Назаров А.А., Элементы электрических и электронных устройств средств автоматизации",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "306-2, экз, Назаров А.А., Элементы электрических и электронных устройств средств автоматизации",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "24.11.2026",
-      "isConsultation": false,
-      "name": "306-2, экз, Назаров А.А., Элементы электрических и электронных устройств средств автоматизации",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "25.11.2026",
       "isConsultation": false,
@@ -145,7 +124,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a5266dd372d09a8b83246969aa81d64583ea94b356ecc7f3680558c1ecf2bf84",
+  "scheduleHash": "e3ae2783a9a5c8dd442ed3b053afd8330c016ffd327846b8612a5220c0bae392",
   "schemaVersion": 3,
   "semester": 3
 }
