@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T03:34:02.227Z",
+  "capturedAt": "2026-11-26T16:53:08.653Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45749725033"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
   },
   "quality": {
-    "examEntries": 4,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 4,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "210-6, зач.диф., Грачев С.А., Статистическое моделирование и прогнозирование",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -54,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "2ea37ef812b44b624c4e579816929e74006c222f382aaf0af7e3c01ef30e1f80",
+  "scheduleHash": "5c236b475c057883263ae611b9b0c7d755853538302d32689ec88abe7b59d081",
   "schemaVersion": 3,
   "semester": 5
 }

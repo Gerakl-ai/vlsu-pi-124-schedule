@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T03:34:02.227Z",
+  "capturedAt": "2026-11-26T16:53:08.653Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,12 +15,12 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45749725033"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
@@ -29,18 +29,11 @@
       "date": "26.11.2026",
       "isConsultation": false,
       "name": "305б-2, зач, Амирсейидов Ш.А., Организация перевозок опасных грузов",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "305б-2, зач, Амирсейидов Ш.А., Организация перевозок опасных грузов",
       "time": "19:30",
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d112ab78834b4e386ab757b3e7f7e03483b6baff4cadf696c30bbe13efc4d5f1",
+  "scheduleHash": "9a66afb46bcd1f7b877751cec75593adfd5d14fe470d55c663c583f04990147a",
   "schemaVersion": 3,
   "semester": 7
 }

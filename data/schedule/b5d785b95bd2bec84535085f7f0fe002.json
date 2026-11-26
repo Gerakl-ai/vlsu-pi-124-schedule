@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T03:34:02.227Z",
+  "capturedAt": "2026-11-26T16:53:08.653Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45749725033"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
   },
   "quality": {
-    "examEntries": 15,
+    "examEntries": 12,
     "lessonDays": 0,
-    "scheduleEntries": 15,
+    "scheduleEntries": 12,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "312-6, экз, Косинец Т.В., Бухгалтерский учет",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "101-6, экз, Косинец Т.В., Бухгалтерский учет",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "101-6, экз, Косинец Т.В., Бухгалтерский учет",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -131,7 +110,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5adf258f60885eacd6ebf07aa012a3a8a649afc074ee02c9412fa970a78f6979",
+  "scheduleHash": "7445de218637f43f54bb71fb0ef465c00b76e4fa7f0f0ff40578e41a06d5e518",
   "schemaVersion": 3,
   "semester": 5
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T03:34:02.227Z",
+  "capturedAt": "2026-11-26T16:53:08.653Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45749725033"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
   },
   "quality": {
-    "examEntries": 6,
+    "examEntries": 5,
     "lessonDays": 0,
-    "scheduleEntries": 6,
+    "scheduleEntries": 5,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "214-6, зач.диф., Быкова М.Л., Статистика",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -68,7 +61,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "7c024a92dab37ce90908bf7823cc14767374b1f868a40421b41c7a27a174dfad",
+  "scheduleHash": "b2d31b6c13fcccf3be9e9a00145e32cba21209aa89081a3663bb2cce6e7aacc4",
   "schemaVersion": 3,
   "semester": 3
 }

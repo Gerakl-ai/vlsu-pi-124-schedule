@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T03:34:02.227Z",
+  "capturedAt": "2026-11-26T16:53:08.653Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45749725033"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
   },
   "quality": {
-    "examEntries": 8,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 8,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Ромодановская М.П., Метрология, стандартизация и сертификация",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "305а-2, лб, Ромодановская М.П., Метрология, стандартизация и сертификация",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -82,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d9f2da444a02df02f339affb285b9d2728cafb39b13c98820651aca17770ffdd",
+  "scheduleHash": "1592389af8ef381f8ed40651d6515a59f8534647981675c03708728c0359ba17",
   "schemaVersion": 3,
   "semester": 3
 }
