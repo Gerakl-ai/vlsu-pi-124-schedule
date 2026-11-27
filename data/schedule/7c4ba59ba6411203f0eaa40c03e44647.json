@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T01:43:07.081Z",
+  "capturedAt": "2026-11-27T12:18:21.705Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,30 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
   },
   "quality": {
-    "examEntries": 11,
+    "examEntries": 9,
     "lessonDays": 0,
-    "scheduleEntries": 11,
+    "scheduleEntries": 9,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "304-2, экз, Орлов Д.Ю., Компьютерные сети и системы",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "304-2, экз, Орлов Д.Ю., Компьютерные сети и системы",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "30.11.2026",
       "isConsultation": false,
@@ -103,7 +89,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9f4992a8bca1feed4286bcc246af1889c4addef23e50e5bdd77402e0f5906313",
+  "scheduleHash": "ce2d09ada6a8a882454736c9ab0f659a8300d69f920c91980e7d7681515b592a",
   "schemaVersion": 3,
   "semester": 3
 }

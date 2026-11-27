@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T01:43:07.081Z",
+  "capturedAt": "2026-11-27T12:18:21.705Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
   },
   "quality": {
-    "examEntries": 12,
+    "examEntries": 11,
     "lessonDays": 0,
-    "scheduleEntries": 12,
+    "scheduleEntries": 11,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": true,
-      "name": "118-2, консультация, Абдуллаев Н.В., Экономика и организация производства",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
     {
       "date": "30.11.2026",
       "isConsultation": false,
@@ -110,7 +103,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "52d9455b63f84405cbb79bc9454aa8bd9d049d98136523ed102fe53e405b6c5f",
+  "scheduleHash": "7bc8491bcc8b18fedbf836f88f7dbe3591459706e28878cf3ccaeacd207781d9",
   "schemaVersion": 3,
   "semester": 5
 }

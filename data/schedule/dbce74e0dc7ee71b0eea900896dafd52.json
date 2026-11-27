@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T01:43:07.081Z",
+  "capturedAt": "2026-11-27T12:18:21.705Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,12 +15,12 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
@@ -29,25 +29,11 @@
       "date": "27.11.2026",
       "isConsultation": false,
       "name": "518-3, зач, Бадалян Н.П., Эксплуатация систем электроснабжения",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "518-3, зач, Бадалян Н.П., Эксплуатация систем электроснабжения",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "518-3, зач, Бадалян Н.П., Эксплуатация систем электроснабжения",
       "time": "14:00",
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "02e4ab7594d7b03e24ad9c2de62a846ff9ed78117ee1136b77f912a5f615a96c",
+  "scheduleHash": "d9200d1150adbae4458d78ef8d8ec3d64a84ef787daba5d8178d6474b8a04e52",
   "schemaVersion": 3,
   "semester": 7
 }

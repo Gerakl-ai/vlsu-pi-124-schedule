@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T01:43:07.081Z",
+  "capturedAt": "2026-11-27T12:18:21.705Z",
   "group": {
     "course": "4 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "146-4, экз, Акимов В.Б., Организация, планирование и управление в строительстве",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "b583432d590bd6cf8fa379aed4546809dd11c9e4a5df19a955f9f42e7b844e85",
+  "scheduleHash": "5c1b1b72a0a2ea2d7b7c5e22d95484885d958643855f1ec7b2382d40cebdc3bc",
   "schemaVersion": 3,
   "semester": 7
 }
