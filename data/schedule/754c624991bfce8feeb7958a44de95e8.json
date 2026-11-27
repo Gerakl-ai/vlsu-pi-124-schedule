@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T16:53:08.653Z",
+  "capturedAt": "2026-11-27T01:43:07.081Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "105а-2, лб, Петрушин А.Д., Программирование микропроцессоров и логических контроллеров систем автоматизации",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -40,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a1bdcaaafbf3e50062292b6e4085f2731ca076760aa81364712923b69307ba9e",
+  "scheduleHash": "cf501312335e4e63d6f12c8cfc05b26bd6d34fba2942bf6bd2b3af1a5e0060c1",
   "schemaVersion": 3,
   "semester": 9
 }

@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T16:53:08.653Z",
+  "capturedAt": "2026-11-27T01:43:07.081Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,51 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
   },
   "quality": {
-    "examEntries": 43,
+    "examEntries": 38,
     "lessonDays": 0,
-    "scheduleEntries": 43,
+    "scheduleEntries": 38,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "243-7, пр, Рузляева Ю.С., Методика преподавания математики в начальных классах",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "312-7, лк, Рузляева Ю.С., Методика преподавания математики в начальных классах",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "312-7, пр, Рузляева Ю.С., Методика преподавания математики в начальных классах",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "312-7, лк, Монасевич З.Л., Методика обучения русскому языку",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "312-7, пр, Монасевич З.Л., Методика обучения русскому языку",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "28.11.2026",
       "isConsultation": false,
@@ -327,7 +292,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a8468d13244abcda36f9b59543cc09b66bdbf4c7a159c66d66c84972174e5323",
+  "scheduleHash": "3702d76b51cc6878b9ec07e5dbd41eacd9c81c504cd94ccbd04e430a4fd694d0",
   "schemaVersion": 3,
   "semester": 9
 }

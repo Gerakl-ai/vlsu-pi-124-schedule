@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-26T16:53:08.653Z",
+  "capturedAt": "2026-11-27T01:43:07.081Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45862812278"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45924147809"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "26.11.2026",
-      "isConsultation": false,
-      "name": "118-2, зач, Жарков Н.В., Производственное оборудование",
-      "time": "19:30",
-      "type": "ExamSession"
-    },
     {
       "date": "27.11.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9c58ccc89b47e91288b55bd7223cffa9143cf8317abe064f82010eab4ee8d879",
+  "scheduleHash": "8d2c18b60ad39d4539064c615e917bd080b7dfdf38b5bf9d0851092b8993095d",
   "schemaVersion": 3,
   "semester": 3
 }
