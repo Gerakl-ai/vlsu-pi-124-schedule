@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T12:18:21.705Z",
+  "capturedAt": "2026-11-27T23:27:24.343Z",
   "group": {
     "course": "5 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
   },
   "quality": {
-    "examEntries": 38,
+    "examEntries": 35,
     "lessonDays": 0,
-    "scheduleEntries": 38,
+    "scheduleEntries": 35,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "236-7, зач, Монасевич З.Л., Инклюзивное и тьюторское сопровождение младших школьников в образовательном процессе",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "236-7, зач, Монасевич З.Л., Инклюзивное и тьюторское сопровождение младших школьников в образовательном процессе",
-      "time": "10:20",
-      "type": "ExamSession"
-    },
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "236-7, зач, Монасевич З.Л., Инклюзивное и тьюторское сопровождение младших школьников в образовательном процессе",
-      "time": "12:10",
-      "type": "ExamSession"
-    },
     {
       "date": "30.11.2026",
       "isConsultation": false,
@@ -292,7 +271,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3702d76b51cc6878b9ec07e5dbd41eacd9c81c504cd94ccbd04e430a4fd694d0",
+  "scheduleHash": "fea4c8ff875424fea0e1cd03a73b5231040fd8297b2375c0036a65587d9dd46a",
   "schemaVersion": 3,
   "semester": 9
 }

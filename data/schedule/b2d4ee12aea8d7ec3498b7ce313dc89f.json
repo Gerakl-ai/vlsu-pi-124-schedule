@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T12:18:21.705Z",
+  "capturedAt": "2026-11-27T23:27:24.343Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
   },
   "quality": {
-    "examEntries": 2,
+    "examEntries": 1,
     "lessonDays": 0,
-    "scheduleEntries": 2,
+    "scheduleEntries": 1,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "400а-1, экз, Авдеева Н.А., Деловой иностранный язык",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
     {
       "date": "01.12.2026",
       "isConsultation": false,
@@ -40,7 +33,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "a27936ff3a32324c4aaea3d78c4e72dfdd11967c2f2e3f2cce83a938e92add77",
+  "scheduleHash": "508938d9b8827885cada40a2256ee1d29ccaa522e51919ca5242d0a979891b2c",
   "schemaVersion": 3,
   "semester": 3
 }

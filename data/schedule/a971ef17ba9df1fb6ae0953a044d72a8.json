@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T12:18:21.705Z",
+  "capturedAt": "2026-11-27T23:27:24.343Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
   },
   "quality": {
-    "examEntries": 6,
+    "examEntries": 3,
     "lessonDays": 0,
-    "scheduleEntries": 6,
+    "scheduleEntries": 3,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, зач, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "14:00",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, зач, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "114б-2, зач, Ульченко Т., Инженерная и компьютерная графика",
-      "time": "17:40",
-      "type": "ExamSession"
-    },
     {
       "date": "28.11.2026",
       "isConsultation": false,
@@ -68,7 +47,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "9fcc293ce0cc619904c928fd7effa13434b032c7f633b9a4c1133c49007c7f94",
+  "scheduleHash": "d4515e214c1713d84b91c14774112b8b671fe96bb237f96765508b732636a4dd",
   "schemaVersion": 3,
   "semester": 3
 }

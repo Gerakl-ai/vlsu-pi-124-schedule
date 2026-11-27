@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T12:18:21.705Z",
+  "capturedAt": "2026-11-27T23:27:24.343Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/45997503571"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "27.11.2026",
-      "isConsultation": false,
-      "name": "217-6, зач, Константинов Е.С., Русский язык и культура речи",
-      "time": "15:50",
-      "type": "ExamSession"
-    },
     {
       "date": "30.11.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "5c236b475c057883263ae611b9b0c7d755853538302d32689ec88abe7b59d081",
+  "scheduleHash": "9d21cc8be09bee36de28d47f496ef9eeb6c383a3004ec3a7be3eb73dc33347b9",
   "schemaVersion": 3,
   "semester": 5
 }
