@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T23:27:24.343Z",
+  "capturedAt": "2026-11-28T07:47:59.616Z",
   "group": {
     "course": "2 курс",
     "forms": [
@@ -15,23 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46122836999"
   },
   "quality": {
-    "examEntries": 3,
+    "examEntries": 2,
     "lessonDays": 0,
-    "scheduleEntries": 3,
+    "scheduleEntries": 2,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "111 -2, зач, Левина С.М., Основы программирования и алгоритмизация автоматических систем",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "28.11.2026",
       "isConsultation": false,
@@ -47,7 +40,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "d4515e214c1713d84b91c14774112b8b671fe96bb237f96765508b732636a4dd",
+  "scheduleHash": "24873b7567f68506e57116f215d5f3a3946f7db3451c36d5b536d33598369db3",
   "schemaVersion": 3,
   "semester": 3
 }

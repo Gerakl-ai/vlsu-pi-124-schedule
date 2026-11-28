@@ -1,5 +1,5 @@
 {
-  "capturedAt": "2026-11-27T23:27:24.343Z",
+  "capturedAt": "2026-11-28T07:47:59.616Z",
   "group": {
     "course": "3 курс",
     "forms": [
@@ -15,37 +15,16 @@
     "commit": "fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "commitUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/commit/fb6148ed5ce1d655ca83ef43a48a63b8d3b81eb9",
     "repository": "Gerakl-ai/vlsu-pi-124-schedule",
-    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46082578482"
+    "runUrl": "https://github.com/Gerakl-ai/vlsu-pi-124-schedule/actions/runs/46122836999"
   },
   "quality": {
-    "examEntries": 9,
+    "examEntries": 6,
     "lessonDays": 0,
-    "scheduleEntries": 9,
+    "scheduleEntries": 6,
     "valid": true,
     "warnings": []
   },
   "schedule": [
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "301-3, экз, Губанов Д.С., Экзамен по модулю ПМ.02",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "301-3, экз, Филин Е.А., Экзамен по модулю ПМ.02",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
-    {
-      "date": "28.11.2026",
-      "isConsultation": false,
-      "name": "301-3, экз, Шумарин С.В., Экзамен по модулю ПМ.02",
-      "time": "08:30",
-      "type": "ExamSession"
-    },
     {
       "date": "28.11.2026",
       "isConsultation": false,
@@ -89,7 +68,7 @@
       "type": "ExamSession"
     }
   ],
-  "scheduleHash": "3ea50f54e3ff663a88faf86ee843d8629c1c41ed02039a5bfffa8d1a0faa0862",
+  "scheduleHash": "4245e5e8df0d0132d5708d19f48d0a7c9dd6046efb72d2091cf00be2d8c4e87d",
   "schemaVersion": 3,
   "semester": 5
 }
